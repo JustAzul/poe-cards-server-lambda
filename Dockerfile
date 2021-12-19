@@ -6,7 +6,6 @@ COPY package*.json ./
 COPY . .
 
 RUN npm install --production
-
 RUN npm prune --production
 
 CMD [ "node", "index.js" ]
