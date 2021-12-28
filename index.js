@@ -119,4 +119,13 @@ async function main() {
   }
 }
 
-process.nextTick(main);
+exports.handler = async (/* event */) => {
+  const r = await main();
+
+  const response = {
+    statusCode: 200,
+    body: JSON.stringify(`Job done.`),
+  };
+
+  return response;
+};
