@@ -1,5 +1,4 @@
-module.exports = [
-  {
+module.exports = [{
     Name: 'The Wrath',
     Reward: 'Chaos Orb',
     Amount: 10,
@@ -28,5 +27,29 @@ module.exports = [
     Name: 'Seven Years Bad Luck',
     Reward: 'Mirror Shard',
     Amount: 1,
-  },
+  }, {
+    Name: 'Unrequited Love',
+    Reward: 'Mirror Shard',
+    Amount: 19,
+  }, {
+    Name: 'Brother\'s Stash',
+    Reward: 'Exalted Orb',
+    Amount: 5,
+  }, {
+    Name: 'The Scout',
+    Reward: 'Exalted Orb',
+    Amount: 7,
+  }, {
+    Name: 'The Long Con',
+    Reward: 'Elderslayer\'s Exalted Orb',
+    Amount: 1,
+  }, {
+    Name: 'Underground Forest',
+    Reward: 'Awakened Sextant',
+    Amount: 10,
+  }, {
+    Name: 'Alluring Bounty',
+    Reward: 'Exalted Orb',
+    Amount: 10,
+  }
 ];
