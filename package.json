@@ -10,8 +10,8 @@
   "author": "Azul",
   "license": "ISC",
   "dependencies": {
-    "azul-tools": "^1.9.19",
-    "firebase-admin": "^10.0.0",
+    "azul-tools": "^1.9.24",
+    "firebase-admin": "^10.0.2",
     "got": "^11.8.3",
     "moment": "^2.29.1"
   },
