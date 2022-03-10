@@ -49,6 +49,13 @@ module.exports = [
     Links: 0,
     gemLevel: 0,
   }, {
+    Name: 'The Patient',
+    Reward: 'The Nurse',
+    Corrupted: false,
+    iClass: 6,
+    Links: 0,
+    gemLevel: 0,
+  }, {
     Name: 'The Spark and the Flame',
     Reward: "Berek's Respite",
     Corrupted: false,
@@ -223,5 +230,26 @@ module.exports = [
     iClass: 4,
     Links: 0,
     gemLevel: 4,
-  },
+  }, {
+    Name: 'Succor of the Sinless',
+    Reward: 'Bottled Faith',
+    Corrupted: false,
+    iClass: 3,
+    Links: 0,
+    gemLevel: 0,
+  }, {
+    Name: 'The One That Got Away',
+    Reward: 'Replica Bated Breath',
+    Corrupted: false,
+    iClass: 3,
+    Links: 0,
+    gemLevel: 0,
+  }, {
+    Name: 'The Academic',
+    Reward: 'Inspired Learning',
+    Corrupted: false,
+    iClass: 3,
+    Links: 0,
+    gemLevel: 0,
+  }
 ];
