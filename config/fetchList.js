@@ -6,7 +6,6 @@ module.exports = [
   'Prophecy',
   'UniqueMap',
   'SkillGem',
-  /* 'UniqueJewel',
-  'UniqueFlask', */
-
+  'UniqueFlask',
+  // 'UniqueJewel',
 ];
