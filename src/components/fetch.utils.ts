@@ -1,5 +1,5 @@
+import LEAGUES_TO_IGNORE from '../constants/leagues-to-ignore';
 import { LeagueResponse } from '../types/league-response.type';
-import leaguesToIgnore from '../constants/leagues-to-ignore';
 
 export default {
   filterLeagues(leaguesResponse: LeagueResponse[]): LeagueResponse[] {
@@ -8,7 +8,7 @@ export default {
       .filter(({ realm }) => realm === 'pc') // Picking pc leagues
       .filter(({ event }) => !event) // Removing event leagues
       .filter(
-        ({ id: leagueName }) => !leaguesToIgnore.includes(leagueName),
+        ({ id: leagueName }) => !LEAGUES_TO_IGNORE.includes(leagueName),
       );
   },
 };

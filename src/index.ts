@@ -1,6 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
-import db from './components/firestore';
+import db from './components/db';
 import fetch from './components/fetch';
 import utils from './components/utils';
 
@@ -12,16 +12,7 @@ async function main() {
   const leaguesByName = utils.findLeagueResponseByName(await fetch.leaguesData());
 
   console.log(`Found ${leaguesByName.size} leagues: ${[...leaguesByName.keys()].join(', ')}.`);
-
-  {
-    const leaguesDoc = db.collection('leagues').doc('all');
-
-    await leaguesDoc.set(
-      utils.parseLeagueDetails(leaguesByName),
-    );
-
-    console.log('Leagues is up to date.');
-  }
+  await db.updateLeaguesDocument(leaguesByName);
 
   /* const UpdatedAt = {};
 
@@ -130,12 +121,27 @@ const handler = async (
   context: Context,
   callback: APIGatewayProxyCallback,
 ): Promise<void> => {
-  await main();
+  try {
+    await main();
+    callback(null, {
+      statusCode: 200,
+      body: JSON.stringify('Job done.'),
+    });
+  } catch (e) {
+    if (e instanceof Error) {
+      callback(e, {
+        statusCode: 500,
+        body: JSON.stringify(e.message),
+      });
 
-  callback(null, {
-    statusCode: 200,
-    body: JSON.stringify('Job done.'),
-  });
+      return;
+    }
+
+    callback(null, {
+      statusCode: 500,
+      body: JSON.stringify(e),
+    });
+  }
 };
 
 process.nextTick(async () => main());
