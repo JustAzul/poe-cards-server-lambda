@@ -1,36 +1,27 @@
-import * as firebaseAdmin from 'firebase-admin';
-
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
-import SERVICE_ACCOUNT from './constants/firebase-credentials';
+import db from './components/firestore';
 import fetch from './components/fetch';
 import utils from './components/utils';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
-// const { LeaguesOverview } = require('./components/Fetch');
 // const Generators = require('./components/Generators');
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
-  const leaguesResponseByName = utils.findLeagueResponseByName(await fetch.leaguesData());
+  const leaguesByName = utils.findLeagueResponseByName(await fetch.leaguesData());
 
-  console.log(leaguesResponseByName);
+  console.log(`Found ${leaguesByName.size} leagues: ${[...leaguesByName.keys()].join(', ')}.`);
 
-  return;
-  const serviceAccount: firebaseAdmin.ServiceAccount = {
-    projectId: SERVICE_ACCOUNT.project_id,
-    clientEmail: SERVICE_ACCOUNT.client_email,
-    privateKey: SERVICE_ACCOUNT.private_key,
-  };
+  {
+    const leaguesDoc = db.collection('leagues').doc('all');
 
-  const firebase = firebaseAdmin.initializeApp({
-    credential: firebaseAdmin.credential.cert(serviceAccount),
-  });
+    await leaguesDoc.set(
+      utils.parseLeagueDetails(leaguesByName),
+    );
 
-  const db = firebase.firestore();
-  const leaguesDocument = db.collection('leagues').doc('all');
-
-  // console.log(await leaguesDocument.get());
+    console.log('Leagues is up to date.');
+  }
 
   // console.log('Fetching Leagues..');
   // const Leagues = await LeaguesOverview();
