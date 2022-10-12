@@ -1,40 +1,36 @@
-/* eslint-disable no-console */
-/* eslint-disable no-await-in-loop */
-// eslint-disable-next-line import/no-unresolved
-const { initializeApp, /* applicationDefault, */ cert } = require('firebase-admin/app');
-// eslint-disable-next-line import/no-unresolved
-const { getFirestore/* , Timestamp, FieldValue */ } = require('firebase-admin/firestore');
-const { GetLeagueOverview, Delay } = require('./components/utils');
-const { LeaguesOverview } = require('./components/Fetch');
-const Generators = require('./components/Generators');
+import * as firebaseAdmin from 'firebase-admin';
 
-const serviceAccountKey = require('./config/serviceAccountKey.json');
+import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
+import serviceAccount from './config/serviceAccount';
+
+// const { GetLeagueOverview, Delay } = require('./components/utils');
+// const { LeaguesOverview } = require('./components/Fetch');
+// const Generators = require('./components/Generators');
+
+// eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
-  {
-    const credential = cert(serviceAccountKey);
-    const AppOptions = {
-      credential,
-    };
+  const firebase = firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.cert(serviceAccount as firebaseAdmin.ServiceAccount),
+  });
 
-    initializeApp(AppOptions);
-  }
+  const db = firebase.firestore();
+  const leaguesDocument = db.collection('leagues').doc('all');
 
-  const db = getFirestore();
+  // console.log(await leaguesDocument.get());
 
-  console.log('Fetching Leagues..');
-  const Leagues = await LeaguesOverview();
-  console.log(`Found ${Object.keys(Leagues).length} leagues!`);
+  // console.log('Fetching Leagues..');
+  // const Leagues = await LeaguesOverview();
+  // console.log(`Found ${Object.keys(Leagues).length} leagues!`);
 
-  const UpdateLeagueList = async () => {
-    const LeaguesDoc = db.collection('leagues').doc('all');
+  /* const UpdateLeagueList = async () => {
     console.log('Updating leagues realtime database..');
-    await LeaguesDoc.set(Leagues);
+    // await LeaguesDoc.set(Leagues);
   };
 
-  await UpdateLeagueList();
+  await UpdateLeagueList(); */
 
-  const UpdatedAt = {};
+  /* const UpdatedAt = {};
 
   const GetLeagueData = async () => {
     const LeaguesData = Object.values(Leagues);
@@ -42,10 +38,13 @@ async function main() {
     const Results = {};
 
     for (let i = 0; i < LeaguesData.length; i += 1) {
+      // @ts-ignore ignore
       const { leagueName } = LeaguesData[i];
 
       console.log(`Requesting league '${leagueName}' Overview..`);
+      // @ts-ignore ignore
       Results[leagueName] = await GetLeagueOverview(leagueName);
+      // @ts-ignore ignore
       UpdatedAt[leagueName] = new Date().toISOString();
 
       if (i !== (LeaguesData.length - 1)) await Delay(2);
@@ -56,7 +55,7 @@ async function main() {
 
   const LeagueDatas = await GetLeagueData();
 
-  console.log('Generating tables and maping results..');
+  console.log('Generating tables and mapping results..');
   const TableResults = {};
   const CurrencyResults = {};
 
@@ -69,22 +68,36 @@ async function main() {
 
       Workload.push(
         new Promise((resolve) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore ignore
           const Result = LeagueDatas[leagueName]
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore ignore
             .filter(({ currencyTypeName }) => !!currencyTypeName)
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore ignore
             .map((Item) => ({
               Name: Item.currencyTypeName,
               detailsId: Item.detailsId,
               chaosEquivalent: Item.chaosEquivalent,
             }));
 
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore ignore
           CurrencyResults[leagueName] = Result;
-          resolve();
+          resolve(null);
         }),
       );
 
       Workload.push(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore ignore
         Generators.FlipTable(LeagueDatas[leagueName])
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore ignore
           .then((Result) => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore ignore
             TableResults[leagueName] = Result;
           }),
       );
@@ -116,16 +129,24 @@ async function main() {
       UpdateCurrencyDatabase(CurrencyResults),
       UpdateLeagueDates(UpdatedAt),
     ]);
-  }
+  } */
 }
 
-exports.handler = async (/* event */) => {
-  const r = await main();
+const handler = async (
+  event: APIGatewayEvent,
+  context: Context,
+  callback: APIGatewayProxyCallback,
+): Promise<void> => {
+  await main();
 
-  const response = {
+  callback(null, {
     statusCode: 200,
-    body: JSON.stringify(`Job done.`),
-  };
+    body: JSON.stringify('Job done.'),
+  });
+};
 
-  return response;
+process.nextTick(async () => main());
+
+export {
+  handler,
 };
