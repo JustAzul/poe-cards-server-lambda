@@ -1,8 +1,11 @@
-name: deploy to lambda
-on: [push]
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [ main ]
+    
 jobs:
-  deploy_source:
-    name: build and deploy lambda
+  continuous-integration:
+    name: Continuous Integration
     strategy:
       matrix:
         node-version: [14.x]
@@ -22,6 +25,12 @@ jobs:
         uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r ./bundle.zip package*.json index.js ./config ./components ./node_modules
+  
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    needs: [continuous-integration]
+    if: github.ref == 'refs/heads/main'
+    steps:
       # Step 1
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
