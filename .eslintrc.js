@@ -26,6 +26,7 @@ module.exports = {
       },
     ],
     'import/order': 'off',
+    'import/prefer-default-export': 'warn',
   },
   overrides: [{
     files: ['./src/index.ts'],
