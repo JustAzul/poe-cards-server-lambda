@@ -1,4 +1,4 @@
-export type FetchableList =
+export type ItemOverviewType =
 'DivinationCard'|
 'SkillGem'|
 'UniqueAccessory'|

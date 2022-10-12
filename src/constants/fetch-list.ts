@@ -1,6 +1,6 @@
-import { FetchableList } from '../types/fetchable-list.type';
+import { ItemOverviewType } from '../types/item-overview-types.type';
 
-const list: FetchableList[] = [
+const list: ItemOverviewType[] = [
   'DivinationCard',
   'UniqueArmour',
   'UniqueAccessory',
