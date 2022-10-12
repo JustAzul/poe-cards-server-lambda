@@ -7,10 +7,13 @@ module.exports = {
     'airbnb-base',
     'plugin:import/errors',
     'plugin:import/warnings',
+    'plugin:import/typescript',
   ],
   plugins: [
+    '@typescript-eslint',
     'import',
   ],
+  parser: '@typescript-eslint/parser',
   rules: {
     'import/extensions': [
       'error',
@@ -22,6 +25,7 @@ module.exports = {
         tsx: 'never',
       },
     ],
+    'import/order': 'off',
   },
   overrides: [{
     files: ['./src/index.ts'],
@@ -30,13 +34,10 @@ module.exports = {
     },
   }, {
     files: ['*.ts', '*.tsx'],
-    plugins: ['@typescript-eslint'],
     extends: [
       'plugin:@typescript-eslint/recommended',
       'plugin:@typescript-eslint/recommended-requiring-type-checking',
-      'plugin:import/typescript',
     ],
-    parser: '@typescript-eslint/parser',
     parserOptions: {
       project: ['./tsconfig.json'],
     },
