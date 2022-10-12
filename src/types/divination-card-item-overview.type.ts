@@ -1,22 +1,8 @@
-import { ExplicitModifier } from './explicit-modifier.type';
 import { ItemClassDictionary } from './item-class-dictionary.type';
-import { SparklineData } from './sparkline-data.type';
+import { ItemOverview } from './item-overview.type';
 
-export type DivinationCardItemOverview = {
-    artFilename: string;
-    chaosValue: number;
-    count: number;
-    detailsId: string;
-    divineValue: number;
-    explicitModifiers: ExplicitModifier[];
-    flavourText: string;
-    icon: string;
-    id: number;
-    implicitModifiers: never[];
+export type DivinationCardItemOverview = Omit<ItemOverview, 'itemClass'> & {
     itemClass: ItemClassDictionary.DIVINATION_CARD;
-    listingCount: number;
-    lowConfidenceSparkline: SparklineData;
-    name: string;
-    sparkline: SparklineData;
+    artFilename: string;
     stackSize: number;
 }
