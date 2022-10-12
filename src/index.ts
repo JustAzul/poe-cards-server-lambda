@@ -2,7 +2,7 @@ import * as firebaseAdmin from 'firebase-admin';
 
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
-import serviceAccount from './config/serviceAccount';
+import SERVICE_ACCOUNT from './config/firebase-credentials';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
 // const { LeaguesOverview } = require('./components/Fetch');
@@ -10,8 +10,14 @@ import serviceAccount from './config/serviceAccount';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
+  const serviceAccount: firebaseAdmin.ServiceAccount = {
+    projectId: SERVICE_ACCOUNT.project_id,
+    clientEmail: SERVICE_ACCOUNT.client_email,
+    privateKey: SERVICE_ACCOUNT.private_key,
+  };
+
   const firebase = firebaseAdmin.initializeApp({
-    credential: firebaseAdmin.credential.cert(serviceAccount as firebaseAdmin.ServiceAccount),
+    credential: firebaseAdmin.credential.cert(serviceAccount),
   });
 
   const db = firebase.firestore();
