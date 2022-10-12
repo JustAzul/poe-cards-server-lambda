@@ -3,7 +3,7 @@ module.exports = [
   'UniqueArmour',
   'UniqueAccessory',
   'UniqueWeapon',
-  'Prophecy',
+  //'Prophecy',
   'UniqueMap',
   'SkillGem',
   'UniqueFlask',
