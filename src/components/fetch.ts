@@ -1,42 +1,25 @@
+import { LeagueResponse } from '../types/league-response.type';
+import axios from 'axios';
+import userAgent from '../constants/user-agent';
+import utils from './fetch.utils';
+// import { got } from 'got';
 // const got = require('got');
 // const moment = require('moment');
 // const { sleep } = require('azul-tools');
 
-// async function RequestLeaguesOverview() {
-//   const RemoveUnusedLeagues = (data) => data
-//     .filter(({ id }) => id.indexOf('SSF') === -1) // Removing SSF Leagues
-//     .filter(({ event }) => !event) // Removing event leagues
-//     .filter(({ realm }) => realm === 'pc') // Picking pc leagues
-//   // .filter(({ id }) => id !== 'Standard') // Removing STD League
-//     .filter(({ id }) => id !== 'Hardcore'); // Removing STD-Hardcore League
+export default {
+  async leaguesData(): Promise<LeagueResponse[]> {
+    const { data } = await axios.get<LeagueResponse[]>('https://api.pathofexile.com/leagues', {
+      responseType: 'json',
+      headers: {
+        'user-agent': userAgent,
+      },
+    });
 
-//   const o = {
-//     url: 'https://api.pathofexile.com/leagues',
-//     searchParams: {
-//       type: 'main',
-//       compact: 0,
-//     },
-//     responseType: 'json',
-//   };
-
-//   const { body } = await got(o);
-
-//   const LeaguesData = RemoveUnusedLeagues(body);
-//   const Leagues = {};
-
-//   for (let i = 0; i < LeaguesData.length; i += 1) {
-//     const { id, url } = LeaguesData[i];
-
-//     const LeagueObject = {
-//       leagueName: id,
-//       ladder: url,
-//     };
-
-//     Leagues[LeagueObject.leagueName] = LeagueObject;
-//   }
-
-//   return Leagues;
-// }
+    return utils.filterLeagues(data);
+  },
+  utils,
+};
 
 // async function RequestItemOverview(League, Type) {
 //   const o = {
@@ -93,7 +76,3 @@
 //   ItemOverview: RequestItemOverview,
 //   CurrencyOverview: RequestCurrencyOverview,
 // };
-
-export default {
-
-};

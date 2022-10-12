@@ -3,6 +3,8 @@ import * as firebaseAdmin from 'firebase-admin';
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
 import SERVICE_ACCOUNT from './constants/firebase-credentials';
+import fetch from './components/fetch';
+import utils from './components/utils';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
 // const { LeaguesOverview } = require('./components/Fetch');
@@ -10,6 +12,11 @@ import SERVICE_ACCOUNT from './constants/firebase-credentials';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
+  const leaguesResponseByName = utils.findLeagueResponseByName(await fetch.leaguesData());
+
+  console.log(leaguesResponseByName);
+
+  return;
   const serviceAccount: firebaseAdmin.ServiceAccount = {
     projectId: SERVICE_ACCOUNT.project_id,
     clientEmail: SERVICE_ACCOUNT.client_email,

@@ -1,4 +1,4 @@
-import { CardCurrencyItem } from '../types/card-currency-item';
+import { CardCurrencyItem } from '../types/card-currency-item.type';
 
 const currencyCards: CardCurrencyItem[] = [{
   Name: 'The Wrath',
