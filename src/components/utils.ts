@@ -1,5 +1,6 @@
 import { LeagueName } from '../types/league-name.type';
 import { LeagueResponse } from '../types/league-response.type';
+import { LeagueWithLadderUrl } from '../types/league-with-ladder-url.type';
 
 export default {
   findLeagueResponseByName(leagueResponses: LeagueResponse[]): Map<LeagueName, LeagueResponse> {
@@ -10,11 +11,20 @@ export default {
       leaguesWithDetails.set(leagueResponse.id, leagueResponse);
     }
 
-    leagueResponses.map(({ id: leagueName, url: ladderUrl }) => ({
-      leagueName,
-      ladder: ladderUrl,
-    }));
-
     return leaguesWithDetails;
+  },
+
+  parseLeagueDetails(
+    leaguesByName: Map<LeagueName, LeagueResponse>,
+  ): { [leagueName: LeagueName]: LeagueWithLadderUrl } {
+    return Object.fromEntries(
+      Array.from(
+        leaguesByName.values(),
+      ).map(({ id: leagueName, url }) => [leagueName, {
+        leagueName,
+        ladder: url,
+      }])
+      ,
+    );
   },
 };
