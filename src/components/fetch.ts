@@ -22,16 +22,19 @@ export default {
     return utils.filterLeagues(data);
   },
 
-  async itemOverview(leagueName: LeagueName, type: ItemOverviewType) {
-    console.log(`Fetching ${type} item overview for ${leagueName}`);
+  async itemOverview<OverviewType extends ItemOverviewType>(
+    leagueName: LeagueName,
+    overviewType: OverviewType,
+  ): Promise< ItemOverviewDictionary[OverviewType][] > {
+    console.log(`Fetching ${overviewType} item overview for ${leagueName}`);
 
     const params = {
       language: 'en',
       league: leagueName,
-      type,
+      type: overviewType,
     };
 
-    const { data } = await axios.get<ItemOverviewResponse<ItemOverviewDictionary[ItemOverviewType]>>('https://poe.ninja/api/data/itemoverview', {
+    const { data } = await axios.get<ItemOverviewResponse<ItemOverviewDictionary[OverviewType]>>('https://poe.ninja/api/data/itemoverview', {
       responseType: 'json',
       params,
       headers: {
