@@ -23,17 +23,6 @@ async function main() {
     console.log('Leagues is up to date.');
   }
 
-  // console.log('Fetching Leagues..');
-  // const Leagues = await LeaguesOverview();
-  // console.log(`Found ${Object.keys(Leagues).length} leagues!`);
-
-  /* const UpdateLeagueList = async () => {
-    console.log('Updating leagues realtime database..');
-    // await LeaguesDoc.set(Leagues);
-  };
-
-  await UpdateLeagueList(); */
-
   /* const UpdatedAt = {};
 
   const GetLeagueData = async () => {
