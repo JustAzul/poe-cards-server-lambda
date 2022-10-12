@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "aws-lambda": "^1.0.7",
+    "axios": "^1.1.2",
     "azul-tools": "^1.9.24",
     "firebase-admin": "^10.0.2",
     "got": "^11.8.3",
