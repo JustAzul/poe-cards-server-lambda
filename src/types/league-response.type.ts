@@ -1,9 +1,7 @@
 import { IsoDate } from './iso-date.type';
 import { LeagueName } from './league-name.type';
+import { LeagueRealms } from './league-realms.type';
 import { LeagueRule } from './league-rule.type';
-
-// TODO: this probably need some work
-type Realms = 'pc';
 
 export type LeagueResponse = {
     delveEvent: boolean;
@@ -11,7 +9,7 @@ export type LeagueResponse = {
     endAt: IsoDate | null;
     event?: boolean;
     id: LeagueName;
-    realm: Realms;
+    realm: LeagueRealms;
     registerAt: IsoDate;
     rules: LeagueRule[];
     startAt: IsoDate;

@@ -1,4 +1,5 @@
 import { CurrencyOverviewResponse } from '../types/currency-overview-response.type';
+import { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
 import { ItemOverviewResponse } from '../types/item-overview-response.type';
 import { ItemOverviewType } from '../types/item-overview-types.type';
 import { LeagueName } from '../types/league-name.type';
@@ -21,7 +22,7 @@ export default {
     return utils.filterLeagues(data);
   },
 
-  async itemOverview<T>(leagueName: LeagueName, type: ItemOverviewType) {
+  async itemOverview(leagueName: LeagueName, type: ItemOverviewType) {
     console.log(`Fetching ${type} item overview for ${leagueName}`);
 
     const params = {
@@ -30,7 +31,7 @@ export default {
       type,
     };
 
-    const { data } = await axios.get<ItemOverviewResponse<T>>('https://poe.ninja/api/data/itemoverview', {
+    const { data } = await axios.get<ItemOverviewResponse<ItemOverviewDictionary[ItemOverviewType]>>('https://poe.ninja/api/data/itemoverview', {
       responseType: 'json',
       params,
       headers: {
