@@ -1,4 +1,6 @@
-module.exports = [
+import { FetchableList } from '../types/fetchable-list.type';
+
+const list: FetchableList[] = [
   'DivinationCard',
   'UniqueArmour',
   'UniqueAccessory',
@@ -8,3 +10,5 @@ module.exports = [
   'UniqueFlask',
   'UniqueJewel',
 ];
+
+export default list;

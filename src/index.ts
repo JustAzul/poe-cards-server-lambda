@@ -2,7 +2,7 @@ import * as firebaseAdmin from 'firebase-admin';
 
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
-import SERVICE_ACCOUNT from './config/firebase-credentials';
+import SERVICE_ACCOUNT from './constants/firebase-credentials';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
 // const { LeaguesOverview } = require('./components/Fetch');

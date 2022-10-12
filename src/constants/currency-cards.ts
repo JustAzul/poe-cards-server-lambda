@@ -1,4 +1,6 @@
-module.exports = [{
+import { CardCurrencyItem } from '../types/card-currency-item';
+
+const currencyCards: CardCurrencyItem[] = [{
   Name: 'The Wrath',
   Reward: 'Chaos Orb',
   Amount: 10,
@@ -53,3 +55,5 @@ module.exports = [{
   Amount: 10,
 },
 ];
+
+export default currencyCards;

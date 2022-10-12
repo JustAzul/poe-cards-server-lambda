@@ -1,4 +1,6 @@
-module.exports = [{
+import { CardItem } from '../types/card-item.type';
+
+const cards: CardItem[] = [{
   Name: "The Wolven King's Bite",
   Reward: "Rigwald's Quills",
   Corrupted: false,
@@ -251,3 +253,5 @@ module.exports = [{
   Links: 0,
   gemLevel: 0,
 }];
+
+export default cards;
