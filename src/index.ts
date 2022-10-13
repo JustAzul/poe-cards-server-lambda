@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
+import cards from './constants/cards';
 import fetch from './components/fetch';
 import firestore from './components/firestore';
 import utils from './components/utils';
@@ -23,8 +24,19 @@ async function main() {
 
   await firestore.updateLeaguesDocument(leaguesByName);
 
-  const r = await fetch.leagueOverview('Standard');
-  console.log(r);
+  const standardOverview = await fetch.leagueOverview('Standard');
+  cards.forEach((card) => {
+    const findResult = utils.findItemFromLeagueOverview(
+      standardOverview.itemsOverview,
+      card,
+    );
+
+    if (findResult) {
+      console.log(`card ${card.Name} found result.`);
+    } else {
+      console.error(`card ${card.Name} found result.`);
+    }
+  });
 
   /* const UpdatedAt = {};
 
