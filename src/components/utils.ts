@@ -1,4 +1,5 @@
 import { CardItem } from '../types/card-item.type';
+import { CurrencyOverview } from '../types/currency-overview.type';
 import { ItemOverview } from '../types/item-overview.type';
 import { LeagueItemsOverview } from '../types/league-items-overview.type';
 import { LeagueName } from '../types/league-name.type';
@@ -109,5 +110,22 @@ export default class Utils {
     });
 
     return result;
+  }
+
+  static findCurrencyChaosValue(
+    CurrencyOverviewList: CurrencyOverview[],
+    currencyName: string,
+  ) {
+    if (currencyName === 'Chaos Orb') return 1;
+
+    const result = CurrencyOverviewList.find(
+      ({ currencyTypeName }) => currencyName === currencyTypeName,
+    );
+
+    if (result) {
+      return result.chaosEquivalent;
+    }
+
+    throw new Error('currency chaos value not found');
   }
 }
