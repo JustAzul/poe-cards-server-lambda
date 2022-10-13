@@ -9,13 +9,21 @@ import utils from './components/utils';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
-  const leaguesByName = utils.findLeagueResponseByName(await fetch.leaguesData());
+  const leaguesByName = utils.findLeagueResponseByName(
+    await fetch.leaguesData(),
+  );
 
-  console.log(`Found ${leaguesByName.size} leagues: ${[...leaguesByName.keys()].join(', ')}.`);
+  {
+    const leaguesFound = [...leaguesByName.keys()];
+
+    console.log(
+      `Found ${leaguesByName.size} leagues: ${leaguesFound.join(', ')}.`,
+    );
+  }
+
   await db.updateLeaguesDocument(leaguesByName);
 
   const r = await fetch.leagueOverview('Standard');
-
   console.log(r);
 
   /* const UpdatedAt = {};
@@ -152,6 +160,4 @@ if (process.env.NODE_ENV === 'development') {
   process.nextTick(async () => main());
 }
 
-export {
-  handler,
-};
+export { handler };
