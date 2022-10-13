@@ -1,4 +1,4 @@
-export type SparklineData ={
-    data: number[];
-    totalChange: number;
+export type SparklineData = {
+  data: number[];
+  totalChange: number;
 };

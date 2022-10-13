@@ -8,12 +8,12 @@ import { UniqueMapItemOverview } from './unique-map-item-overview.type';
 import { UniqueWeaponItemOverview } from './unique-weapon-item-overview.type';
 
 export type ItemOverviewDictionary = {
-    DivinationCard: DivinationCardItemOverview;
-    SkillGem: SkillGemItemOverview;
-    UniqueAccessory: UniqueAccessoryItemOverview;
-    UniqueArmour: UniqueArmourItemOverview;
-    UniqueFlask: UniqueFlaskItemOverview;
-    UniqueJewel : UniqueJewelItemOverview;
-    UniqueMap: UniqueMapItemOverview;
-    UniqueWeapon: UniqueWeaponItemOverview;
-}
+  DivinationCard: DivinationCardItemOverview;
+  SkillGem: SkillGemItemOverview;
+  UniqueAccessory: UniqueAccessoryItemOverview;
+  UniqueArmour: UniqueArmourItemOverview;
+  UniqueFlask: UniqueFlaskItemOverview;
+  UniqueJewel: UniqueJewelItemOverview;
+  UniqueMap: UniqueMapItemOverview;
+  UniqueWeapon: UniqueWeaponItemOverview;
+};

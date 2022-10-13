@@ -1,1 +1,1 @@
-export type LeagueRealms = 'pc'
+export type LeagueRealms = 'pc';
