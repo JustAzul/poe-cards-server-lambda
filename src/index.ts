@@ -35,10 +35,14 @@ async function main() {
         leagueName,
       );
 
-    if (findResult) {
-      console.log(`card ${card.Name} found result.`);
-    } else {
-      console.error(`card ${card.Name} found result.`);
+      if (!findResult?.cardOverview && !findResult?.rewardOverview) {
+        console.error(`failed to find result for ${card.Name}`);
+      }
+    } catch (e) {
+      console.error(
+        // `failed to find result for ${card.Name}`,
+        (e as Error).message,
+      );
     }
   });
 
