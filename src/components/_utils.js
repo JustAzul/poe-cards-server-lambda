@@ -14,11 +14,20 @@ function ChaosToExalted(ExaltedValue = 0, ChaosValue = 0) {
   return parseFloat(parseFloat(ChaosValue / ExaltedValue).toFixed(1));
 }
 
-async function FindRewardOverview(LeagueOverview, CardDetails = {}, isCurrency = false) {
-  if (isCurrency) return LeagueOverview.filter(({ currencyTypeName }) => currencyTypeName === CardDetails.Reward);
+async function FindRewardOverview(
+  LeagueOverview,
+  CardDetails = {},
+  isCurrency = false,
+) {
+  if (isCurrency)
+    return LeagueOverview.filter(
+      ({ currencyTypeName }) => currencyTypeName === CardDetails.Reward,
+    );
 
-  const Result = LeagueOverview
-    .filter(({ name, itemClass }) => name === CardDetails.Reward && itemClass === CardDetails.iClass)
+  const Result = LeagueOverview.filter(
+    ({ name, itemClass }) =>
+      name === CardDetails.Reward && itemClass === CardDetails.iClass,
+  )
     .filter(({ corrupted = false }) => corrupted === CardDetails.Corrupted)
     .filter(({ links = 0 }) => links === CardDetails.Links)
     .filter(({ gemLevel = 0 }) => gemLevel === CardDetails.gemLevel);
@@ -26,12 +35,22 @@ async function FindRewardOverview(LeagueOverview, CardDetails = {}, isCurrency =
   return Result;
 }
 
-async function findCardOverview(LeagueOverview = {}, CardDetails = {}, isCurrency = false) {
+async function findCardOverview(
+  LeagueOverview = {},
+  CardDetails = {},
+  isCurrency = false,
+) {
   // const LeagueOverview = Data[leagueName];
 
   const Results = {
-    CardOverview: LeagueOverview.find(({ name, itemClass }) => name === CardDetails.Name && itemClass === 6),
-    RewardOverview: await FindRewardOverview(LeagueOverview, CardDetails, isCurrency),
+    CardOverview: LeagueOverview.find(
+      ({ name, itemClass }) => name === CardDetails.Name && itemClass === 6,
+    ),
+    RewardOverview: await FindRewardOverview(
+      LeagueOverview,
+      CardDetails,
+      isCurrency,
+    ),
   };
 
   if (Results.RewardOverview.length === 1) {
@@ -67,7 +86,7 @@ async function GetLeagueOverview(leagueName = '') {
       }
 
       // eslint-disable-next-line no-await-in-loop
-      if (i !== (fetchList.length - 1)) await Delay();
+      if (i !== fetchList.length - 1) await Delay();
     }
 
     return Results;
@@ -77,15 +96,15 @@ async function GetLeagueOverview(leagueName = '') {
   await Delay();
   const ItemsResult = await RequestItems();
 
-  return [
-    ...ItemsResult,
-    ...CurrencyResult,
-  ];
+  return [...ItemsResult, ...CurrencyResult];
 }
 
 async function GetLeagueExaltedValue(LeagueOverview = {}) {
   // const LeagueOverview = Data[leagueName];
-  const { chaosEquivalent } = LeagueOverview.find(({ currencyTypeName }) => currencyTypeName === 'Exalted Orb') || undefined;
+  const { chaosEquivalent } =
+    LeagueOverview.find(
+      ({ currencyTypeName }) => currencyTypeName === 'Exalted Orb',
+    ) || undefined;
   return chaosEquivalent || 0;
 }
 

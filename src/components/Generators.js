@@ -1,7 +1,11 @@
 const CurrencyCards = require('../config/CurrencyCards');
 const Cards = require('../config/Cards');
 
-const { findCardOverview, GetLeagueExaltedValue, ChaosToExalted } = require('./utils');
+const {
+  findCardOverview,
+  GetLeagueExaltedValue,
+  ChaosToExalted,
+} = require('./utils');
 
 // return false means the item will be ignored.
 async function GenerateTableCardRowJson(Data = {}, CardDetails = {}) {
@@ -17,10 +21,13 @@ async function GenerateTableCardRowJson(Data = {}, CardDetails = {}) {
   if (!CardData || !RewardData) return false;
 
   // 'Trust' System
-  if ((CardData?.count ?? 0) < 10 || (RewardData?.count ?? 0) < 10) return false;
+  if ((CardData?.count ?? 0) < 10 || (RewardData?.count ?? 0) < 10)
+    return false;
 
   const Card = {
-    ExaltedPrice: CardData?.exaltedValue ?? ChaosToExalted(LeagueExaltedValue, CardData.chaosValue),
+    ExaltedPrice:
+      CardData?.exaltedValue ??
+      ChaosToExalted(LeagueExaltedValue, CardData.chaosValue),
   };
 
   const Reward = {
@@ -28,21 +35,31 @@ async function GenerateTableCardRowJson(Data = {}, CardDetails = {}) {
   };
 
   // eslint-disable-next-line max-len
-  Reward.ExaltedValue = RewardData?.exaltedValue ?? ChaosToExalted(LeagueExaltedValue, Reward.ChaosValue);
+  Reward.ExaltedValue =
+    RewardData?.exaltedValue ??
+    ChaosToExalted(LeagueExaltedValue, Reward.ChaosValue);
 
   const CardSet = {
     ChaosValue: CardData.stackSize * CardData.chaosValue,
   };
 
-  if (CardData.exaltedValue) CardSet.ExaltedValue = Card.ExaltedPrice * CardData.stackSize;
-  else CardSet.ExaltedValue = ChaosToExalted(LeagueExaltedValue, CardSet.ChaosValue);
+  if (CardData.exaltedValue)
+    CardSet.ExaltedValue = Card.ExaltedPrice * CardData.stackSize;
+  else
+    CardSet.ExaltedValue = ChaosToExalted(
+      LeagueExaltedValue,
+      CardSet.ChaosValue,
+    );
 
   CardSet.ExaltedValue = parseFloat(CardSet.ExaltedValue);
 
   const ChaosProfit = parseInt(RewardData.chaosValue - CardSet.ChaosValue, 10);
   const ExaltedProfit = Reward.ExaltedValue - CardSet.ExaltedValue;
 
-  const RewardText = RewardData.itemClass === 4 ? `Level ${RewardData.gemLevel} ${RewardData.name}` : RewardData.name;
+  const RewardText =
+    RewardData.itemClass === 4
+      ? `Level ${RewardData.gemLevel} ${RewardData.name}`
+      : RewardData.name;
 
   const Details = {
     artFilename: CardData.artFilename,
@@ -91,7 +108,8 @@ async function GenerateTableCurrencyCardsRowJson(Data = {}, CardDetails = {}) {
 
   const RewardData = LeagueDataResult.RewardOverview;
 
-  const RewardChaosEquivalentValue = CardDetails.Reward === 'Chaos Orb' ? 1 : RewardData.chaosEquivalent;
+  const RewardChaosEquivalentValue =
+    CardDetails.Reward === 'Chaos Orb' ? 1 : RewardData.chaosEquivalent;
   if (!RewardChaosEquivalentValue) return false;
 
   // 'Trust' System
@@ -106,7 +124,9 @@ async function GenerateTableCurrencyCardsRowJson(Data = {}, CardDetails = {}) {
   }
 
   const Card = {
-    ExaltedPrice: CardData?.exaltedValue ?? ChaosToExalted(LeagueExaltedValue, CardData.chaosValue),
+    ExaltedPrice:
+      CardData?.exaltedValue ??
+      ChaosToExalted(LeagueExaltedValue, CardData.chaosValue),
   };
 
   const Reward = {
@@ -119,15 +139,23 @@ async function GenerateTableCurrencyCardsRowJson(Data = {}, CardDetails = {}) {
     ChaosValue: CardData.stackSize * CardData.chaosValue,
   };
 
-  if (CardData.exaltedValue) CardSet.ExaltedValue = Card.ExaltedPrice * CardData.stackSize;
-  else CardSet.ExaltedValue = ChaosToExalted(LeagueExaltedValue, CardSet.ChaosValue);
+  if (CardData.exaltedValue)
+    CardSet.ExaltedValue = Card.ExaltedPrice * CardData.stackSize;
+  else
+    CardSet.ExaltedValue = ChaosToExalted(
+      LeagueExaltedValue,
+      CardSet.ChaosValue,
+    );
 
   CardSet.ExaltedValue = parseFloat(CardSet.ExaltedValue);
 
   const ChaosProfit = parseInt(Reward.ChaosValue - CardSet.ChaosValue, 10);
   const ExaltedProfit = parseFloat(Reward.ExaltedValue - CardSet.ExaltedValue);
 
-  const RewardText = CardDetails.Amount > 1 ? `${CardDetails.Amount}x ${CardDetails.Reward}` : CardDetails.Reward;
+  const RewardText =
+    CardDetails.Amount > 1
+      ? `${CardDetails.Amount}x ${CardDetails.Reward}`
+      : CardDetails.Reward;
 
   const Details = {
     artFilename: CardData.artFilename,
@@ -172,13 +200,13 @@ async function GenerateFlipTableArray(Data = {}) {
     for (let i = 0; i < Cards.length; i += 1) {
       const Details = Cards[i];
 
-      const Work = () => new Promise((resolve) => {
-        GenerateTableCardRowJson(Data, Details)
-          .then((Result) => {
+      const Work = () =>
+        new Promise((resolve) => {
+          GenerateTableCardRowJson(Data, Details).then((Result) => {
             if (Result) TableArray.push(Result);
             resolve();
           });
-      });
+        });
 
       Workload.push(Work());
     }
@@ -187,13 +215,13 @@ async function GenerateFlipTableArray(Data = {}) {
     for (let i = 0; i < CurrencyCards.length; i += 1) {
       const Details = CurrencyCards[i];
 
-      const Work = () => new Promise((resolve) => {
-        GenerateTableCurrencyCardsRowJson(Data, Details)
-          .then((Result) => {
+      const Work = () =>
+        new Promise((resolve) => {
+          GenerateTableCurrencyCardsRowJson(Data, Details).then((Result) => {
             if (Result) TableArray.push(Result);
             resolve();
           });
-      });
+        });
 
       Workload.push(Work());
     }
