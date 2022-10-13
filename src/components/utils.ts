@@ -1,6 +1,11 @@
 import { CardItem } from '../types/card-item.type';
 import { CurrencyOverview } from '../types/currency-overview.type';
+import { FindItemInput } from '../types/find-item.input';
+import { ItemClassDictionary } from '../types/item-class-dictionary.type';
 import { ItemOverview } from '../types/item-overview.type';
+import { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
+import { ItemOverviewType } from '../types/item-overview-types.type';
+import { ItemsOverviewType } from '../types/items-overview-type.type';
 import { LeagueItemsOverview } from '../types/league-items-overview.type';
 import { LeagueName } from '../types/league-name.type';
 import { LeagueResponse } from '../types/league-response.type';
@@ -36,34 +41,34 @@ export default class Utils {
 
   static findItem<T extends ItemOverview>(
     listToSearch: Array<T>,
-    itemToFind: CardItem,
+    itemToFind: FindItemInput,
   ): T {
     let results = [...listToSearch];
 
     const itemKeys = Object.keys(itemToFind);
     for (let i = 0; i < itemKeys.length; i += 1) {
-      const itemKey = itemKeys[i] as keyof CardItem;
+      const itemKey = itemKeys[i] as keyof FindItemInput;
       const keyValue = itemToFind[itemKey];
 
-      if (itemKey === 'Reward') {
+      if (itemKey === 'name') {
         results = results.filter(
           ({ name }) =>
             name.toLowerCase() === (keyValue as string).toLowerCase(),
         );
       }
 
-      if (itemKey === 'Corrupted') {
+      if (itemKey === 'isCorrupted') {
         results = results.filter(
           // @ts-expect-error we have a default value that will handle the error case
           ({ corrupted = false }) => corrupted === keyValue,
         );
       }
 
-      if (itemKey === 'iClass') {
+      if (itemKey === 'itemClass') {
         results = results.filter(({ itemClass }) => itemClass === keyValue);
       }
 
-      if (itemKey === 'Links' && keyValue !== 0) {
+      if (itemKey === 'links' && keyValue !== 0) {
         results = results.filter(
           // @ts-expect-error we have a default value that will handle the error case
           ({ links = 0 }) => links === keyValue,
@@ -82,13 +87,13 @@ export default class Utils {
 
     if (results.length >= 2) {
       throw new Error(
-        `Failed to find item ${itemToFind.Reward} with to many results found`,
+        `Failed to find item ${itemToFind.name} with to many results found`,
       );
     }
 
     if (results.length === 0) {
       throw new Error(
-        `Failed to find item ${itemToFind.Reward} with to zero results found`,
+        `Failed to find item ${itemToFind.name} with to zero results found`,
       );
     }
 
@@ -98,18 +103,41 @@ export default class Utils {
 
   static findItemFromLeagueOverview(
     leagueOverview: LeagueItemsOverview,
-    itemToFind: CardItem,
-  ) {
-    let result = null;
+    itemToFind: FindItemInput,
+  ): ItemOverviewDictionary[ItemOverviewType] | null {
+    const keys = [...leagueOverview.keys()];
 
-    leagueOverview.forEach((itemsOverview) => {
+    for (let i = 0; i < keys.length; i += 1) {
+      const itemsOverview = leagueOverview.get(keys[i]) as ItemsOverviewType;
+
       try {
-        result = this.findItem(itemsOverview, itemToFind);
+        const result = this.findItem(itemsOverview, itemToFind);
+
+        if (result) return result;
         // eslint-disable-next-line no-empty
       } catch {}
-    });
+    }
 
-    return result;
+    return null;
+  }
+
+  static findCardOverview(
+    leagueOverview: LeagueItemsOverview,
+    cardItem: CardItem,
+  ) {
+    return {
+      cardOverview: this.findItemFromLeagueOverview(leagueOverview, {
+        itemClass: ItemClassDictionary.DIVINATION_CARD,
+        name: cardItem.Name,
+      }),
+      rewardOverview: this.findItemFromLeagueOverview(leagueOverview, {
+        gemLevel: cardItem.gemLevel,
+        isCorrupted: cardItem.Corrupted,
+        itemClass: cardItem.iClass,
+        links: cardItem.Links,
+        name: cardItem.Reward,
+      }),
+    };
   }
 
   static findCurrencyChaosValue(
@@ -127,5 +155,9 @@ export default class Utils {
     }
 
     throw new Error('currency chaos value not found');
+  }
+
+  static transformChaosIntoExalted(exaltedValue: number, chaosValue: number) {
+    return parseFloat((chaosValue / exaltedValue).toFixed(1));
   }
 }
