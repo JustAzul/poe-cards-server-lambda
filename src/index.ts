@@ -1,6 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
 import cards from './constants/cards';
+import currencyCards from './constants/currency-cards';
 import fetch from './components/fetch';
 import firestore from './components/firestore';
 import utils from './components/utils';
@@ -27,7 +28,7 @@ async function main() {
   const leagueName = 'Kalandra';
 
   const standardOverview = await fetch.leagueOverview(leagueName);
-  cards.forEach((card) => {
+  [...cards, ...currencyCards].forEach((card) => {
     try {
       const findResult = utils.findCardOverview(
         standardOverview.itemsOverview,

@@ -152,6 +152,24 @@ export default class Utils {
     cardItem: CardItem | CardCurrencyItem,
     leagueName?: LeagueName,
   ) {
+    const cardOverview = this.findItemFromLeagueOverview(
+      leagueOverview,
+      {
+        itemClass: ItemClassDictionary.DIVINATION_CARD,
+        name: cardItem.Name,
+      },
+      leagueName,
+    );
+
+    if (!cardOverview) {
+      throw new Error(`Failed to find card '${cardItem.Name}' overview`);
+    }
+
+    if ('Amount' in cardItem) {
+      // TODO: find currency overview
+      throw new Error('CardCurrencyItem not yet implemented.');
+    }
+
     const searchOptions: FindItemInput = {
       name: cardItem.Reward,
     };
@@ -182,19 +200,6 @@ export default class Utils {
       throw new Error(`Failed to find card '${cardItem.Name}' reward overview`);
     }
 
-    const cardOverview = this.findItemFromLeagueOverview(
-      leagueOverview,
-      {
-        itemClass: ItemClassDictionary.DIVINATION_CARD,
-        name: cardItem.Name,
-      },
-      leagueName,
-    );
-
-    if (!cardOverview) {
-      throw new Error(`Failed to find card '${cardItem.Name}' overview`);
-    }
-
     return {
       cardOverview,
       rewardOverview,
@@ -204,7 +209,7 @@ export default class Utils {
   static findCurrencyChaosValue(
     CurrencyOverviewList: CurrencyOverview[],
     currencyName: string,
-  ) {
+  ): number {
     if (currencyName === 'Chaos Orb') return 1;
 
     const result = CurrencyOverviewList.find(

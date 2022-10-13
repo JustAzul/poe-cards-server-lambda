@@ -16,9 +16,9 @@ export default class Fetch {
 
   private static async get<T>(
     url: string,
-    config?: AxiosRequestConfig,
-  ): Promise<AxiosResponse<T, any>> {
-    const result = await axios.get<T>(url, {
+    config?: AxiosRequestConfig<never>,
+  ): Promise<AxiosResponse<T, never>> {
+    const result = await axios.get<T, AxiosResponse<T, never>, never>(url, {
       headers: {
         'user-agent': userAgent,
       },

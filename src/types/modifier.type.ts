@@ -1,4 +1,4 @@
-export type ExplicitModifier = {
+export type Modifier = {
   optional: boolean;
   text: string;
 };

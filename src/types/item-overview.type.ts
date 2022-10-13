@@ -1,4 +1,4 @@
-import { ExplicitModifier } from './explicit-modifier.type';
+import { Modifier } from './modifier.type';
 import { SparklineData } from './sparkline-data.type';
 
 export type ItemOverview = {
@@ -7,11 +7,11 @@ export type ItemOverview = {
   detailsId: string;
   divineValue: number;
   exaltedValue: number;
-  explicitModifiers: ExplicitModifier[];
+  explicitModifiers: Modifier[];
   flavourText: string;
   icon: string;
   id: number;
-  implicitModifiers: never[];
+  implicitModifiers: Modifier[];
   itemClass: number;
   listingCount: number;
   lowConfidenceSparkline: SparklineData;
