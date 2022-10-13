@@ -14,6 +14,10 @@ async function main() {
   console.log(`Found ${leaguesByName.size} leagues: ${[...leaguesByName.keys()].join(', ')}.`);
   await db.updateLeaguesDocument(leaguesByName);
 
+  const r = await fetch.leagueOverview('Standard');
+
+  console.log(r);
+
   /* const UpdatedAt = {};
 
   const GetLeagueData = async () => {
@@ -144,7 +148,9 @@ const handler = async (
   }
 };
 
-process.nextTick(async () => main());
+if (process.env.NODE_ENV === 'development') {
+  process.nextTick(async () => main());
+}
 
 export {
   handler,

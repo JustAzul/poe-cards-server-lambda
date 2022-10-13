@@ -5,9 +5,9 @@
   "description": "lambda function for https://poe.cards",
   "scripts": {
     "build": "tsc",
-    "dev": "npm run build && concurrently \"tsc -w\" \"nodemon dist/index.js\"",
+    "dev": "npm run build && concurrently \"tsc -w\" \"NODE_ENV=development nodemon dist/index.js\"",
     "prebuild": "rimraf ./dist",
-    "start": "npm run build && node ./"
+    "start": "npm run build && NODE_ENV=development node ./"
   },
   "author": "Diego (Azul) Ferreira",
   "license": "ISC",
