@@ -1,3 +1,5 @@
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+
 import { CurrencyOverviewResponse } from '../types/currency-overview-response.type';
 import { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
 import { ItemOverviewResponse } from '../types/item-overview-response.type';
@@ -5,19 +7,26 @@ import { ItemOverviewType } from '../types/item-overview-types.type';
 import LEAGUE_OVERVIEW_FETCH_LIST from '../constants/fetch-list';
 import { LeagueName } from '../types/league-name.type';
 import { LeagueResponse } from '../types/league-response.type';
-import axios from 'axios';
 import userAgent from '../constants/user-agent';
 import utils from './fetch.utils';
 
 export default {
-  async leaguesData(): Promise<LeagueResponse[]> {
-    console.log('Fetching leagues data from poe.ninja');
-
-    const { data } = await axios.get<LeagueResponse[]>('https://api.pathofexile.com/leagues', {
-      responseType: 'json',
+  async fetch<T>(url: string, config?: AxiosRequestConfig): Promise< AxiosResponse<T, any> > {
+    const result = await axios.get<T>(url, {
       headers: {
         'user-agent': userAgent,
       },
+      ...config,
+    });
+
+    return result;
+  },
+
+  async leaguesData(): Promise<LeagueResponse[]> {
+    console.log('Fetching leagues data from poe.ninja');
+
+    const { data } = await this.fetch<LeagueResponse[]>('https://api.pathofexile.com/leagues', {
+      responseType: 'json',
     });
 
     return utils.filterLeagues(data);
@@ -35,12 +44,9 @@ export default {
       type: overviewType,
     };
 
-    const { data } = await axios.get<ItemOverviewResponse<ItemOverviewDictionary[OverviewType]>>('https://poe.ninja/api/data/itemoverview', {
+    const { data } = await this.fetch<ItemOverviewResponse<ItemOverviewDictionary[OverviewType]>>('https://poe.ninja/api/data/itemoverview', {
       responseType: 'json',
       params,
-      headers: {
-        'user-agent': userAgent,
-      },
     });
 
     return data.lines;
@@ -54,12 +60,9 @@ export default {
       type: 'Currency',
     };
 
-    const { data } = await axios.get<CurrencyOverviewResponse>('https://poe.ninja/api/data/currencyoverview', {
+    const { data } = await this.fetch<CurrencyOverviewResponse>('https://poe.ninja/api/data/currencyoverview', {
       responseType: 'json',
       params,
-      headers: {
-        'user-agent': userAgent,
-      },
     });
 
     return {
