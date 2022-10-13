@@ -24,12 +24,16 @@ async function main() {
 
   await firestore.updateLeaguesDocument(leaguesByName);
 
-  const standardOverview = await fetch.leagueOverview('Standard');
+  const leagueName = 'Kalandra';
+
+  const standardOverview = await fetch.leagueOverview(leagueName);
   cards.forEach((card) => {
-    const findResult = utils.findItemFromLeagueOverview(
-      standardOverview.itemsOverview,
-      card,
-    );
+    try {
+      const findResult = utils.findCardOverview(
+        standardOverview.itemsOverview,
+        card,
+        leagueName,
+      );
 
     if (findResult) {
       console.log(`card ${card.Name} found result.`);

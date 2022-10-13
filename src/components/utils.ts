@@ -1,11 +1,10 @@
+import { CardCurrencyItem } from '../types/card-currency-item.type';
 import { CardItem } from '../types/card-item.type';
 import { CurrencyOverview } from '../types/currency-overview.type';
 import { FindItemInput } from '../types/find-item.input';
 import { ItemClassDictionary } from '../types/item-class-dictionary.type';
-import { ItemOverview } from '../types/item-overview.type';
 import { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
 import { ItemOverviewType } from '../types/item-overview-types.type';
-import { ItemsOverviewType } from '../types/items-overview-type.type';
 import { LeagueItemsOverview } from '../types/league-items-overview.type';
 import { LeagueName } from '../types/league-name.type';
 import { LeagueResponse } from '../types/league-response.type';
@@ -39,15 +38,28 @@ export default class Utils {
     );
   }
 
-  static findItem<T extends ItemOverview>(
+  private static filterFrom<T, KeyValueType>(
+    itemOverview: T,
+    key: string,
+    keyValue: KeyValueType,
+    defaultValue: KeyValueType,
+  ): boolean {
+    if (key in itemOverview) {
+      return itemOverview[key as keyof T] === keyValue;
+    }
+
+    return keyValue === defaultValue;
+  }
+
+  static findItem<T extends ItemOverviewDictionary[ItemOverviewType]>(
     listToSearch: Array<T>,
     itemToFind: FindItemInput,
   ): T {
     let results = [...listToSearch];
 
-    const itemKeys = Object.keys(itemToFind);
+    const itemKeys = Object.keys(itemToFind) as Array<keyof FindItemInput>;
     for (let i = 0; i < itemKeys.length; i += 1) {
-      const itemKey = itemKeys[i] as keyof FindItemInput;
+      const itemKey = itemKeys[i];
       const keyValue = itemToFind[itemKey];
 
       if (itemKey === 'name') {
@@ -57,28 +69,24 @@ export default class Utils {
         );
       }
 
-      if (itemKey === 'isCorrupted') {
-        results = results.filter(
-          // @ts-expect-error we have a default value that will handle the error case
-          ({ corrupted = false }) => corrupted === keyValue,
-        );
-      }
-
       if (itemKey === 'itemClass') {
         results = results.filter(({ itemClass }) => itemClass === keyValue);
       }
 
-      if (itemKey === 'links' && keyValue !== 0) {
-        results = results.filter(
-          // @ts-expect-error we have a default value that will handle the error case
-          ({ links = 0 }) => links === keyValue,
+      if (itemKey === 'isCorrupted') {
+        results = results.filter((itemOverview) =>
+          this.filterFrom(
+            itemOverview,
+            'corrupted',
+            keyValue as boolean,
+            false,
+          ),
         );
       }
 
-      if (itemKey === 'gemLevel' && keyValue !== 0) {
-        results = results.filter(
-          // @ts-expect-error we have a default value that will handle the error case
-          ({ gemLevel = 0 }) => gemLevel === keyValue,
+      if (itemKey === 'links' || itemKey === 'gemLevel') {
+        results = results.filter((itemOverview) =>
+          this.filterFrom(itemOverview, itemKey, keyValue as number, 0),
         );
       }
 
@@ -104,39 +112,92 @@ export default class Utils {
   static findItemFromLeagueOverview(
     leagueOverview: LeagueItemsOverview,
     itemToFind: FindItemInput,
+    leagueName?: LeagueName,
   ): ItemOverviewDictionary[ItemOverviewType] | null {
     const keys = [...leagueOverview.keys()];
+    let result = null;
+
+    // console.debug(`Searching for item ${itemToFind.name}..`);
 
     for (let i = 0; i < keys.length; i += 1) {
-      const itemsOverview = leagueOverview.get(keys[i]) as ItemsOverviewType;
+      const key = keys[i];
+      const itemsOverview = leagueOverview.get(key);
 
-      try {
-        const result = this.findItem(itemsOverview, itemToFind);
+      if (itemsOverview) {
+        try {
+          result = this.findItem(itemsOverview, itemToFind);
 
-        if (result) return result;
-        // eslint-disable-next-line no-empty
-      } catch {}
+          if (result) {
+            const logs = [];
+
+            if (leagueName) {
+              logs.push(`[${leagueName}]`);
+            }
+
+            logs.push(`Item '${itemToFind.name}' found in ${key}.`);
+
+            console.debug(...logs);
+            break;
+          }
+          // eslint-disable-next-line no-empty
+        } catch {}
+      }
     }
 
-    return null;
+    return result;
   }
 
   static findCardOverview(
     leagueOverview: LeagueItemsOverview,
-    cardItem: CardItem,
+    cardItem: CardItem | CardCurrencyItem,
+    leagueName?: LeagueName,
   ) {
-    return {
-      cardOverview: this.findItemFromLeagueOverview(leagueOverview, {
+    const searchOptions: FindItemInput = {
+      name: cardItem.Reward,
+    };
+
+    if ('iClass' in cardItem) {
+      searchOptions.itemClass = cardItem.iClass;
+    }
+
+    if ('Links' in cardItem) {
+      searchOptions.links = cardItem.Links;
+    }
+
+    if ('gemLevel' in cardItem) {
+      searchOptions.gemLevel = cardItem.gemLevel;
+    }
+
+    if ('Corrupted' in cardItem) {
+      searchOptions.isCorrupted = cardItem.Corrupted;
+    }
+
+    const rewardOverview = this.findItemFromLeagueOverview(
+      leagueOverview,
+      searchOptions,
+      leagueName,
+    );
+
+    if (!rewardOverview) {
+      throw new Error(`Failed to find card '${cardItem.Name}' reward overview`);
+    }
+
+    const cardOverview = this.findItemFromLeagueOverview(
+      leagueOverview,
+      {
         itemClass: ItemClassDictionary.DIVINATION_CARD,
         name: cardItem.Name,
-      }),
-      rewardOverview: this.findItemFromLeagueOverview(leagueOverview, {
-        gemLevel: cardItem.gemLevel,
-        isCorrupted: cardItem.Corrupted,
-        itemClass: cardItem.iClass,
-        links: cardItem.Links,
-        name: cardItem.Reward,
-      }),
+      },
+      leagueName,
+    );
+
+    if (!cardOverview) {
+      throw new Error(`Failed to find card '${cardItem.Name}' overview`);
+    }
+
+    return {
+      cardOverview,
+      rewardOverview,
     };
   }
 
@@ -154,7 +215,7 @@ export default class Utils {
       return result.chaosEquivalent;
     }
 
-    throw new Error('currency chaos value not found');
+    throw new Error('Currency chaos value not found');
   }
 
   static transformChaosIntoExalted(exaltedValue: number, chaosValue: number) {

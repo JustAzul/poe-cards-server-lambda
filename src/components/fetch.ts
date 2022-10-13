@@ -45,7 +45,7 @@ export default class Fetch {
     leagueName: LeagueName,
     overviewType: T,
   ): Promise<Array<ItemOverviewDictionary[T]>> {
-    console.log(`Fetching ${overviewType} item overview for ${leagueName}`);
+    console.log(`[${leagueName}] Fetching '${overviewType}' item overview`);
 
     const params = {
       language: 'en',
@@ -64,7 +64,7 @@ export default class Fetch {
   }
 
   static async currencyOverview(leagueName: LeagueName) {
-    console.log(`Fetching currency overview for ${leagueName}`);
+    console.log(`[${leagueName}] Fetching currency overview`);
 
     const params = {
       league: leagueName,
