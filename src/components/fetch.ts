@@ -5,6 +5,7 @@ import { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
 import { ItemOverviewResponse } from '../types/item-overview-response.type';
 import { ItemOverviewType } from '../types/item-overview-types.type';
 import LEAGUE_OVERVIEW_FETCH_LIST from '../constants/fetch-list';
+import { LeagueItemsOverview } from '../types/league-items-overview.type';
 import { LeagueName } from '../types/league-name.type';
 import { LeagueResponse } from '../types/league-response.type';
 import userAgent from '../constants/user-agent';
@@ -40,10 +41,10 @@ export default class Fetch {
     return this.utils.filterLeagues(data);
   }
 
-  static async itemOverview<OverviewType extends ItemOverviewType>(
+  static async itemOverview<T extends ItemOverviewType>(
     leagueName: LeagueName,
-    overviewType: OverviewType,
-  ): Promise<Array<ItemOverviewDictionary[OverviewType]>> {
+    overviewType: T,
+  ): Promise<Array<ItemOverviewDictionary[T]>> {
     console.log(`Fetching ${overviewType} item overview for ${leagueName}`);
 
     const params = {
@@ -53,7 +54,7 @@ export default class Fetch {
     };
 
     const { data } = await this.get<
-      ItemOverviewResponse<ItemOverviewDictionary[OverviewType]>
+      ItemOverviewResponse<ItemOverviewDictionary[T]>
     >('https://poe.ninja/api/data/itemoverview', {
       responseType: 'json',
       params,
@@ -84,14 +85,14 @@ export default class Fetch {
     };
   }
 
-  static async leagueItemsOverview(leagueName: LeagueName) {
-    const overviewsByName = new Map(
+  static async leagueItemsOverview(
+    leagueName: LeagueName,
+  ): Promise<LeagueItemsOverview> {
+    const overviewsByName: LeagueItemsOverview = new Map(
       LEAGUE_OVERVIEW_FETCH_LIST.map(
-        <OverviewType extends ItemOverviewType>(
-          itemOverviewType: OverviewType,
-        ) => [
+        <T extends ItemOverviewType>(itemOverviewType: T) => [
           itemOverviewType,
-          [] as Array<ItemOverviewDictionary[OverviewType]>,
+          [] as Array<ItemOverviewDictionary[T]>,
         ],
       ),
     );
