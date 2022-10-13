@@ -10,8 +10,13 @@ import { LeagueResponse } from '../types/league-response.type';
 import userAgent from '../constants/user-agent';
 import utils from './fetch.utils';
 
-export default {
-  async fetch<T>(url: string, config?: AxiosRequestConfig): Promise< AxiosResponse<T, any> > {
+export default class Fetch {
+  static utils = utils;
+
+  private static async get<T>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T, any>> {
     const result = await axios.get<T>(url, {
       headers: {
         'user-agent': userAgent,
@@ -20,19 +25,22 @@ export default {
     });
 
     return result;
-  },
+  }
 
-  async leaguesData(): Promise<LeagueResponse[]> {
+  static async leaguesData(): Promise<LeagueResponse[]> {
     console.log('Fetching leagues data from poe.ninja');
 
-    const { data } = await this.fetch<LeagueResponse[]>('https://api.pathofexile.com/leagues', {
-      responseType: 'json',
-    });
+    const { data } = await this.get<LeagueResponse[]>(
+      'https://api.pathofexile.com/leagues',
+      {
+        responseType: 'json',
+      },
+    );
 
-    return utils.filterLeagues(data);
-  },
+    return this.utils.filterLeagues(data);
+  }
 
-  async itemOverview<OverviewType extends ItemOverviewType>(
+  static async itemOverview<OverviewType extends ItemOverviewType>(
     leagueName: LeagueName,
     overviewType: OverviewType,
   ): Promise<Array<ItemOverviewDictionary[OverviewType]>> {
@@ -44,15 +52,17 @@ export default {
       type: overviewType,
     };
 
-    const { data } = await this.fetch<ItemOverviewResponse<ItemOverviewDictionary[OverviewType]>>('https://poe.ninja/api/data/itemoverview', {
+    const { data } = await this.get<
+      ItemOverviewResponse<ItemOverviewDictionary[OverviewType]>
+    >('https://poe.ninja/api/data/itemoverview', {
       responseType: 'json',
       params,
     });
 
     return data.lines;
-  },
+  }
 
-  async currencyOverview(leagueName: LeagueName) {
+  static async currencyOverview(leagueName: LeagueName) {
     console.log(`Fetching currency overview for ${leagueName}`);
 
     const params = {
@@ -60,26 +70,30 @@ export default {
       type: 'Currency',
     };
 
-    const { data } = await this.fetch<CurrencyOverviewResponse>('https://poe.ninja/api/data/currencyoverview', {
-      responseType: 'json',
-      params,
-    });
+    const { data } = await this.get<CurrencyOverviewResponse>(
+      'https://poe.ninja/api/data/currencyoverview',
+      {
+        responseType: 'json',
+        params,
+      },
+    );
 
     return {
       data: data.lines,
       details: data.currencyDetails,
     };
-  },
+  }
 
-  async leagueItemsOverview(leagueName: LeagueName) {
+  static async leagueItemsOverview(leagueName: LeagueName) {
     const overviewsByName = new Map(
-      LEAGUE_OVERVIEW_FETCH_LIST
-        .map(
-          <OverviewType extends ItemOverviewType>(itemOverviewType: OverviewType) => [
-            itemOverviewType,
-            [] as Array<ItemOverviewDictionary[OverviewType]>,
-          ],
-        ),
+      LEAGUE_OVERVIEW_FETCH_LIST.map(
+        <OverviewType extends ItemOverviewType>(
+          itemOverviewType: OverviewType,
+        ) => [
+          itemOverviewType,
+          [] as Array<ItemOverviewDictionary[OverviewType]>,
+        ],
+      ),
     );
 
     for (let i = 0; i < LEAGUE_OVERVIEW_FETCH_LIST.length; i += 1) {
@@ -92,9 +106,9 @@ export default {
     }
 
     return overviewsByName;
-  },
+  }
 
-  async leagueOverview(leagueName: LeagueName) {
+  static async leagueOverview(leagueName: LeagueName) {
     const currencyOverview = await this.currencyOverview(leagueName);
     const itemsOverview = await this.leagueItemsOverview(leagueName);
 
@@ -102,7 +116,5 @@ export default {
       currencyOverview,
       itemsOverview,
     };
-  },
-
-  utils,
-};
+  }
+}

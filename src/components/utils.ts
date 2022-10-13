@@ -2,8 +2,10 @@ import { LeagueName } from '../types/league-name.type';
 import { LeagueResponse } from '../types/league-response.type';
 import { LeaguesDocument } from '../types/leagues-document.types';
 
-export default {
-  findLeagueResponseByName(leagueResponses: LeagueResponse[]): Map<LeagueName, LeagueResponse> {
+export default class Utils {
+  static findLeagueResponseByName(
+    leagueResponses: LeagueResponse[],
+  ): Map<LeagueName, LeagueResponse> {
     const leaguesWithDetails: Map<LeagueName, LeagueResponse> = new Map();
 
     for (let i = 0; i < leagueResponses.length; i += 1) {
@@ -12,19 +14,19 @@ export default {
     }
 
     return leaguesWithDetails;
-  },
+  }
 
-  parseLeagueDetails(
+  static parseLeagueDetails(
     leaguesByName: Map<LeagueName, LeagueResponse>,
   ): LeaguesDocument {
     return Object.fromEntries(
-      Array.from(
-        leaguesByName.values(),
-      ).map(({ id: leagueName, url }) => [leagueName, {
+      Array.from(leaguesByName.values()).map(({ id: leagueName, url }) => [
         leagueName,
-        ladder: url,
-      }])
-      ,
+        {
+          leagueName,
+          ladder: url,
+        },
+      ]),
     );
-  },
-};
+  }
+}

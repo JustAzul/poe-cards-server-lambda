@@ -1,7 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
 
-import db from './components/db';
 import fetch from './components/fetch';
+import firestore from './components/firestore';
 import utils from './components/utils';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
@@ -21,7 +21,7 @@ async function main() {
     );
   }
 
-  await db.updateLeaguesDocument(leaguesByName);
+  await firestore.updateLeaguesDocument(leaguesByName);
 
   const r = await fetch.leagueOverview('Standard');
   console.log(r);
