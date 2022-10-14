@@ -1,37 +1,15 @@
-/* eslint-disable no-console */
-/* eslint-disable no-await-in-loop */
-// eslint-disable-next-line import/no-unresolved
-const { initializeApp, /* applicationDefault, */ cert } = require('firebase-admin/app');
-// eslint-disable-next-line import/no-unresolved
-const { getFirestore/* , Timestamp, FieldValue */ } = require('firebase-admin/firestore');
 const { GetLeagueOverview, Delay } = require('./components/utils');
 const { LeaguesOverview } = require('./components/Fetch');
 const Generators = require('./components/Generators');
-
-require('dotenv').config();
+const firestore = require('./components/firestore');
 
 async function main() {
-  {
-    const credential = cert({
-      client_email: process.env.FIREBASE_CLIENT_EMAIL,
-      private_key: process.env.FIREBASE_PRIVATE_KEY,
-      project_id: process.env.FIREBASE_PROJECT_ID,
-    });
-    const AppOptions = {
-      credential,
-    };
-
-    initializeApp(AppOptions);
-  }
-
-  const db = getFirestore();
-
   console.log('Fetching Leagues..');
   const Leagues = await LeaguesOverview();
   console.log(`Found ${Object.keys(Leagues).length} leagues!`);
 
   const UpdateLeagueList = async () => {
-    const LeaguesDoc = db.collection('leagues').doc('all');
+    const LeaguesDoc = firestore.collection('leagues').doc('all');
     console.log('Updating leagues realtime database..');
     await LeaguesDoc.set(Leagues);
   };
@@ -99,17 +77,17 @@ async function main() {
 
   {
     const UpdateDatabase = async (Data = {}) => {
-      const LeagueItemsDoc = db.collection('items').doc('all');
+      const LeagueItemsDoc = firestore.collection('items').doc('all');
       await LeagueItemsDoc.set(Data);
     };
 
     const UpdateCurrencyDatabase = async (Data = {}) => {
-      const LeagueItemsDoc = db.collection('items').doc('currency');
+      const LeagueItemsDoc = firestore.collection('items').doc('currency');
       await LeagueItemsDoc.set(Data);
     };
 
     const UpdateLeagueDates = async (Data = {}) => {
-      const LeagueItemsDoc = db.collection('items').doc('updated');
+      const LeagueItemsDoc = firestore.collection('items').doc('updated');
       await LeagueItemsDoc.set(Data);
     };
 
@@ -121,6 +99,10 @@ async function main() {
       UpdateLeagueDates(UpdatedAt),
     ]);
   }
+}
+
+if (process.env.NODE_ENV === 'development') {
+  process.nextTick(async () => main());
 }
 
 exports.handler = async () => {
