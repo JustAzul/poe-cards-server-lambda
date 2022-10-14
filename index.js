@@ -8,10 +8,7 @@ const { GetLeagueOverview, Delay } = require('./components/utils');
 const { LeaguesOverview } = require('./components/Fetch');
 const Generators = require('./components/Generators');
 
-if (process.env.NODE_ENV === 'development') {
-  // eslint-disable-next-line import/no-extraneous-dependencies, global-require
-  require('dotenv').config();
-}
+require('dotenv').config();
 
 async function main() {
   {
