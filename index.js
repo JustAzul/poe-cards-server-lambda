@@ -4,15 +4,20 @@
 const { initializeApp, /* applicationDefault, */ cert } = require('firebase-admin/app');
 // eslint-disable-next-line import/no-unresolved
 const { getFirestore/* , Timestamp, FieldValue */ } = require('firebase-admin/firestore');
+const dotenv = require('dotenv');
 const { GetLeagueOverview, Delay } = require('./components/utils');
 const { LeaguesOverview } = require('./components/Fetch');
 const Generators = require('./components/Generators');
 
-const serviceAccountKey = require('./config/serviceAccountKey.json');
+dotenv.config();
 
 async function main() {
   {
-    const credential = cert(serviceAccountKey);
+    const credential = cert({
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      private_key: process.env.FIREBASE_PRIVATE_KEY,
+      project_id: process.env.FIREBASE_PROJECT_ID,
+    });
     const AppOptions = {
       credential,
     };
@@ -119,12 +124,12 @@ async function main() {
   }
 }
 
-exports.handler = async (/* event */) => {
-  const r = await main();
+exports.handler = async () => {
+  await main();
 
   const response = {
     statusCode: 200,
-    body: JSON.stringify(`Job done.`),
+    body: JSON.stringify('Job done.'),
   };
 
   return response;

@@ -21,10 +21,16 @@ jobs:
           npm ci
         env:
           CI: true
+      - name: generate .env file
+        run: |
+          echo 'FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}"' >> .env |
+          echo 'FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}"' >> .env |
+          echo 'FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"' >> .env
+        shell: bash
       - name: zip
         uses: montudor/action-zip@v0.1.0
         with:
-          args: zip -qq -r ./bundle.zip package*.json index.js ./config ./components ./node_modules
+          args: zip -qq -r ./bundle.zip package.json index.js ./config ./components ./node_modules .env
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
