@@ -26,7 +26,6 @@ jobs:
           echo 'FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}"' >> .env |
           echo 'FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}"' >> .env |
           echo 'FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"' >> .env
-        shell: bash
       - name: zip
         uses: montudor/action-zip@v0.1.0
         with:
