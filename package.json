@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "build": "zip -r aws.zip package*.json index.js ./config ./components ./node_modules"
+    "start": "NODE_ENV=development node ./"
   },
   "author": "Azul",
   "license": "ISC",
