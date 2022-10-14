@@ -1,4 +1,8 @@
-import { APIGatewayEvent, APIGatewayProxyCallback, Context } from 'aws-lambda';
+import type {
+  APIGatewayEvent,
+  APIGatewayProxyCallback,
+  Context,
+} from 'aws-lambda';
 
 import cards from './constants/cards';
 import currencyCards from './constants/currency-cards';

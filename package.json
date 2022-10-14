@@ -12,7 +12,6 @@
   "author": "Diego (Azul) Ferreira",
   "license": "ISC",
   "dependencies": {
-    "aws-lambda": "^1.0.7",
     "axios": "^1.1.2",
     "azul-tools": "^1.9.24",
     "dotenv": "^16.0.3",
@@ -21,9 +20,9 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.107",
-    "@types/firebase": "^3.2.1",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.40.0",
+    "aws-lambda": "^1.0.7",
     "concurrently": "^7.4.0",
     "eslint": "^8.25.0",
     "eslint-config-airbnb-base": "^15.0.0",
