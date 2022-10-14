@@ -4,12 +4,14 @@
 const { initializeApp, /* applicationDefault, */ cert } = require('firebase-admin/app');
 // eslint-disable-next-line import/no-unresolved
 const { getFirestore/* , Timestamp, FieldValue */ } = require('firebase-admin/firestore');
-const dotenv = require('dotenv');
 const { GetLeagueOverview, Delay } = require('./components/utils');
 const { LeaguesOverview } = require('./components/Fetch');
 const Generators = require('./components/Generators');
 
-dotenv.config();
+if (process.env.NODE_ENV === 'development') {
+  // eslint-disable-next-line import/no-extraneous-dependencies, global-require
+  require('dotenv').config();
+}
 
 async function main() {
   {

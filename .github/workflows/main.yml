@@ -21,11 +21,11 @@ jobs:
           npm ci
         env:
           CI: true
-      - name: generate .env file
-        run: |
-          echo 'FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}"' >> .env |
-          echo 'FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}"' >> .env |
-          echo 'FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"' >> .env
+      # - name: generate .env file
+      #   run: |
+      #     echo 'FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}"' >> .env |
+      #     echo 'FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}"' >> .env |
+      #     echo 'FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"' >> .env
       - name: zip
         uses: montudor/action-zip@v0.1.0
         with:
