@@ -1,8 +1,8 @@
 export type CardItem = {
-  Name: string;
-  Reward: string;
-  Corrupted: boolean;
-  iClass: number;
-  Links: number;
+  cardName: string;
+  rewardName: string;
+  corrupted: boolean;
+  itemClass: number;
+  links: number;
   gemLevel: number;
 };

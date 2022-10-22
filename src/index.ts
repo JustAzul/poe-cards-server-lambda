@@ -1,22 +1,23 @@
+/* eslint-disable no-console */
 import type {
   APIGatewayEvent,
   APIGatewayProxyCallback,
   Context,
 } from 'aws-lambda';
 
-import cards from './constants/cards';
-import currencyCards from './constants/currency-cards';
-import fetch from './components/fetch';
-import firestore from './components/firestore';
-import utils from './components/utils';
+import CARDS from './constants/cards';
+import CURRENCY_CARDS from './constants/currency-cards';
+import Database from './components/firestore';
+import Fetch from './components/fetch';
+import Utils from './components/utils';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
 // const Generators = require('./components/Generators');
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
-  const leaguesByName = utils.findLeagueResponseByName(
-    await fetch.leaguesData(),
+  const leaguesByName = Utils.FindLeagueResponseByName(
+    await Fetch.LeaguesData(),
   );
 
   {
@@ -27,21 +28,28 @@ async function main() {
     );
   }
 
-  await firestore.updateLeaguesDocument(leaguesByName);
+  await Database.UpdateLeaguesDocument(leaguesByName);
 
   const leagueName = 'Kalandra';
 
-  const standardOverview = await fetch.leagueOverview(leagueName);
-  [...cards, ...currencyCards].forEach((card) => {
+  const leaguesOverview = await Fetch.LeaguesOverview([leagueName]);
+  [...CARDS, ...CURRENCY_CARDS].forEach((card) => {
     try {
-      const findResult = utils.findCardOverview(
-        standardOverview.itemsOverview,
-        card,
-        leagueName,
-      );
+      const leagueOverview = leaguesOverview.get(leagueName);
 
-      if (!findResult?.cardOverview && !findResult?.rewardOverview) {
-        console.error(`failed to find result for ${card.Name}`);
+      if (leagueOverview) {
+        const findResult = Utils.FindCardOverview(
+          leagueOverview,
+          card,
+          leagueName,
+        );
+
+        if (!findResult?.cardOverview || !findResult?.rewardOverview) {
+          console.error(`failed to find result for ${card.cardName}`);
+          console.log(findResult);
+        }
+      } else {
+        console.error(`failed to find league overview for ${leagueName}`);
       }
     } catch (e) {
       console.error(

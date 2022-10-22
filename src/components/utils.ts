@@ -1,17 +1,19 @@
-import { CardCurrencyItem } from '../types/card-currency-item.type';
-import { CardItem } from '../types/card-item.type';
-import { CurrencyOverview } from '../types/currency-overview.type';
-import { FindItemInput } from '../types/find-item.input';
-import { ItemClassDictionary } from '../types/item-class-dictionary.type';
-import { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
-import { ItemOverviewType } from '../types/item-overview-types.type';
-import { LeagueItemsOverview } from '../types/league-items-overview.type';
-import { LeagueName } from '../types/league-name.type';
-import { LeagueResponse } from '../types/league-response.type';
-import { LeaguesDocument } from '../types/leagues-document.types';
+import type { CardCurrencyItem } from '../types/card-currency-item.type';
+import type { CardItem } from '../types/card-item.type';
+import type { CardOverview } from '../types/card-overview.type';
+import type { CurrencyOverview } from '../types/currency-overview.type';
+import type { FindItemInput } from '../types/find-item.input';
+import { ItemClassDictionary } from '../types/item-class-dictionary.enum';
+import type { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
+import type { ItemOverviewType } from '../types/item-overview-types.type';
+import type { LeagueItemsOverview } from '../types/league-items-overview.type';
+import type { LeagueName } from '../types/league-name.type';
+import type { LeagueOverview } from '../types/league-overview.type';
+import type { LeagueResponse } from '../types/league-response.type';
+import type { LeaguesDocument } from '../types/leagues-document.types';
 
 export default class Utils {
-  static findLeagueResponseByName(
+  public static FindLeagueResponseByName(
     leagueResponses: LeagueResponse[],
   ): Map<LeagueName, LeagueResponse> {
     const leaguesWithDetails: Map<LeagueName, LeagueResponse> = new Map();
@@ -24,21 +26,23 @@ export default class Utils {
     return leaguesWithDetails;
   }
 
-  static parseLeagueDetails(
-    leaguesByName: Map<LeagueName, LeagueResponse>,
+  public static GetLeaguesDocument(
+    leaguesResponseByName: Map<LeagueName, LeagueResponse>,
   ): LeaguesDocument {
     return Object.fromEntries(
-      Array.from(leaguesByName.values()).map(({ id: leagueName, url }) => [
-        leagueName,
-        {
+      Array.from(leaguesResponseByName.values()).map(
+        ({ id: leagueName, url }) => [
           leagueName,
-          ladder: url,
-        },
-      ]),
+          {
+            leagueName,
+            ladder: url,
+          },
+        ],
+      ),
     );
   }
 
-  private static filterFrom<T, KeyValueType>(
+  private static FilterFrom<T, KeyValueType>(
     itemOverview: T,
     key: string,
     keyValue: KeyValueType,
@@ -51,7 +55,25 @@ export default class Utils {
     return keyValue === defaultValue;
   }
 
-  static findItem<T extends ItemOverviewDictionary[ItemOverviewType]>(
+  private static FindCurrency(
+    currencyOverview: CurrencyOverview[],
+    currencyName: string,
+  ): Pick<CurrencyOverview, 'chaosEquivalent' | 'currencyTypeName'> | null {
+    if (currencyName === 'Chaos Orb') {
+      return {
+        chaosEquivalent: 1,
+        currencyTypeName: 'Chaos Orb',
+      };
+    }
+
+    return (
+      currencyOverview.find(
+        ({ currencyTypeName }) => currencyTypeName === currencyName,
+      ) || null
+    );
+  }
+
+  private static FindItem<T extends ItemOverviewDictionary[ItemOverviewType]>(
     listToSearch: Array<T>,
     itemToFind: FindItemInput,
   ): T {
@@ -64,8 +86,7 @@ export default class Utils {
 
       if (itemKey === 'name') {
         results = results.filter(
-          ({ name }) =>
-            name.toLowerCase() === (keyValue as string).toLowerCase(),
+          ({ name }) => name.toLowerCase() === String(keyValue).toLowerCase(),
         );
       }
 
@@ -75,18 +96,13 @@ export default class Utils {
 
       if (itemKey === 'isCorrupted') {
         results = results.filter((itemOverview) =>
-          this.filterFrom(
-            itemOverview,
-            'corrupted',
-            keyValue as boolean,
-            false,
-          ),
+          Utils.FilterFrom(itemOverview, 'corrupted', Boolean(keyValue), false),
         );
       }
 
       if (itemKey === 'links' || itemKey === 'gemLevel') {
         results = results.filter((itemOverview) =>
-          this.filterFrom(itemOverview, itemKey, keyValue as number, 0),
+          Utils.FilterFrom(itemOverview, itemKey, Number(keyValue), 0),
         );
       }
 
@@ -109,13 +125,13 @@ export default class Utils {
     return results.pop();
   }
 
-  static findItemFromLeagueOverview(
+  private static FindItemFromLeagueOverview(
     leagueOverview: LeagueItemsOverview,
     itemToFind: FindItemInput,
     leagueName?: LeagueName,
   ): ItemOverviewDictionary[ItemOverviewType] | null {
     const keys = [...leagueOverview.keys()];
-    let result = null;
+    let result: ItemOverviewDictionary[ItemOverviewType] | null = null;
 
     // console.debug(`Searching for item ${itemToFind.name}..`);
 
@@ -125,7 +141,7 @@ export default class Utils {
 
       if (itemsOverview) {
         try {
-          result = this.findItem(itemsOverview, itemToFind);
+          result = Utils.FindItem(itemsOverview, itemToFind);
 
           if (result) {
             const logs = [];
@@ -134,8 +150,9 @@ export default class Utils {
               logs.push(`[${leagueName}]`);
             }
 
-            logs.push(`Item '${itemToFind.name}' found in ${key}.`);
+            logs.push(`Item '${itemToFind.name}' found in '${key}'.`);
 
+            // eslint-disable-next-line no-console
             console.debug(...logs);
             break;
           }
@@ -147,57 +164,64 @@ export default class Utils {
     return result;
   }
 
-  static findCardOverview(
-    leagueOverview: LeagueItemsOverview,
+  public static FindCardOverview(
+    { currencyOverview, itemsOverview }: LeagueOverview,
     cardItem: CardItem | CardCurrencyItem,
     leagueName?: LeagueName,
-  ) {
-    const cardOverview = this.findItemFromLeagueOverview(
-      leagueOverview,
+  ): CardOverview {
+    const cardOverview = Utils.FindItemFromLeagueOverview(
+      itemsOverview,
       {
         itemClass: ItemClassDictionary.DIVINATION_CARD,
-        name: cardItem.Name,
+        name: cardItem.cardName,
       },
       leagueName,
     );
 
     if (!cardOverview) {
-      throw new Error(`Failed to find card '${cardItem.Name}' overview`);
+      throw new Error(`Failed to find card '${cardItem.cardName}' overview`);
     }
 
-    if ('Amount' in cardItem) {
-      // TODO: find currency overview
-      throw new Error('CardCurrencyItem not yet implemented.');
+    if ('amount' in cardItem) {
+      return {
+        cardOverview,
+        rewardOverview: Utils.FindCurrency(
+          currencyOverview.data,
+          cardItem.rewardName,
+        ),
+      };
     }
 
     const searchOptions: FindItemInput = {
-      name: cardItem.Reward,
+      name: cardItem.rewardName,
     };
 
-    if ('iClass' in cardItem) {
-      searchOptions.itemClass = cardItem.iClass;
+    if ('itemClass' in cardItem) {
+      searchOptions.itemClass = cardItem.itemClass;
     }
 
-    if ('Links' in cardItem) {
-      searchOptions.links = cardItem.Links;
+    if ('links' in cardItem) {
+      searchOptions.links = cardItem.links;
     }
 
     if ('gemLevel' in cardItem) {
       searchOptions.gemLevel = cardItem.gemLevel;
     }
 
-    if ('Corrupted' in cardItem) {
-      searchOptions.isCorrupted = cardItem.Corrupted;
+    if ('corrupted' in cardItem) {
+      searchOptions.isCorrupted = cardItem.corrupted;
     }
 
-    const rewardOverview = this.findItemFromLeagueOverview(
-      leagueOverview,
+    const rewardOverview = Utils.FindItemFromLeagueOverview(
+      itemsOverview,
       searchOptions,
       leagueName,
     );
 
     if (!rewardOverview) {
-      throw new Error(`Failed to find card '${cardItem.Name}' reward overview`);
+      throw new Error(
+        `Failed to find card '${cardItem.cardName}' reward overview`,
+      );
     }
 
     return {
@@ -206,24 +230,26 @@ export default class Utils {
     };
   }
 
-  static findCurrencyChaosValue(
-    CurrencyOverviewList: CurrencyOverview[],
+  public static FindCurrencyChaosValue(
+    currencyOverview: CurrencyOverview[],
     currencyName: string,
   ): number {
     if (currencyName === 'Chaos Orb') return 1;
 
-    const result = CurrencyOverviewList.find(
-      ({ currencyTypeName }) => currencyName === currencyTypeName,
-    );
+    const { chaosEquivalent } =
+      Utils.FindCurrency(currencyOverview, currencyName) || {};
 
-    if (result) {
-      return result.chaosEquivalent;
+    if (chaosEquivalent) {
+      return chaosEquivalent;
     }
 
     throw new Error('Currency chaos value not found');
   }
 
-  static transformChaosIntoExalted(exaltedValue: number, chaosValue: number) {
+  public static TransformChaosIntoExalted(
+    exaltedValue: number,
+    chaosValue: number,
+  ) {
     return parseFloat((chaosValue / exaltedValue).toFixed(1));
   }
 }

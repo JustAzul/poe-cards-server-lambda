@@ -1,6 +1,6 @@
 import { ItemOverviewType } from '../types/item-overview-types.type';
 
-const list: ItemOverviewType[] = [
+const LIST: ItemOverviewType[] = [
   'DivinationCard',
   'UniqueArmour',
   'UniqueAccessory',
@@ -11,4 +11,4 @@ const list: ItemOverviewType[] = [
   'UniqueJewel',
 ];
 
-export default list;
+export default LIST;

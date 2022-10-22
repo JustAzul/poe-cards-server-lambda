@@ -1,71 +1,66 @@
 import { CardCurrencyItem } from '../types/card-currency-item.type';
 
-const currencyCards: CardCurrencyItem[] = [
+const CURRENCY_CARDS: CardCurrencyItem[] = [
   {
-    Name: 'The Wrath',
-    Reward: 'Chaos Orb',
-    Amount: 10,
+    cardName: 'The Wrath',
+    rewardName: 'Chaos Orb',
+    amount: 10,
   },
   {
-    Name: 'Abandoned Wealth',
-    Reward: 'Exalted Orb',
-    Amount: 3,
+    cardName: 'Abandoned Wealth',
+    rewardName: 'Exalted Orb',
+    amount: 3,
   },
   {
-    Name: "The Saint's Treasure",
-    Reward: 'Exalted Orb',
-    Amount: 2,
+    cardName: "The Saint's Treasure",
+    rewardName: 'Exalted Orb',
+    amount: 2,
   },
   {
-    Name: 'The Hoarder',
-    Reward: 'Exalted Orb',
-    Amount: 1,
+    cardName: 'The Hoarder',
+    rewardName: 'Exalted Orb',
+    amount: 1,
   },
   {
-    Name: 'The Sephirot',
-    Reward: 'Divine Orb',
-    Amount: 10,
+    cardName: 'The Sephirot',
+    rewardName: 'Divine Orb',
+    amount: 10,
   },
   {
-    Name: 'House of Mirrors',
-    Reward: 'Mirror of Kalandra',
-    Amount: 1,
+    cardName: 'House of Mirrors',
+    rewardName: 'Mirror of Kalandra',
+    amount: 1,
   },
   {
-    Name: 'Seven Years Bad Luck',
-    Reward: 'Mirror Shard',
-    Amount: 1,
+    cardName: 'Seven Years Bad Luck',
+    rewardName: 'Mirror Shard',
+    amount: 1,
   },
   {
-    Name: 'Unrequited Love',
-    Reward: 'Mirror Shard',
-    Amount: 19,
+    cardName: 'Unrequited Love',
+    rewardName: 'Mirror Shard',
+    amount: 19,
   },
   {
-    Name: "Brother's Stash",
-    Reward: 'Exalted Orb',
-    Amount: 5,
+    cardName: "Brother's Stash",
+    rewardName: 'Exalted Orb',
+    amount: 5,
   },
   {
-    Name: 'The Scout',
-    Reward: 'Exalted Orb',
-    Amount: 7,
+    cardName: 'The Scout',
+    rewardName: 'Exalted Orb',
+    amount: 7,
   },
   {
-    Name: 'The Long Con',
-    Reward: "Elderslayer's Exalted Orb",
-    Amount: 1,
+    cardName: 'Underground Forest',
+    rewardName: 'Awakened Sextant',
+    amount: 10,
   },
   {
-    Name: 'Underground Forest',
-    Reward: 'Awakened Sextant',
-    Amount: 10,
-  },
-  {
-    Name: 'Alluring Bounty',
-    Reward: 'Exalted Orb',
-    Amount: 10,
+    cardName: 'Alluring Bounty',
+    rewardName: 'Exalted Orb',
+    amount: 10,
   },
 ];
 
-export default currencyCards;
+export default CURRENCY_CARDS;
