@@ -1,6 +1,6 @@
 import { ItemClassDictionary } from './item-class-dictionary.enum';
-import { ItemOverview } from './item-overview.type';
 import { ItemOverviewBaseType } from './item-overview-base-type.type';
+import { ItemOverview } from './item-overview.type';
 
 export type UniqueMapItemOverview = Omit<ItemOverview, 'itemClass'> & {
   itemClass: ItemClassDictionary.UNIQUE_MAP;

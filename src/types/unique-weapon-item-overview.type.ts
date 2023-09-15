@@ -1,7 +1,7 @@
 import { ItemClassDictionary } from './item-class-dictionary.enum';
-import { ItemOverview } from './item-overview.type';
 import { ItemOverviewBaseType } from './item-overview-base-type.type';
 import { ItemOverviewItemType } from './item-overview-item-type.type';
+import { ItemOverview } from './item-overview.type';
 
 export type UniqueWeaponItemOverview = Omit<ItemOverview, 'itemClass'> & {
   baseType: ItemOverviewBaseType;

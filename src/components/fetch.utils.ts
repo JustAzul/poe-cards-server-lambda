@@ -1,4 +1,5 @@
 import LEAGUES_TO_IGNORE from '../constants/leagues-to-ignore';
+
 import type { LeagueResponse } from '../types/league-response.type';
 
 export default class FetchUtils {

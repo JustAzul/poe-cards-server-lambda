@@ -1,9 +1,10 @@
+import { ItemClassDictionary } from '../types/item-class-dictionary.enum';
+
 import type { CardCurrencyItem } from '../types/card-currency-item.type';
 import type { CardItem } from '../types/card-item.type';
 import type { CardOverview } from '../types/card-overview.type';
 import type { CurrencyOverview } from '../types/currency-overview.type';
 import type { FindItemInput } from '../types/find-item.input';
-import { ItemClassDictionary } from '../types/item-class-dictionary.enum';
 import type { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
 import type { ItemOverviewType } from '../types/item-overview-types.type';
 import type { LeagueItemsOverview } from '../types/league-items-overview.type';

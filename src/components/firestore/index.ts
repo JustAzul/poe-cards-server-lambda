@@ -1,5 +1,6 @@
 import { LeagueResponse } from '../../types/league-response.type';
 import Utils from '../utils';
+
 import db from './firestore';
 
 export default class Database {

@@ -1,15 +1,16 @@
 /* eslint-disable no-console */
+
+import Fetch from './components/fetch';
+import Database from './components/firestore';
+import Utils from './components/utils';
+import CARDS from './constants/cards';
+import CURRENCY_CARDS from './constants/currency-cards';
+
 import type {
   APIGatewayEvent,
   APIGatewayProxyCallback,
   Context,
 } from 'aws-lambda';
-
-import CARDS from './constants/cards';
-import CURRENCY_CARDS from './constants/currency-cards';
-import Database from './components/firestore';
-import Fetch from './components/fetch';
-import Utils from './components/utils';
 
 // const { GetLeagueOverview, Delay } = require('./components/utils');
 // const Generators = require('./components/Generators');

@@ -1,20 +1,23 @@
+import EventEmitter from 'events';
+
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import type { CurrencyOverviewResponse } from '../types/currency-overview-response.type';
+import LEAGUE_OVERVIEW_FETCH_LIST from '../constants/fetch-list';
+import REQUEST_DELAY from '../constants/request-delay';
 import DEFAULT_USER_AGENT from '../constants/user-agent';
-import EventEmitter from 'events';
+import { JobQueue } from '../types/job-queue.type';
+
 import FetchUtils from './fetch.utils';
+
+import type { CurrencyOverviewResponse } from '../types/currency-overview-response.type';
 import type { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
 import type { ItemOverviewResponse } from '../types/item-overview-response.type';
 import type { ItemOverviewType } from '../types/item-overview-types.type';
-import { JobQueue } from '../types/job-queue.type';
-import LEAGUE_OVERVIEW_FETCH_LIST from '../constants/fetch-list';
 import type { LeagueCurrencyOverview } from '../types/league-currency-overview.type';
 import type { LeagueItemsOverview } from '../types/league-items-overview.type';
 import type { LeagueName } from '../types/league-name.type';
 import type { LeagueOverview } from '../types/league-overview.type';
 import type { LeagueResponse } from '../types/league-response.type';
-import REQUEST_DELAY from '../constants/request-delay';
 
 export default class Fetch {
   public static readonly Utils = FetchUtils;
