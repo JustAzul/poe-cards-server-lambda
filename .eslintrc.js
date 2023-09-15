@@ -4,8 +4,10 @@ module.exports = {
     jest: true,
     node: true,
   },
+  root: true,
   extends: [
     'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
     'airbnb-base',
     'plugin:import/typescript',
     'plugin:prettier/recommended',
