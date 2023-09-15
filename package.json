@@ -6,6 +6,7 @@
     "build:aws:clean": "rimraf ./dist-aws",
     "build:aws": "npm run build && mkdirp ./dist-aws && cpy . ../dist-aws --cwd=dist && cpy ./package.json ./.env ./dist-aws",
     "build:clean": "rimraf ./dist",
+    "lint": "eslint . --ext .ts --fix",
     "build": "tsc",
     "dev": "npm run build && concurrently \"tsc -w\" \"NODE_ENV=development nodemon dist/index.js\"",
     "prebuild": "npm run build:clean",

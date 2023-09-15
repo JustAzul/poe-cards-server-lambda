@@ -1,12 +1,12 @@
 module.exports = {
   env: {
     es2021: true,
+    jest: true,
     node: true,
   },
   extends: [
+    'eslint:recommended',
     'airbnb-base',
-    'plugin:import/errors',
-    'plugin:import/warnings',
     'plugin:import/typescript',
     'plugin:prettier/recommended',
   ],
@@ -23,7 +23,26 @@ module.exports = {
         tsx: 'never',
       },
     ],
-    'import/order': 'off',
+    'import/order': [
+      'error',
+      {
+        groups: [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index',
+          'object',
+          'type',
+        ],
+        'newlines-between': 'always',
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
+    ],
     'import/prefer-default-export': 'warn',
   },
   overrides: [
