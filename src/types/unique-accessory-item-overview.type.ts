@@ -4,8 +4,8 @@ import { ItemOverviewItemType } from './item-overview-item-type.type';
 import { ItemOverview } from './item-overview.type';
 
 export type UniqueAccessoryItemOverview = Omit<ItemOverview, 'itemClass'> & {
-  itemClass: ItemClassDictionary.UNIQUE_ACCESSORY;
   baseType: ItemOverviewBaseType;
+  itemClass: ItemClassDictionary.UNIQUE_ACCESSORY;
   itemType: ItemOverviewItemType;
   variant: never;
 };

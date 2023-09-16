@@ -1,6 +1,6 @@
 export type CurrencyDetails = {
-  id: number;
   icon: string;
+  id: number;
   name: string;
   tradeId: string;
 };

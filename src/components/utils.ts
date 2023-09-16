@@ -35,8 +35,8 @@ export default class Utils {
         ({ id: leagueName, url }) => [
           leagueName,
           {
-            leagueName,
             ladder: url,
+            leagueName,
           },
         ],
       ),

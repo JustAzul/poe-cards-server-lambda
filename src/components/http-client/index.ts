@@ -11,13 +11,13 @@ import type { JobQueue } from './types/job-queue.type';
 import type { JobResponse } from './types/job-response.type';
 
 export default class HttpClient {
-  private readonly queue: JobQueue<JobResponse>[] = [];
+  private isQueueBeingProcessed = false;
 
   private readonly delayBetweenJobs: number;
 
   private readonly events: EventEmitter = new EventEmitter();
 
-  private isQueueBeingProcessed = false;
+  private readonly queue: JobQueue<JobResponse>[] = [];
 
   private readonly userAgent = USER_AGENT;
 

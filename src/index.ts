@@ -170,22 +170,22 @@ const handler = async (
   try {
     await main();
     callback(null, {
-      statusCode: 200,
       body: JSON.stringify('Job done.'),
+      statusCode: 200,
     });
   } catch (e) {
     if (e instanceof Error) {
       callback(e, {
-        statusCode: 500,
         body: JSON.stringify(e.message),
+        statusCode: 500,
       });
 
       return;
     }
 
     callback(null, {
-      statusCode: 500,
       body: JSON.stringify(e),
+      statusCode: 500,
     });
   }
 };

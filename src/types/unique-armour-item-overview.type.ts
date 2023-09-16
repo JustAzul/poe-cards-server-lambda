@@ -4,10 +4,10 @@ import { ItemOverviewItemType } from './item-overview-item-type.type';
 import { ItemOverview } from './item-overview.type';
 
 export type UniqueArmourItemOverview = Omit<ItemOverview, 'itemClass'> & {
-  itemClass: ItemClassDictionary.UNIQUE_ARMOUR;
   baseType: ItemOverviewBaseType;
+  itemClass: ItemClassDictionary.UNIQUE_ARMOUR;
   itemType: ItemOverviewItemType;
   levelRequired: number;
-  variant: never;
   links?: 6 | 5;
+  variant: never;
 };

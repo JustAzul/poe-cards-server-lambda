@@ -103,8 +103,8 @@ export default class Fetch {
     const { data } = await Fetch.Get<
       ItemOverviewResponse<ItemOverviewDictionary[T]>
     >('https://poe.ninja/api/data/itemoverview', {
-      responseType: 'json',
       params,
+      responseType: 'json',
     });
 
     // eslint-disable-next-line no-console
@@ -129,8 +129,8 @@ export default class Fetch {
     const { data } = await Fetch.Get<CurrencyOverviewResponse>(
       'https://poe.ninja/api/data/currencyoverview',
       {
-        responseType: 'json',
         params,
+        responseType: 'json',
       },
     );
 
