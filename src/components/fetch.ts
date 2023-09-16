@@ -1,13 +1,8 @@
-import EventEmitter from 'events';
-
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-
 import LEAGUE_OVERVIEW_FETCH_LIST from '../constants/fetch-list';
 import REQUEST_DELAY from '../constants/request-delay';
-import DEFAULT_USER_AGENT from '../constants/user-agent';
-import { JobQueue } from '../types/job-queue.type';
 
 import FetchUtils from './fetch.utils';
+import HttpClient from './http-client';
 
 import type { CurrencyOverviewResponse } from '../types/currency-overview-response.type';
 import type { ItemOverviewDictionary } from '../types/item-overview-dictionary.type';
@@ -18,61 +13,18 @@ import type { LeagueItemsOverview } from '../types/league-items-overview.type';
 import type { LeagueName } from '../types/league-name.type';
 import type { LeagueOverview } from '../types/league-overview.type';
 import type { LeagueResponse } from '../types/league-response.type';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export default class Fetch {
   public static readonly Utils = FetchUtils;
 
-  private static readonly Queue: JobQueue[] = [];
-
-  private static readonly Events: EventEmitter = new EventEmitter();
-
-  private static isQueueBeingProcessed = false;
-
-  private static async ProcessQueue() {
-    if (Fetch.isQueueBeingProcessed) return;
-
-    Fetch.isQueueBeingProcessed = true;
-
-    const job = Fetch.Queue.shift();
-
-    if (job) {
-      Fetch.Events.emit(job.id, await job.job());
-    }
-
-    if (Fetch.Queue.length > 0) {
-      // eslint-disable-next-line no-promise-executor-return
-      await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY));
-    }
-
-    Fetch.isQueueBeingProcessed = false;
-    if (Fetch.Queue.length > 0) await Fetch.ProcessQueue();
-  }
+  private static readonly httpClient = new HttpClient(REQUEST_DELAY);
 
   private static async Get<T>(
     url: string,
     config?: AxiosRequestConfig<never>,
   ): Promise<AxiosResponse<T, never>> {
-    const job: JobQueue = {
-      id: Symbol(url),
-      job: async () =>
-        axios.get<T, AxiosResponse<T, never>, never>(url, {
-          headers: {
-            'user-agent': DEFAULT_USER_AGENT,
-          },
-          ...config,
-        }),
-    };
-
-    Fetch.Queue.push(job);
-
-    const [fetchResult] = await Promise.all([
-      new Promise((resolve) =>
-        // eslint-disable-next-line no-promise-executor-return
-        Fetch.Events.once(job.id, (r) => resolve(r)),
-      ),
-      Fetch.ProcessQueue(),
-    ]);
-
+    const fetchResult = await Fetch.httpClient.get<T>({ config, url });
     return fetchResult as AxiosResponse<T, never>;
   }
 
