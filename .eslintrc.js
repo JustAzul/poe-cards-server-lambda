@@ -4,16 +4,40 @@ module.exports = {
     jest: true,
     node: true,
   },
-  root: true,
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'airbnb-base',
     'plugin:import/typescript',
     'plugin:prettier/recommended',
+    'plugin:typescript-sort-keys/recommended',
   ],
-  plugins: ['@typescript-eslint', 'import'],
+  overrides: [
+    {
+      files: ['./src/index.ts'],
+      rules: {
+        'import/prefer-default-export': 'off',
+      },
+    },
+    {
+      extends: [
+        'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
+      ],
+      files: ['*.ts', '*.tsx'],
+      parserOptions: {
+        project: ['./tsconfig.json'],
+      },
+    },
+  ],
   parser: '@typescript-eslint/parser',
+  plugins: [
+    '@typescript-eslint',
+    'import',
+    'sort-keys',
+    'typescript-sort-keys',
+  ],
+  root: true,
   rules: {
     'import/extensions': [
       'error',
@@ -28,6 +52,10 @@ module.exports = {
     'import/order': [
       'error',
       {
+        alphabetize: {
+          caseInsensitive: true,
+          order: 'asc',
+        },
         groups: [
           'builtin',
           'external',
@@ -39,30 +67,12 @@ module.exports = {
           'type',
         ],
         'newlines-between': 'always',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
-        },
       },
     ],
     'import/prefer-default-export': 'warn',
+    'sort-keys': 0,
+    'sort-keys/sort-keys-fix': 1,
+    'typescript-sort-keys/interface': 'error',
+    // 'typescript-sort-keys/string-enum': 'error',
   },
-  overrides: [
-    {
-      files: ['./src/index.ts'],
-      rules: {
-        'import/prefer-default-export': 'off',
-      },
-    },
-    {
-      files: ['*.ts', '*.tsx'],
-      extends: [
-        'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking',
-      ],
-      parserOptions: {
-        project: ['./tsconfig.json'],
-      },
-    },
-  ],
 };
