@@ -49,10 +49,15 @@ export default class HttpClient {
     }
   }
 
-  private insertAndProcess<T>(jobQueue: JobQueue<JobResponse<T>>) {
+  private insertIntoQueue<T>(jobQueue: JobQueue<JobResponse<T>>) {
     this.queue.push(jobQueue);
+  }
 
-    if (!this.isQueueBeingProcessed) {
+  private insertAndProcess<T>(jobQueue: JobQueue<JobResponse<T>>) {
+    this.insertIntoQueue(jobQueue);
+
+    const shouldProcessQueue = this.isQueueBeingProcessed === false;
+    if (shouldProcessQueue) {
       this.processQueue().catch((error: Error) =>
         console.error(
           `Error in insertAndProcess job #${jobQueue.id.toString()}: ${
