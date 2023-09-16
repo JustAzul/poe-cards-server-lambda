@@ -14,7 +14,7 @@ describe('HttpClient', () => {
 
   // Constructor test
   it('initializes delayBetweenJobs correctly', () => {
-    const delay = 1000;
+    const delay = Math.random() * 1000;
     const customHttpClient = new HttpClient(delay);
     // @ts-expect-error - testing private property.
     expect(customHttpClient.delayBetweenJobs).toBe(delay);
