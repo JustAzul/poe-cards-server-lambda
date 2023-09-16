@@ -24,5 +24,5 @@
     "excludeDirectories": ["**/node_modules", "_build"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts", "dist", "types"]
+  "exclude": ["node_modules", "dist", "types"]
 }
