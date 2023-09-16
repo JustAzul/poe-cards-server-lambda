@@ -32,7 +32,7 @@ export default class HttpClient {
     const currentJob = this.queue.shift();
     if (currentJob) {
       try {
-        const result = await currentJob.job();
+        const result = await currentJob.promise();
         this.events.emit(currentJob.id, null, result);
       } catch (error) {
         this.events.emit(currentJob.id, error, null);
@@ -74,7 +74,7 @@ export default class HttpClient {
   }: CreateJobSetup): JobQueue<JobResponse<T>> {
     const newJob: JobQueue<JobResponse<T>> = {
       id: Symbol(url),
-      job: async () =>
+      promise: async () =>
         axios.get<T, JobResponse<T>>(
           url,
           HttpClientUtils.mergeConfig(this.userAgent, config),
