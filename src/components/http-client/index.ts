@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 
 import USER_AGENT from '../../constants/user-agent';
 
@@ -94,13 +94,14 @@ export default class HttpClient {
     const jobQueue = this.createJob<T>(jobSetup);
 
     return new Promise((resolve, reject) => {
-      const listener = (error: Error, result: AxiosResponse<T>) => {
+      const listener = (error: AxiosError, result: AxiosResponse<T>) => {
         this.events.off(jobQueue.id, listener); // Remove the event listener to prevent memory leaks
 
         if (error) {
-          reject(error);
+          reject(new Error(error.message));
           return;
         }
+
         resolve(result);
       };
 
