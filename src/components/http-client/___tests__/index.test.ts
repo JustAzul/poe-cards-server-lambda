@@ -38,6 +38,19 @@ describe(HttpClient.name, () => {
     address = await server.listen();
   });
 
+  it('should handle successful requests correctly', async () => {
+    const httpClient = new HttpClient();
+    const forceStatusCode = StatusCode.SuccessOK;
+
+    const httpClientResponse = await httpClient.get<
+      typeof defaultServerResponse
+    >({
+      url: `${address}/${forceStatusCode}`,
+    });
+
+    expect(httpClientResponse?.data).toMatchObject(defaultServerResponse);
+  });
+
   it('should throw HTTP Exception when the request fails', async () => {
     const httpClient = new HttpClient();
 
