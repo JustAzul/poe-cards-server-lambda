@@ -3,13 +3,27 @@ import StatusCode from 'status-code-enum';
 import { v4 as uuidv4 } from 'uuid';
 
 import HttpClient from '..';
-// import { CreateJobSetup } from '../types/create-job-setup.type';
+import { CreateJobSetup } from '../types/create-job-setup.type';
 
 import type { IncomingHttpHeaders } from 'http';
 
 function getUID(s: string = ''): string {
   const uid = uuidv4();
   return `${s.trim().toLowerCase()}-${uid}`;
+}
+
+function getURL(base: string, searchQuery: Record<string, string>): string {
+  const searchParams = new URLSearchParams();
+
+  const keys = Object.keys(searchQuery);
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    const value = searchQuery[key];
+
+    searchParams.set(key, value);
+  }
+
+  return `${base}?${searchParams.toString()}`;
 }
 
 type ReceivedRequest = {
@@ -22,16 +36,14 @@ describe(HttpClient.name, () => {
     message: 'Hello World!',
   };
 
-  // const delayBetweenJobs = parseInt((Math.random() * 1000).toFixed(), 10);
-
   let server: FastifyInstance | null;
   let address: string | null;
 
   const receivedRequestData: Map<string, ReceivedRequest> = new Map();
 
-  // beforeAll(() => {
-  //   jest.useFakeTimers();
-  // });
+  beforeAll(() => {
+    // jest.useFakeTimers();
+  });
 
   afterEach(async () => {
     if (server) {
@@ -46,10 +58,10 @@ describe(HttpClient.name, () => {
 
   beforeEach(async () => {
     receivedRequestData.clear();
-    server = Fastify();
 
-    server.get('/:status/:uid', async ({ params, headers }, response) => {
-      const { status = '200', uid = getUID() } = params as Record<
+    server = Fastify();
+    server.get('/', async ({ headers, query }, response) => {
+      const { status = '200', uid = getUID() } = query as Record<
         'status' | 'uid',
         string
       >;
@@ -75,7 +87,14 @@ describe(HttpClient.name, () => {
       const statusCode = StatusCode.SuccessOK;
       const uid = getUID(shouldTest);
 
-      const url = `${address}/${statusCode}/${uid}`;
+      if (!address) {
+        throw new Error('Address is not defined');
+      }
+
+      const url = getURL(address, {
+        status: statusCode.toString(),
+        uid,
+      });
 
       const httpClientResponse = await httpClient.get<
         typeof jsonServerResponse
@@ -87,47 +106,70 @@ describe(HttpClient.name, () => {
     });
   }
 
-  // {
-  //   const shouldTest =
-  //     'should handle multiple requests correctly, respecting the delay between jobs';
+  {
+    const shouldTest =
+      'should handle multiple requests correctly, respecting the delay between jobs';
 
-  //   it(shouldTest, async () => {
-  //     const httpClient = new HttpClient(delayBetweenJobs);
+    it(shouldTest, async () => {
+      const delayBetweenJobs = parseInt((Math.random() * 1000).toFixed(), 10);
+      const httpClient = new HttpClient(delayBetweenJobs);
 
-  //     // const startTime = Date.now();
+      const statusCode = StatusCode.SuccessOK;
+      const uid = getUID(shouldTest);
 
-  //     const internalUIDs: string[] = [];
+      if (!address) {
+        throw new Error('Address is not defined');
+      }
 
-  //     // Send multiple requests in quick succession
-  //     const randomNumberOfRequests = Math.floor(Math.random() * 10) + 1;
-  //     const requests = new Array(randomNumberOfRequests)
-  //       .fill(null)
-  //       .map((_, i) => {
-  //         const statusCode = StatusCode.SuccessOK;
+      const url = getURL(address, {
+        status: statusCode.toString(),
+        uid,
+      });
 
-  //         const uid = getUID(`${shouldTest}-${i}`);
-  //         internalUIDs.push(uid);
+      const config: CreateJobSetup = {
+        url,
+      };
 
-  //         const config: CreateJobSetup = {
-  //           url: `${address}/${statusCode}/${uid}`,
-  //         };
+      // first request has no delay
+      const firstResponse = await httpClient.get<typeof jsonServerResponse>({
+        url,
+      });
 
-  //         return () => httpClient.get<typeof jsonServerResponse>(config);
-  //       });
+      expect(firstResponse?.data).toMatchObject(jsonServerResponse);
 
-  //     for (let i = 0; i < requests.length; i += 1) {
-  //       // eslint-disable-next-line no-await-in-loop
-  //       console.log('i', i);
-  //       // eslint-disable-next-line no-await-in-loop
-  //       await Promise.all([
-  //         jest.advanceTimersByTime(delayBetweenJobs),
-  //         requests[i](),
-  //       ]);
-  //     }
+      // subsequent requests have a delay
+      const requestTimes: number[] = [];
 
-  //     console.log('internalUIDs', internalUIDs);
-  //   });
-  // }
+      const numRequests = parseInt((Math.random() * 10).toFixed(), 10);
+      const requests = Array.from({ length: numRequests }).map(async () => {
+        const start = Date.now();
+        const response = await httpClient.get<typeof jsonServerResponse>(
+          config,
+        );
+        const end = Date.now();
+
+        requestTimes.push(end - start);
+        return response?.data;
+      });
+
+      const responses = await Promise.all(requests);
+
+      // Check that all responses are as expected
+      responses.forEach((response) => {
+        expect(response).toMatchObject(jsonServerResponse);
+      });
+
+      // Check if the time difference between each request is at least `delayBetweenJobs`
+      for (let i = 1; i < requestTimes.length; i += 1) {
+        expect(requestTimes[i]).toBeGreaterThanOrEqual(delayBetweenJobs);
+      }
+
+      receivedRequestData.forEach(({ timestamp }) => {
+        // console.log(new Date(timestamp));
+        expect(timestamp).toBeLessThanOrEqual(Date.now());
+      });
+    });
+  }
 
   {
     const shouldTest = 'should throw HTTP Exception when the request fails';
@@ -164,7 +206,14 @@ describe(HttpClient.name, () => {
       const statusCode = StatusCode.SuccessOK;
       const uid = getUID(shouldTest);
 
-      const url = `${address}/${statusCode}/${uid}`;
+      if (!address) {
+        throw new Error('Address is not defined');
+      }
+
+      const url = getURL(address, {
+        status: statusCode.toString(),
+        uid,
+      });
 
       const httpClientResponse = await httpClient.get<
         typeof jsonServerResponse
