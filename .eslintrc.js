@@ -49,6 +49,12 @@ module.exports = {
         tsx: 'never',
       },
     ],
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        devDependencies: ['**/*.test.ts', '**/*.spec.ts'],
+      },
+    ],
     'import/order': [
       'error',
       {
@@ -73,6 +79,6 @@ module.exports = {
     'sort-keys': 0,
     'sort-keys/sort-keys-fix': 1,
     'typescript-sort-keys/interface': 'error',
-    // 'typescript-sort-keys/string-enum': 'error',
+    'typescript-sort-keys/string-enum': 'warn',
   },
 };
