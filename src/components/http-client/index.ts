@@ -43,7 +43,10 @@ export default class HttpClient {
     if (this.queue.length > 0) {
       setTimeout(() => {
         this.processQueue().catch((error: Error) => {
-          console.error(`Error in processQueue: ${error.message}`);
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error(`Error in processQueue: ${error.message}`);
+          }
         });
       }, this.delayBetweenJobs);
     }
@@ -58,13 +61,16 @@ export default class HttpClient {
 
     const shouldProcessQueue = this.isQueueBeingProcessed === false;
     if (shouldProcessQueue) {
-      this.processQueue().catch((error: Error) =>
-        console.error(
-          `Error in insertAndProcess job #${jobQueue.id.toString()}: ${
-            error.message
-          }`,
-        ),
-      );
+      this.processQueue().catch((error: Error) => {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error(
+            `Error in insertAndProcess job #${jobQueue.id.toString()}: ${
+              error.message
+            }`,
+          );
+        }
+      });
     }
   }
 
