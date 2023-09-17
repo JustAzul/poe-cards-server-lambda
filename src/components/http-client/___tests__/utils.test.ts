@@ -2,7 +2,7 @@ import { AxiosRequestConfig } from 'axios';
 
 import HttpClientUtils from '../utils';
 
-describe('HttpClientUtils', () => {
+describe(HttpClientUtils.name, () => {
   // Common variables for the test suite
   let userAgent: string;
 
@@ -10,7 +10,7 @@ describe('HttpClientUtils', () => {
     userAgent = 'testUserAgent';
   });
 
-  describe('mergeConfig', () => {
+  describe(HttpClientUtils.mergeConfig.name, () => {
     // Default behavior
     it('returns default headers when no config is provided', () => {
       const expected = {
@@ -20,7 +20,6 @@ describe('HttpClientUtils', () => {
       };
 
       const result = HttpClientUtils.mergeConfig(userAgent);
-
       expect(result).toEqual(expected);
     });
 
@@ -29,10 +28,12 @@ describe('HttpClientUtils', () => {
       const customHeaders = {
         'custom-header': 'customValue',
       };
+
       const config = {
         headers: customHeaders,
         otherConfig: 'otherValue',
       };
+
       const expected = {
         ...config,
         headers: {
@@ -42,7 +43,6 @@ describe('HttpClientUtils', () => {
       };
 
       const result = HttpClientUtils.mergeConfig(userAgent, config);
-
       expect(result).toEqual(expected);
     });
 
@@ -51,6 +51,7 @@ describe('HttpClientUtils', () => {
       const config = {
         otherConfig: 'otherValue',
       };
+
       const expected = {
         headers: {
           'user-agent': userAgent,
