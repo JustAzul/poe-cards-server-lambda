@@ -1,84 +1,95 @@
-import axios from 'axios';
+import { IncomingHttpHeaders } from 'http';
+
+import Fastify from 'fastify';
+import StatusCode from 'status-code-enum';
 
 import HttpClient from '..';
-import HttpClientUtils from '../utils';
 
-jest.mock('axios');
+import type { FastifyInstance } from 'fastify';
 
-describe('HttpClient', () => {
-  let httpClient: HttpClient;
+type ReceivedRequest = {
+  headers?: IncomingHttpHeaders;
+};
 
-  beforeEach(() => {
-    httpClient = new HttpClient();
-  });
+describe(HttpClient.name, () => {
+  const defaultServerResponse = { message: 'Hello World!' };
 
-  // Constructor test
-  it('initializes delayBetweenJobs correctly', () => {
-    const delay = Math.random() * 1000;
-    const customHttpClient = new HttpClient(delay);
-    // @ts-expect-error - testing private property.
-    expect(customHttpClient.delayBetweenJobs).toBe(delay);
-  });
+  let server: FastifyInstance;
+  let address: string;
 
-  it('creates a job with correct configuration and adds it to the queue', () => {
-    const mockUrl = 'http://example.com';
-    const mockConfig = { some: 'config' } as never;
+  const receivedRequestData: Map<string, ReceivedRequest> = new Map();
 
-    // @ts-expect-error - testing private property.
-    const job = httpClient.createJob({
-      config: mockConfig,
-      url: mockUrl,
+  afterEach(async () => server.close());
+  beforeEach(async () => {
+    receivedRequestData.clear();
+
+    server = Fastify();
+    server.get('/:status', async (req, response) => {
+      const statusCodeToReply =
+        (req.params as Record<'status', number>)?.status || 200;
+
+      receivedRequestData.set(`get#${statusCodeToReply}`, {
+        headers: req.headers,
+      });
+
+      await response.status(statusCodeToReply).send(defaultServerResponse);
     });
 
-    // Verify job's properties.
-    expect(typeof job.job).toBe('function');
-    expect(typeof job.id).toBe('symbol');
-
-    // @ts-expect-error - testing private property.
-    httpClient.insertIntoQueue(job);
-
-    // Check if the job is added to the queue.
-
-    // @ts-expect-error - testing private property.
-    const queuedJob = httpClient.queue.find((j) => j.id === job.id);
-
-    expect(queuedJob).toBeDefined();
-    expect(queuedJob?.job).toBe(job.job);
-    expect(queuedJob?.id).toBe(job.id);
+    address = await server.listen();
   });
 
-  // get method test
-  it('get method creates and processes a job', async () => {
-    const mockResponse = { data: 'mockData' };
+  it('should throw HTTP Exception when the request fails', async () => {
+    const httpClient = new HttpClient();
 
-    // Step 1: Set up the spy.
-    const getSpy = jest.spyOn(axios, 'get');
+    const forceStatusCodes = Object.keys(StatusCode)
+      .map(Number)
+      .filter((code) => Boolean(code) && (code < 200 || code >= 300));
 
-    // Step 2: Use the mock implementation.
-    getSpy.mockResolvedValueOnce(mockResponse);
+    const requests = forceStatusCodes.map(async (statusCode) => {
+      try {
+        await httpClient.get({
+          url: `${address}/${statusCode}`,
+        });
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error);
+      }
+    });
 
-    const mockUrl = 'http://example.com';
-    const response = await httpClient.get({ url: mockUrl });
+    await Promise.all(requests);
+  });
 
-    expect(response).toEqual(mockResponse);
+  it('should send the request with the correct headers', async () => {
+    const httpClient = new HttpClient();
 
-    // Step 3: Assert on the spy.
-    expect(getSpy).toHaveBeenCalledWith(
-      mockUrl,
-      HttpClientUtils.mergeConfig(expect.any(String) as string, undefined),
+    const headers = {
+      'x-custom-header': 'custom-header-value',
+    };
+
+    const forceStatusCode = StatusCode.SuccessOK;
+
+    const httpClientResponse = await httpClient.get<
+      typeof defaultServerResponse
+    >({
+      config: {
+        headers,
+      },
+      url: `${address}/${forceStatusCode}`,
+    });
+
+    const httpServerResponse = receivedRequestData.get(
+      `get#${forceStatusCode}`,
     );
 
-    // Clean up by restoring the original method.
-    getSpy.mockRestore();
-  });
+    const hasHttpServerResponse = Boolean(httpServerResponse);
+    const hasHttpClientResponse = Boolean(httpClientResponse);
 
-  // Error handling in get method
-  it('get method handles errors correctly', async () => {
-    const mockError = new Error('Mock Error');
-    (axios.get as jest.Mock).mockRejectedValueOnce(mockError);
+    expect(hasHttpServerResponse).toBe(true);
+    expect(hasHttpClientResponse).toBe(true);
 
-    const mockUrl = 'http://example.com';
+    if (hasHttpServerResponse && hasHttpClientResponse) {
+      expect(httpServerResponse?.headers).toMatchObject(headers);
+    }
 
-    await expect(httpClient.get({ url: mockUrl })).rejects.toThrow(mockError);
+    expect(httpClientResponse?.data).toMatchObject(defaultServerResponse);
   });
 });
