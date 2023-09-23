@@ -16,9 +16,11 @@
   "author": "Diego (Azul) Ferreira",
   "license": "ISC",
   "dependencies": {
+    "agentkeepalive": "^4.5.0",
     "axios": "^1.1.2",
     "dotenv": "^16.0.3",
-    "firebase-admin": "^10.0.2"
+    "firebase-admin": "^10.0.2",
+    "status-code-enum": "^1.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.107",
@@ -43,7 +45,6 @@
     "nodemon": "^2.0.20",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
-    "status-code-enum": "^1.0.0",
     "ts-jest": "^29.1.1",
     "typescript": "^4.9.5",
     "uuid": "^9.0.1"
