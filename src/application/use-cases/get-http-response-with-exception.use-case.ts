@@ -43,19 +43,17 @@ export default class GetHttpResponseWithExceptionUseCase {
     this.props = props;
   }
 
-  public async execute(
+  public async execute<T = unknown>(
     httpClientProps: Readonly<HttpClientGetProps>,
-  ): Promise<HttpClientResponse<unknown>> {
+  ): Promise<HttpClientResponse<T>> {
     this.executeCount += 1;
 
     const { fetchUrlUseCase } = this.interfaces;
 
-    let httpClientResponse: HttpClientResponse<unknown>;
+    let httpClientResponse: HttpClientResponse<T>;
 
     try {
-      httpClientResponse = await fetchUrlUseCase.execute<unknown>(
-        httpClientProps,
-      );
+      httpClientResponse = await fetchUrlUseCase.execute<T>(httpClientProps);
     } catch (e) {
       if (e instanceof HttpException) {
         if (this.canRetry()) {

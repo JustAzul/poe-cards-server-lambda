@@ -4,19 +4,19 @@ import BadStatusCodeException from '../exceptions/bad-status-code.exception';
 import { HttpRequest } from '../types/http-request.type';
 import { HttpResponse } from '../types/http-response.type';
 
-export type ValidateHttpResponseProps<T = unknown> = {
+export type ValidateHttpResponseProps<T> = {
   request: HttpRequest;
   response: HttpResponse<T>;
 };
 
-export default class ValidateHttpResponseUseCase {
-  private props: ValidateHttpResponseProps;
+export default class ValidateHttpResponseUseCase<T> {
+  private props: ValidateHttpResponseProps<T>;
 
-  public constructor(props: ValidateHttpResponseProps) {
+  public constructor(props: ValidateHttpResponseProps<T>) {
     this.props = props;
   }
 
-  public execute(): HttpResponse {
+  public execute(): HttpResponse<T> {
     const { response } = this.props;
     const { statusCode } = response;
 
