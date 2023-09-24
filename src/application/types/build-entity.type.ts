@@ -2,12 +2,11 @@ import LeagueEntity, {
   LeagueEntityProps,
 } from '../../domain/entities/league.entity';
 
-export interface EntityMap {
-  LeagueEntity: LeagueEntity;
-}
-
-export interface EntityPropsMap {
-  LeagueEntity: LeagueEntityProps;
-}
+export type EntityMap = {
+  [K in typeof LeagueEntity.name]: LeagueEntity;
+};
+export type EntityPropsMap = {
+  [K in typeof LeagueEntity.name]: LeagueEntityProps;
+};
 
 export type EntityNames = keyof EntityMap;
