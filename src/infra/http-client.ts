@@ -15,9 +15,8 @@ import {
   IHttpClient,
 } from '../application/ports/http-client.interface';
 
+import { DEFAULT_REQUEST_TIMEOUT, DEFAULT_USER_AGENT } from './constants';
 import InfraException from './exceptions/infra.exception';
-
-const DEFAULT_REQUEST_TIMEOUT = 10000;
 
 export default class HttpClient implements IHttpClient {
   private client: AxiosInstance;
@@ -34,7 +33,10 @@ export default class HttpClient implements IHttpClient {
 
   private getClientConstructor(): CreateAxiosDefaults {
     return {
-      headers: this.getDefaultHeaders(),
+      headers: {
+        'user-agent': DEFAULT_USER_AGENT,
+        ...this.assembleDefaultHeaders(),
+      },
       httpsAgent: this.getAgent(),
       responseType: 'json',
       timeout: DEFAULT_REQUEST_TIMEOUT,
@@ -46,7 +48,7 @@ export default class HttpClient implements IHttpClient {
     return this.httpsAgent;
   }
 
-  private getDefaultHeaders(): IncomingHttpHeaders | undefined {
+  private assembleDefaultHeaders(): IncomingHttpHeaders | undefined {
     if (this.cookies) {
       return {
         ...this.defaultHeaders,

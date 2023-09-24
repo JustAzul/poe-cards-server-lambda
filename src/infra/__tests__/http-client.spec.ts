@@ -5,6 +5,7 @@ import Fastify from 'fastify';
 import StatusCode from 'status-code-enum';
 
 import HttpException from '../../application/exceptions/http.exception';
+import { DEFAULT_USER_AGENT } from '../constants';
 import HttpClient from '../http-client';
 
 type ReceivedRequest = {
@@ -61,6 +62,32 @@ describe(HttpClient.name, () => {
     });
 
     await Promise.all(tests);
+  });
+
+  it('should setup default user-agent header', async () => {
+    const httpClient = new HttpClient();
+
+    const forceStatusCode = StatusCode.SuccessOK;
+
+    const httpClientResponse = await httpClient.get<
+      typeof defaultServerResponse
+    >({
+      url: `${address}/${forceStatusCode}`,
+    });
+
+    const requestUID = httpClientResponse?.headers['x-request-id'] as string;
+    const httpRequest = receivedRequestData.get(requestUID);
+
+    const hasFoundHttpRequest = Boolean(httpRequest);
+    expect(hasFoundHttpRequest).toBe(true);
+
+    if (hasFoundHttpRequest) {
+      // @ts-expect-error - We know that the header exists
+      const userAgent = httpRequest.headers['user-agent'];
+
+      expect(userAgent).toBeDefined();
+      expect(userAgent).toBe(DEFAULT_USER_AGENT);
+    }
   });
 
   it('should send the request with the correct headers', async () => {
