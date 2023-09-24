@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 
 import HttpClient from './infra/http-client';
+import HttpLeagueRepository from './infra/league.repository';
 
 import type {
   APIGatewayEvent,
@@ -10,9 +11,12 @@ import type {
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function main() {
-  // TODO: fetch leagues from API
-
   const httpClient = new HttpClient();
+
+  const leagueRepository = new HttpLeagueRepository(httpClient);
+  const leagueEntities = await leagueRepository.findAll();
+
+  console.log(leagueEntities);
 }
 
 const handler = async (
