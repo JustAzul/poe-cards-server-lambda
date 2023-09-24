@@ -1,16 +1,9 @@
-import LeagueEntity, {
-  LeagueEntityProps,
-} from '../../domain/entities/league.entity';
-
-interface EntityMap {
-  LeagueEntity: LeagueEntity;
-}
-
-interface EntityPropsMap {
-  LeagueEntity: LeagueEntityProps;
-}
-
-type EntityNames = keyof EntityMap;
+import LeagueEntity from '../../domain/entities/league.entity';
+import {
+  EntityNames,
+  EntityPropsMap,
+  EntityMap,
+} from '../types/build-entity.type';
 
 export default class BuildEntityUseCase<T extends EntityNames> {
   private readonly entityName: T;
@@ -21,7 +14,7 @@ export default class BuildEntityUseCase<T extends EntityNames> {
 
   public execute(props: EntityPropsMap[T]): EntityMap[T] {
     if (this.entityName === LeagueEntity.name) {
-      return new LeagueEntity(props) as EntityMap[T];
+      return new LeagueEntity(props);
     }
 
     throw new Error(`Entity ${this.entityName} is not supported.`);

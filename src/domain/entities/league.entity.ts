@@ -4,7 +4,7 @@ interface Rule {
   name: string;
 }
 
-interface LeagueEntityProps {
+export interface LeagueEntityProps {
   // ancestorEvent?: boolean;
   delveEvent: boolean;
   // description: string;
