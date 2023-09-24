@@ -1,11 +1,11 @@
-import { ILeagueMapper } from '../application/ports/mapper.interface';
-import BuildEntityUseCase from '../application/use-cases/build-entity.use-case';
+import { ILeagueMapper } from '../../../application/ports/mapper.interface';
+import BuildEntityUseCase from '../../../application/use-cases/build-entity.use-case';
 
-import { HttpLeagueResponse } from './types/league.type';
+import { HttpLeagueResponse } from './types/http-league-response.type';
 
 const entityTargetName = 'LeagueEntity';
 
-export default class LeagueMapper implements ILeagueMapper {
+export default class HttpLeagueMapper implements ILeagueMapper {
   private readonly entityBuilder: BuildEntityUseCase<typeof entityTargetName>;
 
   constructor() {

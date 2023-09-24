@@ -23,7 +23,7 @@ export type GetHttpResponseWithExceptionInterfaces = {
 
 export type GetHttpResponseWithExceptionConstructor = {
   interfaces: GetHttpResponseWithExceptionInterfaces;
-  props: GetHttpResponseWithExceptionProps;
+  props?: GetHttpResponseWithExceptionProps;
 };
 
 export default class GetHttpResponseWithExceptionUseCase {
@@ -31,7 +31,7 @@ export default class GetHttpResponseWithExceptionUseCase {
 
   private readonly interfaces: GetHttpResponseWithExceptionInterfaces;
 
-  private readonly props: GetHttpResponseWithExceptionProps;
+  private readonly props?: GetHttpResponseWithExceptionProps;
 
   public constructor({
     interfaces,
@@ -108,7 +108,7 @@ export default class GetHttpResponseWithExceptionUseCase {
   }
 
   private canRetry(): boolean {
-    const { maxRetries = DEFAULT_REQUEST_MAX_RETRIES } = this.props;
+    const { maxRetries = DEFAULT_REQUEST_MAX_RETRIES } = this.props || {};
     return this.executeCount <= maxRetries;
   }
 }

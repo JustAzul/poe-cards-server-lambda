@@ -4,9 +4,9 @@ import { IncomingHttpHeaders } from 'http';
 import Fastify from 'fastify';
 import StatusCode from 'status-code-enum';
 
-import HttpException from '../../application/exceptions/http.exception';
+import HttpClient from '..';
+import HttpException from '../../../../application/exceptions/http.exception';
 import { DEFAULT_USER_AGENT } from '../constants';
-import HttpClient from '../http-client';
 
 type ReceivedRequest = {
   headers?: IncomingHttpHeaders;
@@ -42,7 +42,7 @@ describe(HttpClient.name, () => {
   beforeEach(() => receivedRequestData.clear());
 
   it('should throw HTTP Exception when the request fails', async () => {
-    const httpClient = new HttpClient();
+    const { client: httpClient } = new HttpClient();
 
     const forceStatusCodes = Object.keys(StatusCode)
       .map(Number)
@@ -65,7 +65,7 @@ describe(HttpClient.name, () => {
   });
 
   it('should setup default user-agent header', async () => {
-    const httpClient = new HttpClient();
+    const { client: httpClient } = new HttpClient();
 
     const forceStatusCode = StatusCode.SuccessOK;
 
@@ -91,7 +91,7 @@ describe(HttpClient.name, () => {
   });
 
   it('should send the request with the correct headers', async () => {
-    const httpClient = new HttpClient();
+    const { client: httpClient } = new HttpClient();
 
     const headers = {
       'x-custom-header': 'custom-header-value',

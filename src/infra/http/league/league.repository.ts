@@ -1,15 +1,15 @@
-import { IHttpClient } from '../application/ports/http-client.interface';
-import { ILeagueMapper } from '../application/ports/mapper.interface';
-import { ILeagueRepository } from '../application/ports/repository.interface';
+import { IHttpClient } from '../../../application/ports/http-client.interface';
+import { ILeagueMapper } from '../../../application/ports/mapper.interface';
+import { ILeagueRepository } from '../../../application/ports/repository.interface';
+import InfraException from '../../exceptions/infra.exception';
 
-import InfraException from './exceptions/infra.exception';
-import LeagueMapper from './league.mapper';
-import { HttpLeagueResponse } from './types/league.type';
+import HttpLeagueMapper from './league.mapper';
+import { HttpLeagueResponse } from './types/http-league-response.type';
 
 export default class HttpLeagueRepository implements ILeagueRepository {
   private readonly httpClient: IHttpClient;
 
-  private readonly mapper: ILeagueMapper = new LeagueMapper();
+  private readonly mapper: ILeagueMapper = new HttpLeagueMapper();
 
   constructor(httpClient: IHttpClient) {
     this.httpClient = httpClient;

@@ -8,17 +8,17 @@ import Axios, {
   CreateAxiosDefaults,
 } from 'axios';
 
-import HttpException from '../application/exceptions/http.exception';
+import HttpException from '../../../application/exceptions/http.exception';
 import {
+  IHttpClient,
   HttpClientGetProps,
   HttpClientResponse,
-  IHttpClient,
-} from '../application/ports/http-client.interface';
+} from '../../../application/ports/http-client.interface';
+import InfraException from '../../exceptions/infra.exception';
 
-import { DEFAULT_REQUEST_TIMEOUT, DEFAULT_USER_AGENT } from './constants';
-import InfraException from './exceptions/infra.exception';
+import { DEFAULT_USER_AGENT, DEFAULT_REQUEST_TIMEOUT } from './constants';
 
-export default class HttpClient implements IHttpClient {
+export default class AxiosHttpClient implements IHttpClient {
   private client: AxiosInstance;
 
   private cookies?: string;
@@ -107,10 +107,13 @@ export default class HttpClient implements IHttpClient {
       }
 
       if (e instanceof Error) {
-        throw new InfraException(HttpClient.name, e.message);
+        throw new InfraException(AxiosHttpClient.name, e.message);
       }
 
-      throw new InfraException(HttpClient.name, `Unknown error: ${String(e)}`);
+      throw new InfraException(
+        AxiosHttpClient.name,
+        `Unknown error: ${String(e)}`,
+      );
     }
   }
 }

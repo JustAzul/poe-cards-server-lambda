@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
-import HttpClient from './infra/http-client';
-import HttpLeagueRepository from './infra/league.repository';
+import HttpClient from './infra/http/client';
+import HttpLeagueRepository from './infra/http/league/league.repository';
 
 import type {
   APIGatewayEvent,
