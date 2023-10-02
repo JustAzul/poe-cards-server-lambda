@@ -14,7 +14,7 @@ async function main() {
   const httpClient = new HttpClient();
 
   const leagueRepository = new HttpLeagueRepository(httpClient);
-  const leagueEntities = await leagueRepository.findAll();
+  const leagueEntities = await leagueRepository.fetchAll();
 
   console.log(leagueEntities);
 }

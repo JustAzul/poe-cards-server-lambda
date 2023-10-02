@@ -59,19 +59,17 @@ export default class AxiosHttpClient implements IHttpClient {
     return this.defaultHeaders;
   }
 
-  public setDefaultHeaders(headers: IncomingHttpHeaders): this {
+  setDefaultHeaders(headers: IncomingHttpHeaders): this {
     this.defaultHeaders = headers;
     return this;
   }
 
-  public setDefaultCookies(cookies: string): this {
+  setDefaultCookies(cookies: string): this {
     this.cookies = cookies;
     return this;
   }
 
-  public async get<T>(
-    props: HttpClientGetProps,
-  ): Promise<HttpClientResponse<T>> {
+  async get<T>(props: HttpClientGetProps): Promise<HttpClientResponse<T>> {
     const { url, headers } = props;
 
     const options: AxiosRequestConfig<never> = {

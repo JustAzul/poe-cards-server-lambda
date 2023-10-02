@@ -7,11 +7,11 @@ import {
 export default class FetchUrlUseCase {
   private httpClient: IHttpClient;
 
-  public constructor(httpClient: IHttpClient) {
+  constructor(httpClient: IHttpClient) {
     this.httpClient = httpClient;
   }
 
-  public execute<ResponseType>(
+  execute<ResponseType>(
     props: Readonly<HttpClientGetProps>,
   ): Promise<HttpClientResponse<ResponseType>> {
     return this.httpClient.get<ResponseType>(props);

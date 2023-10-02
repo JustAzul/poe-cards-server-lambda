@@ -3,33 +3,26 @@ import {
   HttpClientGetProps,
   HttpClientResponse,
 } from '../../../application/ports/http-client.interface';
-import FetchWithDelayUseCase from '../../../application/use-cases/fetch-with-delay.use-case';
 import GetHttpResponseWithExceptionUseCase from '../../../application/use-cases/get-http-response-with-exception.use-case';
 
 import AxiosHttpClient from './axios-http-client';
-import { DEFAULT_DELAY_IN_MILLISECONDS } from './constants';
 
 export default class HttpClient implements IHttpClient {
   readonly client: IHttpClient;
 
-  private readonly useCase: GetHttpResponseWithExceptionUseCase;
+  private readonly fetchUseCase: GetHttpResponseWithExceptionUseCase;
 
   constructor() {
     this.client = new AxiosHttpClient();
 
-    const fetchWithDelay = new FetchWithDelayUseCase({
-      interfaces: { httpClient: this.client },
-      props: { delayInMilliseconds: DEFAULT_DELAY_IN_MILLISECONDS },
-    });
-
-    this.useCase = new GetHttpResponseWithExceptionUseCase({
+    this.fetchUseCase = new GetHttpResponseWithExceptionUseCase({
       interfaces: {
-        fetchUrlUseCase: fetchWithDelay,
+        httpClient: this.client,
       },
     });
   }
 
   get<T>(props: HttpClientGetProps): Promise<HttpClientResponse<T>> {
-    return this.useCase.execute<T>(props);
+    return this.fetchUseCase.execute<T>(props);
   }
 }

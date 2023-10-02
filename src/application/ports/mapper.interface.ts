@@ -4,4 +4,4 @@ interface IMapper<T extends EntityNames> {
   toDomain(data: unknown): EntityMap[T];
 }
 
-export interface ILeagueMapper extends IMapper<'LeagueEntity'> {}
+export interface IHttpLeagueMapper extends IMapper<'LeagueEntity'> {}

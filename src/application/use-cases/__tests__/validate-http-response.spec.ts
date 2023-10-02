@@ -10,24 +10,6 @@ describe(ValidateHttpResponseUseCase.name, () => {
     url: 'https://example.com',
   };
 
-  it('should return a valid HttpResponse when statusCode is 200 and data is present', () => {
-    const httpResponse: HttpResponse = {
-      data: {
-        someField: 'Some value',
-      } as never,
-      headers: {},
-      statusCode: StatusCode.SuccessOK,
-    };
-
-    const validateHttpResponseUseCase = new ValidateHttpResponseUseCase({
-      request: httpRequest,
-      response: httpResponse,
-    });
-
-    const result = validateHttpResponseUseCase.execute();
-    expect(result).toEqual(httpResponse);
-  });
-
   it('should throw BadStatusCodeException when statusCode is not 200', () => {
     const httpResponse: HttpResponse = {
       data: {

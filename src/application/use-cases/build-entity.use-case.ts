@@ -12,7 +12,7 @@ export default class BuildEntityUseCase<T extends EntityNames> {
     this.entityName = entityName;
   }
 
-  public execute(props: EntityPropsMap[T]): EntityMap[T] {
+  execute(props: EntityPropsMap[T]): EntityMap[T] {
     if (this.entityName === LeagueEntity.name) {
       return new LeagueEntity(props);
     }
