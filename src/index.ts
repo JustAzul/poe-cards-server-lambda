@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 
+import FindLeaguesUseCase from './application/use-cases/find-leagues.use-case';
 import HttpClient from './infra/http/client';
 import HttpLeagueRepository from './infra/http/league/league.repository';
 
@@ -14,8 +15,13 @@ async function main() {
   const httpClient = new HttpClient();
 
   const leagueRepository = new HttpLeagueRepository(httpClient);
-  const leagueEntities = await leagueRepository.fetchAll();
+  const findLeaguesUseCase = new FindLeaguesUseCase({
+    interfaces: {
+      leagueRepository,
+    },
+  });
 
+  const leagueEntities = await findLeaguesUseCase.execute();
   console.log(leagueEntities);
 }
 
