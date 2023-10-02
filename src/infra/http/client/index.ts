@@ -1,3 +1,4 @@
+import { IAsyncQueue } from '../../../application/ports/async-queue.interface';
 import {
   IHttpClient,
   HttpClientGetProps,
@@ -10,10 +11,13 @@ import AxiosHttpClient from './axios-http-client';
 export default class HttpClient implements IHttpClient {
   readonly client: IHttpClient;
 
+  private readonly queue: IAsyncQueue<HttpClientGetProps>;
+
   private readonly fetchUseCase: GetHttpResponseWithExceptionUseCase;
 
   constructor() {
     this.client = new AxiosHttpClient();
+    // this.queue = new IAsyncQueue();
 
     this.fetchUseCase = new GetHttpResponseWithExceptionUseCase({
       interfaces: {
@@ -22,7 +26,11 @@ export default class HttpClient implements IHttpClient {
     });
   }
 
-  get<T>(props: HttpClientGetProps): Promise<HttpClientResponse<T>> {
-    return this.fetchUseCase.execute<T>(props);
+  async get<T>(props: HttpClientGetProps): Promise<HttpClientResponse<T>> {
+    const result = await this.queue.insertAndProcess<HttpClientResponse<T>>(
+      async () => this.fetchUseCase.execute<T>(props),
+    );
+
+    return result;
   }
 }

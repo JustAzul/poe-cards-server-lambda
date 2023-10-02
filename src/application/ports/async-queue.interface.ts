@@ -1,3 +1,3 @@
 export interface IAsyncQueue<T> {
-  insertAndProcess<R>(job: (input?: T) => Promise<unknown>): Promise<R>;
+  insertAndProcess<R>(job: (input?: T) => Promise<R>): Promise<R>;
 }
