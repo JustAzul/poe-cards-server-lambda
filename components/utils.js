@@ -2,8 +2,8 @@
 const { duration } = require('moment');
 const { sleep } = require('azul-tools');
 
-const { CurrencyOverview, ItemOverview } = require('./Fetch');
-const fetchList = require('../config/fetchList');
+const { CurrencyOverview, ItemOverview } = require('./fetch');
+const fetchList = require('../config/fetch-list');
 
 async function Delay(DelaySize = 2) {
   console.log(`Waiting ${DelaySize} seconds delay..`);
