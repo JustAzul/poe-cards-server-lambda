@@ -1,5 +1,5 @@
-const CurrencyCards = require('../config/CurrencyCards');
-const Cards = require('../config/Cards');
+const CurrencyCards = require('../config/currency-cards');
+const Cards = require('../config/cards');
 
 const { findCardOverview, GetLeagueExaltedValue, ChaosToExalted } = require('./utils');
 
