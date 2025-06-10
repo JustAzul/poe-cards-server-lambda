@@ -1,6 +1,6 @@
 const { GetLeagueOverview, Delay } = require('./components/utils');
-const { LeaguesOverview } = require('./components/Fetch');
-const Generators = require('./components/Generators');
+const { LeaguesOverview } = require('./components/fetch');
+const Generators = require('./components/generators');
 const firestore = require('./components/firestore');
 
 async function main() {
