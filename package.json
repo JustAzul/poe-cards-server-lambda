@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=development node ./"
+    "start": "NODE_ENV=development node ./",
+    "test": "node test/utils.test.js"
   },
   "author": "Azul",
   "license": "ISC",
