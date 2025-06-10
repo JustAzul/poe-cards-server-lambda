@@ -38,7 +38,7 @@ async function main() {
 
   const LeagueDatas = await GetLeagueData();
 
-  console.log('Generating tables and mapping results..');
+  console.log('Generating tables and mapping results...');
   const TableResults = {};
   const CurrencyResults = {};
 
