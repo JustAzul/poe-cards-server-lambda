@@ -1,6 +1,6 @@
 import { IHttpClient } from '../../../application/ports/http-client.interface';
-import { IHttpLeagueMapper } from '../../../application/ports/mapper.interface';
 import { ILeagueRepository } from '../../../application/ports/http-repository.interface';
+import { IHttpLeagueMapper } from '../../../application/ports/mapper.interface';
 import InfraException from '../../exceptions/infra.exception';
 
 import HttpLeagueMapper from './league.mapper';

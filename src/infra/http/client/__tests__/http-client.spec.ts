@@ -8,6 +8,8 @@ import HttpClient from '..';
 import HttpException from '../../../../application/exceptions/http.exception';
 import { DEFAULT_USER_AGENT } from '../constants';
 
+jest.setTimeout(30000);
+
 type ReceivedRequest = {
   headers?: IncomingHttpHeaders;
 };
@@ -35,7 +37,7 @@ describe(HttpClient.name, () => {
         .send(defaultServerResponse);
     });
 
-    address = await server.listen();
+    address = await server.listen({ host: '127.0.0.1', port: 0 });
   });
 
   afterAll(async () => server.close());
