@@ -11,6 +11,7 @@ async function Delay(DelaySize = 2) {
 }
 
 function ChaosToExalted(ExaltedValue = 0, ChaosValue = 0) {
+  if (ExaltedValue === 0) return 0;
   return parseFloat(parseFloat(ChaosValue / ExaltedValue).toFixed(1));
 }
 
