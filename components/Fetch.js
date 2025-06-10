@@ -8,7 +8,7 @@ async function RequestLeaguesOverview() {
     .filter(({ event }) => !event) // Removing event leagues
     .filter(({ realm }) => realm === 'pc') // Picking pc leagues
   // .filter(({ id }) => id !== 'Standard') // Removing STD League
-    .filter(({ id }) => id !== 'Hardcore'); // Removing STD-Hardcore League
+    .filter(({ id }) => id !== 'Hardcore'); // Removing Hardcore league
 
   const o = {
     url: 'https://api.pathofexile.com/leagues',
