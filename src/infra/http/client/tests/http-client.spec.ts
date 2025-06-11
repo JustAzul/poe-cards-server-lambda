@@ -1,30 +1,6 @@
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
 import type { IncomingHttpHeaders } from 'http';
-
-interface TestFastifyReply {
-  status(code: number): this;
-  header(name: string, value: string): this;
-  send(body: unknown): Promise<void>;
-}
-
-interface TestFastifyRequest {
-  params: Record<string, unknown>;
-  headers: IncomingHttpHeaders;
-}
-
-interface TestFastifyInstance {
-  get(
-    path: string,
-    handler: (
-      req: TestFastifyRequest,
-      rep: TestFastifyReply,
-    ) => Promise<void>,
-  ): void;
-  listen(options: { host: string; port: number }): Promise<string>;
-  close(): Promise<void>;
-}
-
-const fastify = require('fastify') as unknown as () => TestFastifyInstance;
 import StatusCode from 'status-code-enum';
 
 import HttpClient from '..';
@@ -37,20 +13,24 @@ type ReceivedRequest = {
   headers?: IncomingHttpHeaders;
 };
 
+interface TestServer {
+  get: (
+    path: string,
+    handler: (req: FastifyRequest, reply: FastifyReply) => Promise<void> | void,
+  ) => void;
+  listen: (opts: { host: string; port: number }) => Promise<string>;
+  close: () => Promise<void>;
+}
+
 describe(HttpClient.name, () => {
   const defaultServerResponse = { message: 'Hello World!' };
-  const server: TestFastifyInstance = fastify();
+  const server = Fastify() as unknown as TestServer;
   let address: string | null = null;
 
   const receivedRequestData: Map<string, ReceivedRequest> = new Map();
 
   beforeAll(async () => {
-    server.get(
-      '/:status',
-      async (
-        req: TestFastifyRequest,
-        response: TestFastifyReply,
-      ) => {
+    server.get('/:status', async (req: FastifyRequest, response: FastifyReply) => {
       const statusCodeToReply =
         (req.params as Record<'status', number>)?.status || 200;
 
@@ -63,8 +43,7 @@ describe(HttpClient.name, () => {
         .status(statusCodeToReply)
         .header('x-request-id', requestUID)
         .send(defaultServerResponse);
-      },
-    );
+    });
 
     address = await server.listen({ host: '127.0.0.1', port: 0 });
   });

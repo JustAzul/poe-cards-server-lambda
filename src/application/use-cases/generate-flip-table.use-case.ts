@@ -28,14 +28,8 @@ export interface GenerateFlipTableProps {
 }
 
 export default class GenerateFlipTableUseCase {
-  private readonly props: GenerateFlipTableProps;
-
-  constructor(props: GenerateFlipTableProps) {
-    this.props = props;
-  }
-
-  execute(): FlipTableRow[] {
-    const { cards, currencyCards = [], exaltedPriceChaos } = this.props;
+  execute(props: GenerateFlipTableProps): FlipTableRow[] {
+    const { cards, currencyCards = [], exaltedPriceChaos } = props;
     const cardRows = cards.map((card) =>
       GenerateFlipTableUseCase.buildCardRow(card, exaltedPriceChaos),
     );
