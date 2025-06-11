@@ -6,7 +6,7 @@ interface ProcessLayerErrorUseCaseProps {
 }
 
 export default class ProcessLayerErrorUseCase {
-  execute(props: ProcessLayerErrorUseCaseProps): UseCaseException {
+  static execute(props: ProcessLayerErrorUseCaseProps): UseCaseException {
     const { error, sourceName } = props;
     if (Object.prototype.hasOwnProperty.call(error, 'message')) {
       const { message } = error as Error;

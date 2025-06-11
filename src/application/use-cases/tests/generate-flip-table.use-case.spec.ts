@@ -7,42 +7,43 @@ describe(GenerateFlipTableUseCase.name, () => {
   it('should compute profits for card rows', () => {
     const cards: CardRowInput[] = [
       {
-        name: 'The Scholar',
-        setSize: 4,
         cardPriceChaos: 2,
+        name: 'The Scholar',
         rewardChaos: 15,
+        setSize: 4,
       },
     ];
 
-    const useCase = new GenerateFlipTableUseCase();
-
-    const [row] = useCase.execute({
+    const [row] = GenerateFlipTableUseCase.execute({
       cards,
       exaltedPriceChaos: 200,
     });
 
     expect(row).toMatchObject({
-      name: 'The Scholar',
-      setSize: 4,
-      costChaos: 8,
-      resultChaos: 15,
       chaosProfit: 7,
+      costChaos: 8,
       exaltProfit: 7 / 200,
+      name: 'The Scholar',
+      resultChaos: 15,
+      setSize: 4,
     });
   });
 
   it('should merge and sort all rows by chaos profit', () => {
     const cards: CardRowInput[] = [
-      { name: 'Card A', setSize: 2, cardPriceChaos: 5, rewardChaos: 20 },
-      { name: 'Card B', setSize: 3, cardPriceChaos: 1, rewardChaos: 6 },
+      { cardPriceChaos: 5, name: 'Card A', rewardChaos: 20, setSize: 2 },
+      { cardPriceChaos: 1, name: 'Card B', rewardChaos: 6, setSize: 3 },
     ];
     const currencyCards: CurrencyCardRowInput[] = [
-      { name: 'Currency A', setSize: 10, cardPriceChaos: 0.5, currencyChaos: 20 },
+      {
+        cardPriceChaos: 0.5,
+        currencyChaos: 20,
+        name: 'Currency A',
+        setSize: 10,
+      },
     ];
 
-    const useCase = new GenerateFlipTableUseCase();
-
-    const rows = useCase.execute({
+    const rows = GenerateFlipTableUseCase.execute({
       cards,
       currencyCards,
       exaltedPriceChaos: 200,

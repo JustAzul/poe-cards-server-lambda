@@ -19,10 +19,8 @@ describe(ValidateHttpResponseUseCase.name, () => {
       statusCode: StatusCode.ClientErrorBadRequest,
     };
 
-    const validateHttpResponseUseCase = new ValidateHttpResponseUseCase();
-
     expect(() => {
-      validateHttpResponseUseCase.execute({
+      ValidateHttpResponseUseCase.execute({
         request: httpRequest,
         response: httpResponse,
       });
