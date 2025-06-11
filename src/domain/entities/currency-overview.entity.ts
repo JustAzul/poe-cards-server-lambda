@@ -1,6 +1,6 @@
 export interface PoeNinjaCurrencyOverviewLine {
-  readonly currencyTypeName: string;
   readonly chaosEquivalent: number;
+  readonly currencyTypeName: string;
   readonly detailsId: string;
 }
 

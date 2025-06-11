@@ -1,11 +1,11 @@
 import { ItemClass } from './item-class.enum';
 
 export interface PoeNinjaItemOverviewLine {
-  readonly name: string;
   readonly chaosValue: number;
   readonly detailsId: string;
-  readonly stackSize?: number;
   readonly itemClass?: ItemClass;
+  readonly name: string;
+  readonly stackSize?: number;
 }
 
 export default class ItemOverviewEntity {
