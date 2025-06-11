@@ -10,18 +10,12 @@ export type ValidateHttpResponseProps<T> = {
 };
 
 export default class ValidateHttpResponseUseCase<T = unknown> {
-  private props: ValidateHttpResponseProps<T>;
-
-  constructor(props: ValidateHttpResponseProps<T>) {
-    this.props = props;
-  }
-
-  execute(): void {
-    const { response } = this.props;
+  execute(props: ValidateHttpResponseProps<T>): void {
+    const { response } = props;
     const { statusCode } = response;
 
     if (statusCode !== StatusCode.SuccessOK) {
-      throw new BadStatusCodeException(this.props);
+      throw new BadStatusCodeException(props);
     }
   }
 }

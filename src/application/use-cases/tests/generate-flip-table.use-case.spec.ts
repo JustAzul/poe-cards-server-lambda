@@ -14,12 +14,12 @@ describe(GenerateFlipTableUseCase.name, () => {
       },
     ];
 
-    const useCase = new GenerateFlipTableUseCase({
+    const useCase = new GenerateFlipTableUseCase();
+
+    const [row] = useCase.execute({
       cards,
       exaltedPriceChaos: 200,
     });
-
-    const [row] = useCase.execute();
 
     expect(row).toMatchObject({
       name: 'The Scholar',
@@ -40,13 +40,13 @@ describe(GenerateFlipTableUseCase.name, () => {
       { name: 'Currency A', setSize: 10, cardPriceChaos: 0.5, currencyChaos: 20 },
     ];
 
-    const useCase = new GenerateFlipTableUseCase({
+    const useCase = new GenerateFlipTableUseCase();
+
+    const rows = useCase.execute({
       cards,
       currencyCards,
       exaltedPriceChaos: 200,
     });
-
-    const rows = useCase.execute();
 
     const chaosProfits = rows.map((r) => r.chaosProfit);
     const sorted = [...chaosProfits].sort((a, b) => b - a);

@@ -19,13 +19,13 @@ describe(ValidateHttpResponseUseCase.name, () => {
       statusCode: StatusCode.ClientErrorBadRequest,
     };
 
-    const validateHttpResponseUseCase = new ValidateHttpResponseUseCase({
-      request: httpRequest,
-      response: httpResponse,
-    });
+    const validateHttpResponseUseCase = new ValidateHttpResponseUseCase();
 
     expect(() => {
-      validateHttpResponseUseCase.execute();
+      validateHttpResponseUseCase.execute({
+        request: httpRequest,
+        response: httpResponse,
+      });
     }).toThrow(BadStatusCodeException);
   });
 });

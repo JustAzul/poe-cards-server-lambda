@@ -36,7 +36,10 @@ export default class PoeNinjaService {
   ): Promise<T> {
     try {
       const response = await this.httpClient.get<T>({ url });
-      new ValidateHttpResponseUseCase({ request: { url }, response }).execute();
+      new ValidateHttpResponseUseCase().execute({
+        request: { url },
+        response,
+      });
 
       if (!response.data) {
         throw new InfraException(PoeNinjaService.name, 'No data returned');
