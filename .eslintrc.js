@@ -80,5 +80,6 @@ module.exports = {
     'sort-keys/sort-keys-fix': 1,
     'typescript-sort-keys/interface': 'error',
     'typescript-sort-keys/string-enum': 'warn',
+    '@typescript-eslint/no-explicit-any': 'error',
   },
 };
