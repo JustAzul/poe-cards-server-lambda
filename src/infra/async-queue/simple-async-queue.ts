@@ -4,10 +4,11 @@ import sleep from '../../shared/helpers/sleep.helper';
 export default class SimpleAsyncQueue<T> implements IAsyncQueue<T> {
   private readonly delayInMs: number;
 
-  private lastPromise: Promise<unknown> = Promise.resolve();
+  private lastPromise: Promise<unknown>;
 
   constructor(delayInMs = 0) {
     this.delayInMs = delayInMs;
+    this.lastPromise = Promise.resolve();
   }
 
   async insertAndProcess<R>(job: (input?: T) => Promise<R>): Promise<R> {
