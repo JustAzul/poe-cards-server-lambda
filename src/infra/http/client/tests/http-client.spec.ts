@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { IncomingHttpHeaders } from 'http';
 
-import Fastify from 'fastify';
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import StatusCode from 'status-code-enum';
 
 import HttpClient from '..';
@@ -14,15 +14,24 @@ type ReceivedRequest = {
   headers?: IncomingHttpHeaders;
 };
 
+interface TestServer {
+  get: (
+    path: string,
+    handler: (req: FastifyRequest, reply: FastifyReply) => Promise<void> | void,
+  ) => void;
+  listen: (opts: { host: string; port: number }) => Promise<string>;
+  close: () => Promise<void>;
+}
+
 describe(HttpClient.name, () => {
   const defaultServerResponse = { message: 'Hello World!' };
-  const server = Fastify();
+  const server = Fastify() as unknown as TestServer;
   let address: string | null = null;
 
   const receivedRequestData: Map<string, ReceivedRequest> = new Map();
 
   beforeAll(async () => {
-    server.get('/:status', async (req, response) => {
+    server.get('/:status', async (req: FastifyRequest, response: FastifyReply) => {
       const statusCodeToReply =
         (req.params as Record<'status', number>)?.status || 200;
 

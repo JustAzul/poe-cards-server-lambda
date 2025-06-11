@@ -1,24 +1,18 @@
 import UseCaseException from '../exceptions/use-case.exception';
 
 interface ProcessLayerErrorUseCaseProps {
+  error: unknown;
   sourceName: string;
 }
 
 export default class ProcessLayerErrorUseCase {
-  private readonly props: ProcessLayerErrorUseCaseProps;
-
-  constructor(props: ProcessLayerErrorUseCaseProps) {
-    this.props = props;
-  }
-
-  execute(e: unknown): UseCaseException {
-    const { sourceName } = this.props;
-
-    if (Object.prototype.hasOwnProperty.call(e, 'message')) {
-      const { message } = e as Error;
-      return new UseCaseException(sourceName, `${typeof e}: ${message}`);
+  execute(props: ProcessLayerErrorUseCaseProps): UseCaseException {
+    const { error, sourceName } = props;
+    if (Object.prototype.hasOwnProperty.call(error, 'message')) {
+      const { message } = error as Error;
+      return new UseCaseException(sourceName, `${typeof error}: ${message}`);
     }
 
-    return new UseCaseException(sourceName, `Unknown Error: ${String(e)}`);
+    return new UseCaseException(sourceName, `Unknown Error: ${String(error)}`);
   }
 }
