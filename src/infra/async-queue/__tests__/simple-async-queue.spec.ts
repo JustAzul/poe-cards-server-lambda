@@ -9,7 +9,12 @@ describe('SimpleAsyncQueue', () => {
     jest.useRealTimers();
   });
 
-  const createDelayedJob = <T>(value: T, delay: number, markers: number[], start: number) =>
+  const createDelayedJob = <T>(
+    value: T,
+    delay: number,
+    markers: number[],
+    start: number,
+  ) =>
     new Promise<T>((resolve) => {
       markers.push(Date.now() - start);
       setTimeout(() => resolve(value), delay);
@@ -20,9 +25,15 @@ describe('SimpleAsyncQueue', () => {
     const startTime = Date.now();
     const startMarkers: number[] = [];
 
-    const first = queue.insertAndProcess(() => createDelayedJob('first', 50, startMarkers, startTime));
-    const second = queue.insertAndProcess(() => createDelayedJob('second', 30, startMarkers, startTime));
-    const third = queue.insertAndProcess(() => createDelayedJob('third', 20, startMarkers, startTime));
+    const first = queue.insertAndProcess(() =>
+      createDelayedJob('first', 50, startMarkers, startTime),
+    );
+    const second = queue.insertAndProcess(() =>
+      createDelayedJob('second', 30, startMarkers, startTime),
+    );
+    const third = queue.insertAndProcess(() =>
+      createDelayedJob('third', 20, startMarkers, startTime),
+    );
 
     await jest.runAllTimersAsync();
     const results = await Promise.all([first, second, third]);

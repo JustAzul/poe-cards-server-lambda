@@ -36,7 +36,7 @@ export default class PoeNinjaService {
   ): Promise<T> {
     try {
       const response = await this.httpClient.get<T>({ url });
-      new ValidateHttpResponseUseCase().execute({
+      ValidateHttpResponseUseCase.execute({
         request: { url },
         response,
       });

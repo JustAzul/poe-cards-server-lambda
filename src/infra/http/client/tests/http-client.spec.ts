@@ -1,11 +1,13 @@
-import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
-import type { IncomingHttpHeaders } from 'http';
+
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import StatusCode from 'status-code-enum';
 
 import HttpClient from '..';
 import HttpException from '../../../../application/exceptions/http.exception';
 import { DEFAULT_USER_AGENT } from '../constants';
+
+import type { IncomingHttpHeaders } from 'http';
 
 jest.setTimeout(30000);
 
@@ -14,12 +16,12 @@ type ReceivedRequest = {
 };
 
 interface TestServer {
+  close: () => Promise<void>;
   get: (
     path: string,
     handler: (req: FastifyRequest, reply: FastifyReply) => Promise<void> | void,
   ) => void;
   listen: (opts: { host: string; port: number }) => Promise<string>;
-  close: () => Promise<void>;
 }
 
 describe(HttpClient.name, () => {
@@ -30,20 +32,23 @@ describe(HttpClient.name, () => {
   const receivedRequestData: Map<string, ReceivedRequest> = new Map();
 
   beforeAll(async () => {
-    server.get('/:status', async (req: FastifyRequest, response: FastifyReply) => {
-      const statusCodeToReply =
-        (req.params as Record<'status', number>)?.status || 200;
+    server.get(
+      '/:status',
+      async (req: FastifyRequest, response: FastifyReply) => {
+        const statusCodeToReply =
+          (req.params as Record<'status', number>)?.status || 200;
 
-      const requestUID = randomUUID();
-      receivedRequestData.set(requestUID, {
-        headers: req.headers,
-      });
+        const requestUID = randomUUID();
+        receivedRequestData.set(requestUID, {
+          headers: req.headers,
+        });
 
-      await response
-        .status(statusCodeToReply)
-        .header('x-request-id', requestUID)
-        .send(defaultServerResponse);
-    });
+        await response
+          .status(statusCodeToReply)
+          .header('x-request-id', requestUID)
+          .send(defaultServerResponse);
+      },
+    );
 
     address = await server.listen({ host: '127.0.0.1', port: 0 });
   });
