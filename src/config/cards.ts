@@ -8,8 +8,6 @@ export interface CardItem {
 }
 
 const CARDS: CardItem[] = [
-
-const CARDS: CardItem[] = [
   {
     cardName: "The Wolven King's Bite",
     corrupted: false,
