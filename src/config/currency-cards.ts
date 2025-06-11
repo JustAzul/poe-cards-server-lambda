@@ -1,7 +1,7 @@
 export interface CardCurrencyItem {
+  amount: number;
   cardName: string;
   rewardName: string;
-  amount: number;
 }
 
 const CURRENCY_CARDS: CardCurrencyItem[] = [

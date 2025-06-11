@@ -9,8 +9,8 @@ export type ValidateHttpResponseProps<T> = {
   response: HttpResponse<T>;
 };
 
-export default class ValidateHttpResponseUseCase<T = unknown> {
-  execute(props: ValidateHttpResponseProps<T>): void {
+export default class ValidateHttpResponseUseCase {
+  static execute<T = unknown>(props: ValidateHttpResponseProps<T>): void {
     const { response } = props;
     const { statusCode } = response;
 

@@ -28,7 +28,7 @@ export interface GenerateFlipTableProps {
 }
 
 export default class GenerateFlipTableUseCase {
-  execute(props: GenerateFlipTableProps): FlipTableRow[] {
+  static execute(props: GenerateFlipTableProps): FlipTableRow[] {
     const { cards, currencyCards = [], exaltedPriceChaos } = props;
     const cardRows = cards.map((card) =>
       GenerateFlipTableUseCase.buildCardRow(card, exaltedPriceChaos),
