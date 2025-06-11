@@ -2,6 +2,8 @@ name: PR-Agent
 
 on:
   pull_request:
+    branches:
+      - master
   issue_comment:
 
 jobs:
