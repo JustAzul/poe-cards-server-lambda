@@ -1,28 +1,24 @@
-import CARDS from '../../config/cards';
-import CURRENCY_CARDS from '../../config/currency-cards';
-import FETCH_LIST from '../../config/fetch-list';
-
 export interface CardRowInput {
-  readonly name: string;
-  readonly setSize: number;
   readonly cardPriceChaos: number;
+  readonly name: string;
   readonly rewardChaos: number;
+  readonly setSize: number;
 }
 
 export interface CurrencyCardRowInput {
-  readonly name: string;
-  readonly setSize: number;
   readonly cardPriceChaos: number;
   readonly currencyChaos: number;
+  readonly name: string;
+  readonly setSize: number;
 }
 
 export interface FlipTableRow {
-  readonly name: string;
-  readonly setSize: number;
-  readonly costChaos: number;
-  readonly resultChaos: number;
   readonly chaosProfit: number;
+  readonly costChaos: number;
   readonly exaltProfit: number;
+  readonly name: string;
+  readonly resultChaos: number;
+  readonly setSize: number;
 }
 
 export interface GenerateFlipTableProps {
@@ -41,10 +37,10 @@ export default class GenerateFlipTableUseCase {
   execute(): FlipTableRow[] {
     const { cards, currencyCards = [], exaltedPriceChaos } = this.props;
     const cardRows = cards.map((card) =>
-      this.buildCardRow(card, exaltedPriceChaos),
+      GenerateFlipTableUseCase.buildCardRow(card, exaltedPriceChaos),
     );
     const currencyRows = currencyCards.map((card) =>
-      this.buildCurrencyRow(card, exaltedPriceChaos),
+      GenerateFlipTableUseCase.buildCurrencyRow(card, exaltedPriceChaos),
     );
 
     return [...cardRows, ...currencyRows].sort(
@@ -52,29 +48,35 @@ export default class GenerateFlipTableUseCase {
     );
   }
 
-  private buildCardRow(card: CardRowInput, exaltedPrice: number): FlipTableRow {
+  private static buildCardRow(
+    card: CardRowInput,
+    exaltedPrice: number,
+  ): FlipTableRow {
     const cost = card.cardPriceChaos * card.setSize;
     const profitChaos = card.rewardChaos - cost;
     return {
-      name: card.name,
-      setSize: card.setSize,
-      costChaos: cost,
-      resultChaos: card.rewardChaos,
       chaosProfit: profitChaos,
+      costChaos: cost,
       exaltProfit: profitChaos / exaltedPrice,
+      name: card.name,
+      resultChaos: card.rewardChaos,
+      setSize: card.setSize,
     };
   }
 
-  private buildCurrencyRow(card: CurrencyCardRowInput, exaltedPrice: number): FlipTableRow {
+  private static buildCurrencyRow(
+    card: CurrencyCardRowInput,
+    exaltedPrice: number,
+  ): FlipTableRow {
     const cost = card.cardPriceChaos * card.setSize;
     const profitChaos = card.currencyChaos - cost;
     return {
-      name: card.name,
-      setSize: card.setSize,
-      costChaos: cost,
-      resultChaos: card.currencyChaos,
       chaosProfit: profitChaos,
+      costChaos: cost,
       exaltProfit: profitChaos / exaltedPrice,
+      name: card.name,
+      resultChaos: card.currencyChaos,
+      setSize: card.setSize,
     };
   }
 }
