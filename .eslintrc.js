@@ -29,6 +29,13 @@ module.exports = {
         project: ['./tsconfig.json'],
       },
     },
+    {
+      files: ['**/*.enum.ts'],
+      rules: {
+        'no-shadow': 'off',
+        'import/prefer-default-export': 'off',
+      },
+    },
   ],
   parser: '@typescript-eslint/parser',
   plugins: [
