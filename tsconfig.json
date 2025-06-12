@@ -6,6 +6,7 @@
     "isolatedModules": true,
     "module": "commonjs",
     "moduleResolution": "node",
+    "baseUrl": "./src",
     "noImplicitAny": true,
     "outDir": "dist",
     "preserveConstEnums": true,

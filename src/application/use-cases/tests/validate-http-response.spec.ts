@@ -1,9 +1,9 @@
 import { StatusCode } from 'status-code-enum';
 
-import BadStatusCodeException from '../../exceptions/bad-status-code.exception';
-import { HttpRequest } from '../../types/http-request.type';
-import { HttpResponse } from '../../types/http-response.type';
-import ValidateHttpResponseUseCase from '../validate-http-response.use-case';
+import BadStatusCodeException from 'application/exceptions/bad-status-code.exception';
+import { HttpRequest } from 'application/types/http-request.type';
+import { HttpResponse } from 'application/types/http-response.type';
+import ValidateHttpResponseUseCase from 'application/use-cases/validate-http-response.use-case';
 
 describe(ValidateHttpResponseUseCase.name, () => {
   const httpRequest: HttpRequest = {

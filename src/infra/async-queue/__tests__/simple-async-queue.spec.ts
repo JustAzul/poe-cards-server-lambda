@@ -1,4 +1,4 @@
-import SimpleAsyncQueue from '../simple-async-queue';
+import SimpleAsyncQueue from 'infra/async-queue/simple-async-queue';
 
 describe('SimpleAsyncQueue', () => {
   beforeEach(() => {

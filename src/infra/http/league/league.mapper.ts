@@ -1,5 +1,5 @@
-import { IHttpLeagueMapper } from '../../../application/ports/mapper.interface';
-import BuildEntityUseCase from '../../../application/use-cases/build-entity.use-case';
+import { IHttpLeagueMapper } from 'application/ports/mapper.interface';
+import BuildEntityUseCase from 'application/use-cases/build-entity.use-case';
 
 import { HttpLeagueResponse } from './types/http-league-response.type';
 

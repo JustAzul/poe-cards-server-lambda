@@ -1,4 +1,4 @@
-import { EntityMap, EntityNames } from '../types/build-entity.type';
+import { EntityMap, EntityNames } from 'application/types/build-entity.type';
 
 interface IHttpRepository<T extends EntityNames> {
   fetchAll(): Promise<Array<EntityMap[T]>>;

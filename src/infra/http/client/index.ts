@@ -1,10 +1,10 @@
-import { IAsyncQueue } from '../../../application/ports/async-queue.interface';
+import { IAsyncQueue } from 'application/ports/async-queue.interface';
 import {
   IHttpClient,
   HttpClientGetProps,
   HttpClientResponse,
-} from '../../../application/ports/http-client.interface';
-import SimpleAsyncQueue from '../../async-queue/simple-async-queue';
+} from 'application/ports/http-client.interface';
+import SimpleAsyncQueue from 'infra/async-queue/simple-async-queue';
 
 import AxiosHttpClient from './axios-http-client';
 

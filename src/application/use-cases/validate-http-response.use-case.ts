@@ -1,8 +1,8 @@
 import { StatusCode } from 'status-code-enum';
 
-import BadStatusCodeException from '../exceptions/bad-status-code.exception';
-import { HttpRequest } from '../types/http-request.type';
-import { HttpResponse } from '../types/http-response.type';
+import BadStatusCodeException from 'application/exceptions/bad-status-code.exception';
+import { HttpRequest } from 'application/types/http-request.type';
+import { HttpResponse } from 'application/types/http-response.type';
 
 export type ValidateHttpResponseProps<T> = {
   request: HttpRequest;

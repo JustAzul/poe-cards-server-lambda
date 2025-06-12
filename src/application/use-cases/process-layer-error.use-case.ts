@@ -1,4 +1,4 @@
-import UseCaseException from '../exceptions/use-case.exception';
+import UseCaseException from 'application/exceptions/use-case.exception';
 
 interface ProcessLayerErrorUseCaseProps {
   error: unknown;

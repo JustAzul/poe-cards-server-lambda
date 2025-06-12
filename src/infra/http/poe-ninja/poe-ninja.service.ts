@@ -1,7 +1,7 @@
-import { IHttpClient } from '../../../application/ports/http-client.interface';
-import ValidateHttpResponseUseCase from '../../../application/use-cases/validate-http-response.use-case';
-import sleep from '../../../shared/helpers/sleep.helper';
-import InfraException from '../../exceptions/infra.exception';
+import { IHttpClient } from 'application/ports/http-client.interface';
+import ValidateHttpResponseUseCase from 'application/use-cases/validate-http-response.use-case';
+import sleep from 'shared/helpers/sleep.helper';
+import InfraException from 'infra/exceptions/infra.exception';
 
 export type PoeNinjaQueryParams = {
   language?: string;

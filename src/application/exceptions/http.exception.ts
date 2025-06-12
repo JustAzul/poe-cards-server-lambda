@@ -1,5 +1,5 @@
-import { HttpClientResponse } from '../ports/http-client.interface';
-import { HttpRequest } from '../types/http-request.type';
+import { HttpClientResponse } from 'application/ports/http-client.interface';
+import { HttpRequest } from 'application/types/http-request.type';
 
 export type HttpExceptionProps<T = unknown> = Pick<Error, 'message'> & {
   request: HttpRequest;

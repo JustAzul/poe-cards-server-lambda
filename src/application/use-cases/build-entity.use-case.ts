@@ -1,15 +1,15 @@
 import CurrencyOverviewEntity, {
   PoeNinjaCurrencyOverviewLine,
-} from '../../domain/entities/currency-overview.entity';
+} from 'domain/entities/currency-overview.entity';
 import ItemOverviewEntity, {
   PoeNinjaItemOverviewLine,
-} from '../../domain/entities/item-overview.entity';
-import LeagueEntity, { LeagueEntityProps } from '../../domain/entities/league.entity';
+} from 'domain/entities/item-overview.entity';
+import LeagueEntity, { LeagueEntityProps } from 'domain/entities/league.entity';
 import {
   EntityMap,
   EntityNames,
   EntityPropsMap,
-} from '../types/build-entity.type';
+} from 'application/types/build-entity.type';
 
 type BuilderFn<K extends EntityNames> = (
   props: EntityPropsMap[K],

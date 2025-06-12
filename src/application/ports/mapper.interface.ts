@@ -1,4 +1,4 @@
-import { EntityNames, EntityMap } from '../types/build-entity.type';
+import { EntityNames, EntityMap } from 'application/types/build-entity.type';
 
 interface IMapper<T extends EntityNames> {
   toDomain(data: unknown): EntityMap[T];

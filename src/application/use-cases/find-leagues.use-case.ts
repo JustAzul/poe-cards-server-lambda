@@ -1,5 +1,5 @@
-import LeagueEntity from '../../domain/entities/league.entity';
-import { ILeagueRepository } from '../ports/http-repository.interface';
+import LeagueEntity from 'domain/entities/league.entity';
+import { ILeagueRepository } from 'application/ports/http-repository.interface';
 
 export interface FindLeaguesUseCaseInterfaces {
   readonly leagueRepository: ILeagueRepository;

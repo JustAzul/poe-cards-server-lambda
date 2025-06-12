@@ -1,7 +1,7 @@
 import GenerateFlipTableUseCase, {
   CardRowInput,
   CurrencyCardRowInput,
-} from '../generate-flip-table.use-case';
+} from 'application/use-cases/generate-flip-table.use-case';
 
 describe(GenerateFlipTableUseCase.name, () => {
   it('should compute profits for card rows', () => {
