@@ -5,3 +5,7 @@ interface IMapper<T extends EntityNames> {
 }
 
 export interface IHttpLeagueMapper extends IMapper<'LeagueEntity'> {}
+export interface IHttpItemOverviewMapper
+  extends IMapper<'ItemOverviewEntity'> {}
+export interface IHttpCurrencyOverviewMapper
+  extends IMapper<'CurrencyOverviewEntity'> {}
