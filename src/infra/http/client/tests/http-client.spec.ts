@@ -3,9 +3,9 @@ import { randomUUID } from 'crypto';
 import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import StatusCode from 'status-code-enum';
 
-import HttpClient from '..';
-import HttpException from '../../../../application/exceptions/http.exception';
-import { DEFAULT_USER_AGENT } from '../constants';
+import HttpClient from 'infra/http/client';
+import HttpException from 'application/exceptions/http.exception';
+import { DEFAULT_USER_AGENT } from 'infra/http/client/constants';
 
 import type { IncomingHttpHeaders } from 'http';
 

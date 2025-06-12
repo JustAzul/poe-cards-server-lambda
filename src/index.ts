@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 
-import FindLeaguesUseCase from './application/use-cases/find-leagues.use-case';
-import HttpClient from './infra/http/client';
-import HttpLeagueRepository from './infra/http/league/league.repository';
+import FindLeaguesUseCase from 'application/use-cases/find-leagues.use-case';
+import HttpClient from 'infra/http/client';
+import HttpLeagueRepository from 'infra/http/league/league.repository';
 
 import type {
   APIGatewayEvent,

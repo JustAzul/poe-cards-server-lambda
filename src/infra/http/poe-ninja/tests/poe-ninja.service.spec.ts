@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import StatusCode from 'status-code-enum';
 
-import PoeNinjaService from '..';
+import PoeNinjaService from 'infra/http/poe-ninja';
 
 import type {
   IHttpClient,
   HttpClientGetProps,
   HttpClientResponse,
-} from '../../../../application/ports/http-client.interface';
+} from 'application/ports/http-client.interface';
 
 jest.useFakeTimers();
 

@@ -1,3 +1,3 @@
-import { HttpClientResponse } from '../ports/http-client.interface';
+import { HttpClientResponse } from 'application/ports/http-client.interface';
 
 export type HttpResponse<T = unknown> = HttpClientResponse<T>;

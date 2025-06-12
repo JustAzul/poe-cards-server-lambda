@@ -1,5 +1,5 @@
-import { IAsyncQueue } from '../../application/ports/async-queue.interface';
-import sleep from '../../shared/helpers/sleep.helper';
+import { IAsyncQueue } from 'application/ports/async-queue.interface';
+import sleep from 'shared/helpers/sleep.helper';
 
 export default class SimpleAsyncQueue<T> implements IAsyncQueue<T> {
   private readonly delayInMs: number;

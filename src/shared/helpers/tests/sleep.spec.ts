@@ -1,4 +1,4 @@
-import sleep from '../sleep.helper';
+import sleep from 'shared/helpers/sleep.helper';
 
 jest.useFakeTimers();
 

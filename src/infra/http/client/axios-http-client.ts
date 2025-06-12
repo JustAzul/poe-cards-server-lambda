@@ -8,13 +8,13 @@ import Axios, {
   CreateAxiosDefaults,
 } from 'axios';
 
-import HttpException from '../../../application/exceptions/http.exception';
+import HttpException from 'application/exceptions/http.exception';
 import {
   IHttpClient,
   HttpClientGetProps,
   HttpClientResponse,
-} from '../../../application/ports/http-client.interface';
-import InfraException from '../../exceptions/infra.exception';
+} from 'application/ports/http-client.interface';
+import InfraException from 'infra/exceptions/infra.exception';
 
 import { DEFAULT_USER_AGENT, DEFAULT_REQUEST_TIMEOUT } from './constants';
 
