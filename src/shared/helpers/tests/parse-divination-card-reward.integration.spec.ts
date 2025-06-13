@@ -53,6 +53,10 @@ describe('Parse divination card reward integration', () => {
       } else {
         expect(reward.name).toBe(expected);
       }
+
+      if ('links' in card && card.links > 0 && reward.links !== undefined) {
+        expect(reward.links).toBe(card.links);
+      }
     });
   });
 });

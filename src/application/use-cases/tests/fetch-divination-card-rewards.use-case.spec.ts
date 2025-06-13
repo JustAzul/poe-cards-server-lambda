@@ -14,6 +14,10 @@ describe(FetchDivinationCardRewardsUseCase.name, () => {
         explicitModifiers: [{ text: '<currencyitem>{10x Chaos Orb}' }],
       },
       {
+        name: 'Imperial Legacy',
+        explicitModifiers: [{ text: '<whiteitem>{Six-Link Imperial Bow}' }],
+      },
+      {
         name: 'Invalid',
         explicitModifiers: [{ text: 'Something else' }],
       },
@@ -47,6 +51,15 @@ describe(FetchDivinationCardRewardsUseCase.name, () => {
           name: 'Chaos Orb',
           type: DivinationCardRewardType.CurrencyItem,
           corrupted: false,
+        },
+      },
+      {
+        cardName: 'Imperial Legacy',
+        reward: {
+          name: 'Imperial Bow',
+          type: 'whiteitem',
+          corrupted: false,
+          links: 6,
         },
       },
     ]);

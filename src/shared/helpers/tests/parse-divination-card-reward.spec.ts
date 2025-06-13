@@ -103,6 +103,32 @@ describe(parseDivinationCardReward.name, () => {
     });
   });
 
+  it('extracts links from six-link rewards', () => {
+    const card: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Link Imperial Bow}' }],
+    };
+
+    expect(parseDivinationCardReward(card)).toEqual({
+      name: 'Imperial Bow',
+      type: 'whiteitem',
+      corrupted: false,
+      links: 6,
+    });
+  });
+
+  it('extracts links from six-linked rewards', () => {
+    const card: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Linked Body Armour}' }],
+    };
+
+    expect(parseDivinationCardReward(card)).toEqual({
+      name: 'Body Armour',
+      type: 'whiteitem',
+      corrupted: false,
+      links: 6,
+    });
+  });
+
   it('parses levelled gem reward in the middle of the string', () => {
     const card: DivinationCardData = {
       explicitModifiers: [
