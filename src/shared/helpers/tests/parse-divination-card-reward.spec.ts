@@ -88,4 +88,32 @@ describe(parseDivinationCardReward.name, () => {
   it('returns null when modifier is missing', () => {
     expect(parseDivinationCardReward({})).toBeNull();
   });
+
+  it('flags corruption for non-standard corrupted tags', () => {
+    const card: DivinationCardData = {
+      explicitModifiers: [
+        { text: '<uniqueitem>{Headhunter}\n<corrupted>{Six-Linked}' },
+      ],
+    };
+
+    expect(parseDivinationCardReward(card)).toEqual({
+      name: 'Headhunter',
+      type: DivinationCardRewardType.UniqueItem,
+      corrupted: true,
+    });
+  });
+
+  it('parses levelled gem reward in the middle of the string', () => {
+    const card: DivinationCardData = {
+      explicitModifiers: [
+        { text: '<gemitem>{Awakened Level 5 Multistrike Support}' },
+      ],
+    };
+
+    expect(parseDivinationCardReward(card)).toEqual({
+      name: 'Awakened Multistrike',
+      type: DivinationCardRewardType.GemItem,
+      corrupted: false,
+    });
+  });
 });

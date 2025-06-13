@@ -17,13 +17,17 @@ export interface DivinationCardReward {
 
 const TOKEN_PATTERN = /<([^>]+)>{([^{}]*?)}/g;
 const QUANTITY_PREFIX = /^\d+x\s*/i;
-const LEVEL_PREFIX = /^Level\s+\d+\s+/i;
+const LEVEL_TOKEN = /Level\s+\d+\s+/i;
+const SUPPORT_SUFFIX = /\s+Support$/i;
 
 export default function parseDivinationCardReward(
   card: DivinationCardData,
 ): DivinationCardReward | null {
-  const text = card.explicitModifiers?.map((m) => m.text).join('\n');
-  if (!text) return null;
+  if (!card.explicitModifiers?.length) {
+    return null;
+  }
+
+  const text = card.explicitModifiers.map((m) => m.text).join('\n');
 
   let reward: { name: string; type: string } | null = null;
   let corrupted = false;
@@ -32,7 +36,7 @@ export default function parseDivinationCardReward(
     const tag = match[1].toLowerCase();
     const content = match[2];
 
-    if (tag === 'corrupted' && content.toLowerCase() === 'corrupted') {
+    if (tag === 'corrupted') {
       corrupted = true;
       continue;
     }
@@ -40,8 +44,13 @@ export default function parseDivinationCardReward(
     if (!reward && (/item$/.test(tag) || tag === 'divination')) {
       let name = content
         .replace(QUANTITY_PREFIX, '')
-        .replace(LEVEL_PREFIX, '')
+        .replace(LEVEL_TOKEN, '')
         .trim();
+
+      if (tag === DivinationCardRewardType.GemItem && SUPPORT_SUFFIX.test(name)) {
+        name = name.replace(SUPPORT_SUFFIX, '');
+      }
+
       reward = { name, type: tag };
     }
   }
