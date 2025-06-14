@@ -40,7 +40,6 @@ async function GenerateTableCardRowJson(Data = {}, CardDetails = {}) {
   CardSet.ExaltedValue = parseFloat(CardSet.ExaltedValue);
 
   const ChaosProfit = parseInt(RewardData.chaosValue - CardSet.ChaosValue, 10);
-  const ExaltedProfit = Reward.ExaltedValue - CardSet.ExaltedValue;
 
   const RewardText = RewardData.itemClass === 4 ? `Level ${RewardData.gemLevel} ${RewardData.name}` : RewardData.name;
 
@@ -70,7 +69,6 @@ async function GenerateTableCardRowJson(Data = {}, CardDetails = {}) {
     setchaosprice: parseInt(CardSet.ChaosValue, 10),
     setexprice: parseFloat(CardSet.ExaltedValue.toFixed(2)),
     chaosprofit: ChaosProfit,
-    exprofit: parseFloat(ExaltedProfit.toFixed(2)),
     isCurrency: false,
   };
 
@@ -125,7 +123,6 @@ async function GenerateTableCurrencyCardsRowJson(Data = {}, CardDetails = {}) {
   CardSet.ExaltedValue = parseFloat(CardSet.ExaltedValue);
 
   const ChaosProfit = parseInt(Reward.ChaosValue - CardSet.ChaosValue, 10);
-  const ExaltedProfit = parseFloat(Reward.ExaltedValue - CardSet.ExaltedValue);
 
   const RewardText = CardDetails.Amount > 1 ? `${CardDetails.Amount}x ${CardDetails.Reward}` : CardDetails.Reward;
 
@@ -155,7 +152,6 @@ async function GenerateTableCurrencyCardsRowJson(Data = {}, CardDetails = {}) {
     setchaosprice: parseInt(CardSet.ChaosValue, 10),
     setexprice: parseFloat(CardSet.ExaltedValue.toFixed(2)),
     chaosprofit: ChaosProfit,
-    exprofit: parseFloat(ExaltedProfit.toFixed(2)),
     isCurrency: true,
   };
 
