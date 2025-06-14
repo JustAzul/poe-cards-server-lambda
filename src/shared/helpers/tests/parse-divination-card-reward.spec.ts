@@ -185,4 +185,117 @@ describe(parseDivinationCardReward.name, () => {
       level: 5,
     });
   });
+
+  it('fails to parse both Six-Link and Six-Linked rewards due to regex bug', () => {
+    const cardLink: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Link Staff}' }],
+    };
+    const cardLinked: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Linked Staff}' }],
+    };
+    const cardSocket: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socket Staff}' }],
+    };
+    const cardSocketed: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socketed Staff}' }],
+    };
+    // Both should parse as 6 links/sockets, but current regex bug causes one to fail
+    expect(parseDivinationCardReward(cardLink)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      links: 6,
+    });
+    expect(parseDivinationCardReward(cardLinked)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      links: 6,
+    });
+    expect(parseDivinationCardReward(cardSocket)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      sockets: 6,
+    });
+    expect(parseDivinationCardReward(cardSocketed)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      sockets: 6,
+    });
+  });
+
+  it('correctly parses only valid link/socket forms and rejects invalid ones', () => {
+    const validLink: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Link Staff}' }],
+    };
+    const validLinked: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Linked Staff}' }],
+    };
+    const invalidLinkk: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Linkk Staff}' }],
+    };
+    const invalidLinkeded: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Linkeded Staff}' }],
+    };
+    const validSocket: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socket Staff}' }],
+    };
+    const validSocketed: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socketed Staff}' }],
+    };
+    const invalidSocketted: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socketted Staff}' }],
+    };
+    const invalidSocketeddd: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socketeddd Staff}' }],
+    };
+    // Valid forms should parse
+    expect(parseDivinationCardReward(validLink)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      links: 6,
+    });
+    expect(parseDivinationCardReward(validLinked)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      links: 6,
+    });
+    expect(parseDivinationCardReward(validSocket)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      sockets: 6,
+    });
+    expect(parseDivinationCardReward(validSocketed)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      sockets: 6,
+    });
+    // Invalid forms should not parse as links/sockets
+    expect(parseDivinationCardReward(invalidLinkk)).toEqual({
+      name: 'Six-Linkk Staff',
+      type: 'whiteitem',
+      corrupted: false,
+    });
+    expect(parseDivinationCardReward(invalidLinkeded)).toEqual({
+      name: 'Six-Linkeded Staff',
+      type: 'whiteitem',
+      corrupted: false,
+    });
+    expect(parseDivinationCardReward(invalidSocketted)).toEqual({
+      name: 'Six-Socketted Staff',
+      type: 'whiteitem',
+      corrupted: false,
+    });
+    expect(parseDivinationCardReward(invalidSocketeddd)).toEqual({
+      name: 'Six-Socketeddd Staff',
+      type: 'whiteitem',
+      corrupted: false,
+    });
+  });
 });

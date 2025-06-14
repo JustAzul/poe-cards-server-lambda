@@ -23,8 +23,8 @@ const TOKEN_PATTERN = /<([^>]+)>{([^{}]*?)}/g;
 const QUANTITY_PREFIX = /^(?<qty>[\d,]+)x\s*/i;
 const LEVEL_PATTERN = /Level\s+(\d+)\s*/i;
 const SUPPORT_SUFFIX = /\s+Support$/i;
-const LINK_PREFIX = /^(?:(?<word>\w+)-Linked?|(?<word2>\w+)-Link)\s+/i;
-const SOCKET_PREFIX = /^(?:(?<word>\w+)-Socket(?:ed)?|(?<word2>\w+)-Socketed?)\s+/i;
+const LINK_PREFIX = /^(?<word>\w+)-(Linked|Link)\s+/i;
+const SOCKET_PREFIX = /^(?<word>\w+)-(Socketed|Socket)\s+/i;
 const NUMBER_WORDS: Record<string, number> = {
   one: 1,
   two: 2,
@@ -76,7 +76,7 @@ export default function parseDivinationCardReward(
 
       const linkMatch = name.match(LINK_PREFIX);
       if (linkMatch) {
-        const word = linkMatch.groups?.word || linkMatch.groups?.word2 || '';
+        const word = linkMatch.groups?.word || '';
         const lower = word.toLowerCase();
         links = NUMBER_WORDS[lower] ?? parseInt(word, 10);
         name = name.slice(linkMatch[0].length);
@@ -84,7 +84,7 @@ export default function parseDivinationCardReward(
 
       const socketMatch = name.match(SOCKET_PREFIX);
       if (socketMatch) {
-        const word = socketMatch.groups?.word || socketMatch.groups?.word2 || '';
+        const word = socketMatch.groups?.word || '';
         const lower = word.toLowerCase();
         sockets = NUMBER_WORDS[lower] ?? parseInt(word, 10);
         name = name.slice(socketMatch[0].length);
