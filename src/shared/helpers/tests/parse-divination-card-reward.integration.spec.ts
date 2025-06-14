@@ -57,6 +57,10 @@ describe('Parse divination card reward integration', () => {
       if ('links' in card && card.links > 0 && reward.links !== undefined) {
         expect(reward.links).toBe(card.links);
       }
+
+      if ('gemLevel' in card && card.gemLevel > 0 && reward.level !== undefined) {
+        expect(reward.level).toBe(card.gemLevel);
+      }
     });
   });
 });

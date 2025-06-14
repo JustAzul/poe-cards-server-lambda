@@ -70,6 +70,7 @@ describe(parseDivinationCardReward.name, () => {
       name: 'Empower',
       type: DivinationCardRewardType.GemItem,
       corrupted: true,
+      level: 4,
     });
   });
 
@@ -82,6 +83,7 @@ describe(parseDivinationCardReward.name, () => {
       name: 'Enlighten',
       type: DivinationCardRewardType.GemItem,
       corrupted: false,
+      level: 3,
     });
   });
 
@@ -140,6 +142,7 @@ describe(parseDivinationCardReward.name, () => {
       name: 'Awakened Multistrike',
       type: DivinationCardRewardType.GemItem,
       corrupted: false,
+      level: 5,
     });
   });
 });
