@@ -18,6 +18,10 @@ describe(FetchDivinationCardRewardsUseCase.name, () => {
         explicitModifiers: [{ text: '<whiteitem>{Six-Link Imperial Bow}' }],
       },
       {
+        name: 'Hidden Socket',
+        explicitModifiers: [{ text: '<whiteitem>{Six-Socket Staff}' }],
+      },
+      {
         name: 'Invalid',
         explicitModifiers: [{ text: 'Something else' }],
       },
@@ -60,6 +64,15 @@ describe(FetchDivinationCardRewardsUseCase.name, () => {
           type: 'whiteitem',
           corrupted: false,
           links: 6,
+        },
+      },
+      {
+        cardName: 'Hidden Socket',
+        reward: {
+          name: 'Staff',
+          type: 'whiteitem',
+          corrupted: false,
+          sockets: 6,
         },
       },
     ]);

@@ -131,6 +131,32 @@ describe(parseDivinationCardReward.name, () => {
     });
   });
 
+  it('extracts sockets from six-socket rewards', () => {
+    const card: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socket Staff}' }],
+    };
+
+    expect(parseDivinationCardReward(card)).toEqual({
+      name: 'Staff',
+      type: 'whiteitem',
+      corrupted: false,
+      sockets: 6,
+    });
+  });
+
+  it('extracts sockets from six-socketed rewards', () => {
+    const card: DivinationCardData = {
+      explicitModifiers: [{ text: '<whiteitem>{Six-Socketed Bow}' }],
+    };
+
+    expect(parseDivinationCardReward(card)).toEqual({
+      name: 'Bow',
+      type: 'whiteitem',
+      corrupted: false,
+      sockets: 6,
+    });
+  });
+
   it('parses levelled gem reward in the middle of the string', () => {
     const card: DivinationCardData = {
       explicitModifiers: [

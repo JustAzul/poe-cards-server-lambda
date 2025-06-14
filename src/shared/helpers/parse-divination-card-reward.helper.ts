@@ -14,6 +14,7 @@ export interface DivinationCardReward {
   type: string;
   corrupted: boolean;
   links?: number;
+  sockets?: number;
   level?: number;
 }
 
@@ -22,6 +23,7 @@ const QUANTITY_PREFIX = /^\d+x\s*/i;
 const LEVEL_PATTERN = /Level\s+(\d+)\s*/i;
 const SUPPORT_SUFFIX = /\s+Support$/i;
 const LINK_PREFIX = /^(?:(?<word>\w+)-Linked?|(?<word2>\w+)-Link)\s+/i;
+const SOCKET_PREFIX = /^(?:(?<word>\w+)-Socket(?:ed)?|(?<word2>\w+)-Socketed?)\s+/i;
 const NUMBER_WORDS: Record<string, number> = {
   one: 1,
   two: 2,
@@ -43,6 +45,7 @@ export default function parseDivinationCardReward(
   let reward: { name: string; type: string } | null = null;
   let corrupted = false;
   let links: number | undefined;
+  let sockets: number | undefined;
   let level: number | undefined;
 
   for (const match of text.matchAll(TOKEN_PATTERN)) {
@@ -71,6 +74,14 @@ export default function parseDivinationCardReward(
         name = name.slice(linkMatch[0].length);
       }
 
+      const socketMatch = name.match(SOCKET_PREFIX);
+      if (socketMatch) {
+        const word = socketMatch.groups?.word || socketMatch.groups?.word2 || '';
+        const lower = word.toLowerCase();
+        sockets = NUMBER_WORDS[lower] ?? parseInt(word, 10);
+        name = name.slice(socketMatch[0].length);
+      }
+
       if (tag === DivinationCardRewardType.GemItem && SUPPORT_SUFFIX.test(name)) {
         name = name.replace(SUPPORT_SUFFIX, '');
       }
@@ -79,5 +90,5 @@ export default function parseDivinationCardReward(
     }
   }
 
-  return reward ? { ...reward, corrupted, links, level } : null;
+  return reward ? { ...reward, corrupted, links, sockets, level } : null;
 }
