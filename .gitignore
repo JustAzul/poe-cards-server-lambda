@@ -2,3 +2,5 @@ node_modules
 dist*
 .env
 bundle.zip
+# Ignore Cursor rules and config
+.cursor/
