@@ -25,6 +25,7 @@ describe(parseDivinationCardReward.name, () => {
       name: 'Mirror Shard',
       type: DivinationCardRewardType.CurrencyItem,
       corrupted: false,
+      amount: 19,
     });
   });
 

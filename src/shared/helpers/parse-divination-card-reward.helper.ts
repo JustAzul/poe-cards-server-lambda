@@ -13,13 +13,14 @@ export interface DivinationCardReward {
   name: string;
   type: string;
   corrupted: boolean;
+  amount?: number;
   links?: number;
   sockets?: number;
   level?: number;
 }
 
 const TOKEN_PATTERN = /<([^>]+)>{([^{}]*?)}/g;
-const QUANTITY_PREFIX = /^\d+x\s*/i;
+const QUANTITY_PREFIX = /^(?<qty>\d+)x\s*/i;
 const LEVEL_PATTERN = /Level\s+(\d+)\s*/i;
 const SUPPORT_SUFFIX = /\s+Support$/i;
 const LINK_PREFIX = /^(?:(?<word>\w+)-Linked?|(?<word2>\w+)-Link)\s+/i;
@@ -44,6 +45,7 @@ export default function parseDivinationCardReward(
 
   let reward: { name: string; type: string } | null = null;
   let corrupted = false;
+  let amount: number | undefined;
   let links: number | undefined;
   let sockets: number | undefined;
   let level: number | undefined;
@@ -58,7 +60,13 @@ export default function parseDivinationCardReward(
     }
 
     if (!reward && (/item$/.test(tag) || tag === 'divination')) {
-      let name = content.replace(QUANTITY_PREFIX, '');
+      let name = content;
+      const qtyMatch = name.match(QUANTITY_PREFIX);
+      if (qtyMatch) {
+        amount = parseInt(qtyMatch.groups!.qty, 10);
+        name = name.slice(qtyMatch[0].length);
+      }
+
       const levelMatch = name.match(LEVEL_PATTERN);
       if (levelMatch) {
         level = parseInt(levelMatch[1], 10);
@@ -90,5 +98,7 @@ export default function parseDivinationCardReward(
     }
   }
 
-  return reward ? { ...reward, corrupted, links, sockets, level } : null;
+  return reward
+    ? { ...reward, corrupted, amount, links, sockets, level }
+    : null;
 }

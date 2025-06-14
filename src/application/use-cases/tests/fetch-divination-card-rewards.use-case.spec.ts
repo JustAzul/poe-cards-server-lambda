@@ -55,6 +55,7 @@ describe(FetchDivinationCardRewardsUseCase.name, () => {
           name: 'Chaos Orb',
           type: DivinationCardRewardType.CurrencyItem,
           corrupted: false,
+          amount: 10,
         },
       },
       {
