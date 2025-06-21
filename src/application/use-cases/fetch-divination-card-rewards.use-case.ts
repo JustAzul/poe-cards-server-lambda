@@ -1,9 +1,9 @@
 import {
   IDivinationCardRewardsRepository,
-} from 'application/ports/divination-card-rewards-repository.interface';
+} from '@/application/ports/divination-card-rewards-repository.interface';
 import {
   DivinationCardReward,
-} from 'shared/helpers/parse-divination-card-reward.helper';
+} from '@/shared/helpers/parse-divination-card-reward.helper';
 
 export interface FetchDivinationCardRewardsUseCaseInterfaces {
   readonly repository: IDivinationCardRewardsRepository;

@@ -1,70 +1,53 @@
-export interface CardCurrencyItem {
+export interface CurrencyCardItem {
   amount: number;
   cardName: string;
   rewardName: string;
 }
 
-const CURRENCY_CARDS: CardCurrencyItem[] = [
+export const CURRENCY_CARDS: CurrencyCardItem[] = [
   {
-    amount: 10,
-    cardName: 'The Wrath',
-    rewardName: 'Chaos Orb',
+    amount: 1,
+    cardName: 'The Immortal',
+    rewardName: 'Eternal Orb',
   },
   {
-    amount: 3,
+    amount: 10,
     cardName: 'Abandoned Wealth',
     rewardName: 'Exalted Orb',
   },
   {
-    amount: 2,
-    cardName: "The Saint's Treasure",
-    rewardName: 'Exalted Orb',
-  },
-  {
-    amount: 1,
+    amount: 5,
     cardName: 'The Hoarder',
     rewardName: 'Exalted Orb',
   },
   {
+    amount: 20,
+    cardName: 'The Wrath',
+    rewardName: 'Chaos Orb',
+  },
+  {
     amount: 10,
-    cardName: 'The Sephirot',
+    cardName: 'Chaotic Disposition',
+    rewardName: 'Chaos Orb',
+  },
+  {
+    amount: 1,
+    cardName: 'The Saint\'s Treasure',
+    rewardName: 'Exalted Orb',
+  },
+  {
+    amount: 1,
+    cardName: 'Emperor\'s Luck',
+    rewardName: 'Ancient Orb',
+  },
+  {
+    amount: 1,
+    cardName: 'The Formless Sea',
     rewardName: 'Divine Orb',
   },
   {
     amount: 1,
-    cardName: 'House of Mirrors',
-    rewardName: 'Mirror of Kalandra',
-  },
-  {
-    amount: 1,
-    cardName: 'Seven Years Bad Luck',
-    rewardName: 'Mirror Shard',
-  },
-  {
-    amount: 19,
-    cardName: 'Unrequited Love',
-    rewardName: 'Mirror Shard',
-  },
-  {
-    amount: 5,
-    cardName: "Brother's Stash",
-    rewardName: 'Exalted Orb',
-  },
-  {
-    amount: 7,
-    cardName: 'The Scout',
-    rewardName: 'Exalted Orb',
-  },
-  {
-    amount: 10,
-    cardName: 'Underground Forest',
-    rewardName: 'Awakened Sextant',
-  },
-  {
-    amount: 10,
-    cardName: 'Alluring Bounty',
-    rewardName: 'Exalted Orb',
+    cardName: 'The Apothecary',
+    rewardName: 'Mageblood',
   },
 ];
-
-export default CURRENCY_CARDS;
