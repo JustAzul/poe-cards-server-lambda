@@ -15,7 +15,7 @@ import HttpLeagueMapper from 'infra/http/league/league.mapper';
 import PoeNinjaService from 'infra/http/poe-ninja';
 import HttpItemOverviewRepository from 'infra/http/poe-ninja/item-overview.repository';
 import HttpCurrencyOverviewRepository from 'infra/http/poe-ninja/currency-overview.repository';
-import ConsoleFlipTableRepository from 'infra/console-flip-table.repository';
+import FirestoreFlipTableRepository from 'infra/firestore-flip-table.repository';
 
 import type {
   APIGatewayEvent,
@@ -36,7 +36,7 @@ async function main() {
   const currencyOverviewRepository = new HttpCurrencyOverviewRepository(
     poeNinjaService,
   );
-  const flipTableRepository = new ConsoleFlipTableRepository();
+  const flipTableRepository = new FirestoreFlipTableRepository();
 
   // Use Cases with correct constructor patterns
   const findLeagues = new FindLeaguesUseCase({
@@ -118,7 +118,59 @@ async function main() {
     console.log(`--- Found ${flipTable.length} profitable opportunities ---`);
     console.table(flipTable);
 
-    await flipTableRepository.save(flipTable, league);
+    try {
+      await flipTableRepository.save(flipTable, league);
+      console.log(`✅ Successfully saved flip table for league: ${league}`);
+    } catch (error: any) {
+      // Handle Firestore API not enabled error
+      if (error.code === 7 && error.message?.includes('Cloud Firestore API has not been used')) {
+        console.error(`\n❌ FIRESTORE API ERROR: Cloud Firestore API is not enabled`);
+        console.error(`\n🔧 HOW TO FIX:`);
+        console.error(`1. Visit: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.FIREBASE_PROJECT_ID}`);
+        console.error(`2. Click "Enable" to activate the Firestore API`);
+        console.error(`3. Wait 2-3 minutes for the API to propagate`);
+        console.error(`4. Re-run the application\n`);
+        process.exit(1);
+      }
+      
+      // Handle Firestore database not found error
+      if (error.code === 5 && error.message?.includes('NOT_FOUND')) {
+        console.error(`\n❌ FIRESTORE DATABASE ERROR: Firestore database not found`);
+        console.error(`\n🔧 HOW TO FIX:`);
+        console.error(`1. Visit: https://console.firebase.google.com/project/${process.env.FIREBASE_PROJECT_ID}/firestore`);
+        console.error(`2. Click "Create database" if you haven't created one yet`);
+        console.error(`3. Choose "Start in production mode" or "Start in test mode"`);
+        console.error(`4. Select your preferred database location`);
+        console.error(`5. Wait for the database to be created (usually 1-2 minutes)`);
+        console.error(`6. Re-run the application\n`);
+        process.exit(1);
+      }
+      
+      // Handle authentication/permission errors
+      if (error.code === 16 || error.message?.includes('UNAUTHENTICATED')) {
+        console.error(`\n❌ FIRESTORE AUTHENTICATION ERROR: Invalid credentials`);
+        console.error(`\n🔧 HOW TO FIX:`);
+        console.error(`1. Verify your .env file contains valid FIREBASE_* credentials`);
+        console.error(`2. Ensure the service account has Firestore access permissions`);
+        console.error(`3. Check that the private key is properly formatted (single line with \\n)`);
+        console.error(`4. Verify the project ID matches your Google Cloud project\n`);
+        process.exit(1);
+      }
+      
+      // Handle general Firestore errors
+      if (error.message?.includes('firestore') || error.message?.includes('Firestore')) {
+        console.error(`\n❌ FIRESTORE ERROR: ${error.message}`);
+        console.error(`\n🔧 TROUBLESHOOTING STEPS:`);
+        console.error(`1. Check your internet connection`);
+        console.error(`2. Verify Firestore is properly configured in Google Cloud Console`);
+        console.error(`3. Ensure your service account has the correct permissions`);
+        console.error(`4. Check the error details above for specific guidance\n`);
+        process.exit(1);
+      }
+      
+      // Re-throw unexpected errors
+      throw error;
+    }
   }
 }
 
