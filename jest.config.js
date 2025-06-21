@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.(ts|js)', '**/*.(test|spec).(ts|js)'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.coverage/'],
   moduleNameMapper: {
     '^application/(.*)$': '<rootDir>/src/application/$1',
     '^domain/(.*)$': '<rootDir>/src/domain/$1',
@@ -12,4 +15,5 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  coverageDirectory: '.coverage',
 };
