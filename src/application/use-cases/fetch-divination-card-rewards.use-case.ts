@@ -1,12 +1,12 @@
-import InfraException from 'infra/exceptions/infra.exception';
-import PoeNinjaService, { PoeNinjaQueryParams } from 'infra/http/poe-ninja';
-import parseDivinationCardReward, {
-  DivinationCardData,
+import {
+  IDivinationCardRewardsRepository,
+} from 'application/ports/divination-card-rewards-repository.interface';
+import {
   DivinationCardReward,
 } from 'shared/helpers/parse-divination-card-reward.helper';
 
 export interface FetchDivinationCardRewardsUseCaseInterfaces {
-  readonly service: PoeNinjaService;
+  readonly repository: IDivinationCardRewardsRepository;
 }
 
 export interface FetchDivinationCardRewardsUseCaseConstructor {
@@ -19,30 +19,13 @@ export interface CardRewardResult {
 }
 
 export default class FetchDivinationCardRewardsUseCase {
-  private readonly service: PoeNinjaService;
+  private readonly repository: IDivinationCardRewardsRepository;
 
   constructor({ interfaces }: FetchDivinationCardRewardsUseCaseConstructor) {
-    this.service = interfaces.service;
+    this.repository = interfaces.repository;
   }
 
   async execute(league: string): Promise<CardRewardResult[]> {
-    const params: PoeNinjaQueryParams = { league, type: 'DivinationCard' };
-    const { lines } = await this.service.fetchItemOverview<{
-      lines: Array<DivinationCardData & { name: string }>;
-    }>(params);
-
-    if (!lines) {
-      throw new InfraException(
-        FetchDivinationCardRewardsUseCase.name,
-        'No data found',
-      );
-    }
-
-    return lines
-      .map((line) => {
-        const reward = parseDivinationCardReward(line);
-        return reward ? { cardName: line.name, reward } : null;
-      })
-      .filter((entry): entry is CardRewardResult => entry !== null);
+    return this.repository.fetchAll(league);
   }
 }

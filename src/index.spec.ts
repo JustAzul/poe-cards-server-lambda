@@ -62,9 +62,9 @@ describe('main flow', () => {
 
     const currencies = [
       new CurrencyOverviewEntity({
-        chaosEquivalent: 200,
-        currencyTypeName: 'Exalted Orb',
-        detailsId: 'exalted-orb',
+        chaosEquivalent: 1,
+        currencyTypeName: 'Chaos Orb',
+        detailsId: 'chaos-orb',
       }),
     ];
     fetchCurrenciesMock.mockResolvedValue(currencies);

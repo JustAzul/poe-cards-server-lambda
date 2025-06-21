@@ -26,4 +26,19 @@ describe(ValidateHttpResponseUseCase.name, () => {
       });
     }).toThrow(BadStatusCodeException);
   });
+
+  it('should not throw when statusCode is 200', () => {
+    const httpResponse: HttpResponse = {
+      data: {} as never,
+      headers: {},
+      statusCode: StatusCode.SuccessOK,
+    };
+
+    expect(() => {
+      ValidateHttpResponseUseCase.execute({
+        request: httpRequest,
+        response: httpResponse,
+      });
+    }).not.toThrow();
+  });
 });

@@ -16,13 +16,11 @@ describe(GenerateFlipTableUseCase.name, () => {
 
     const [row] = GenerateFlipTableUseCase.execute({
       cards,
-      exaltedPriceChaos: 200,
     });
 
     expect(row).toMatchObject({
       chaosProfit: 7,
       costChaos: 8,
-      exaltProfit: 7 / 200,
       name: 'The Scholar',
       resultChaos: 15,
       setSize: 4,
@@ -46,7 +44,6 @@ describe(GenerateFlipTableUseCase.name, () => {
     const rows = GenerateFlipTableUseCase.execute({
       cards,
       currencyCards,
-      exaltedPriceChaos: 200,
     });
 
     const chaosProfits = rows.map((r) => r.chaosProfit);
@@ -54,5 +51,32 @@ describe(GenerateFlipTableUseCase.name, () => {
 
     expect(chaosProfits).toEqual(sorted);
     expect(rows.length).toBe(3);
+  });
+
+  it('should handle zero profit flips by excluding them', () => {
+    const cards: CardRowInput[] = [
+      { cardPriceChaos: 5, name: 'Card A', rewardChaos: 10, setSize: 2 }, // profit = 0
+    ];
+    const rows = GenerateFlipTableUseCase.execute({
+      cards,
+    });
+    expect(rows.length).toBe(0);
+  });
+
+  it('should handle negative profit flips by excluding them', () => {
+    const cards: CardRowInput[] = [
+      { cardPriceChaos: 6, name: 'Card A', rewardChaos: 10, setSize: 2 }, // profit = -2
+    ];
+    const rows = GenerateFlipTableUseCase.execute({
+      cards,
+    });
+    expect(rows.length).toBe(0);
+  });
+
+  it('should return empty array when no cards provided', () => {
+    const rows = GenerateFlipTableUseCase.execute({
+      cards: [],
+    });
+    expect(rows.length).toBe(0);
   });
 });

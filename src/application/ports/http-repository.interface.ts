@@ -1,4 +1,6 @@
 import { EntityMap, EntityNames } from 'application/types/build-entity.type';
+import CurrencyOverviewEntity from 'domain/entities/currency-overview.entity';
+import ItemOverviewEntity from 'domain/entities/item-overview.entity';
 
 interface IHttpRepository<T extends EntityNames> {
   fetchAll(): Promise<Array<EntityMap[T]>>;
@@ -6,16 +8,32 @@ interface IHttpRepository<T extends EntityNames> {
 
 export interface ILeagueRepository extends IHttpRepository<'LeagueEntity'> {}
 
-import { PoeNinjaQueryParams } from 'infra/http/poe-ninja';
+export interface PoeNinjaItemOverviewQueryParams {
+  league: string;
+  type: string;
+}
+
+export interface PoeNinjaDynamicItemOverviewQueryParams {
+  league: string;
+  itemNames: string[];
+}
 
 export interface IItemOverviewRepository {
   fetchAll(
-    params: PoeNinjaQueryParams,
-  ): Promise<Array<EntityMap['ItemOverviewEntity']>>;
+    params: PoeNinjaItemOverviewQueryParams,
+  ): Promise<ItemOverviewEntity[]>;
+  fetchByNames(
+    params: PoeNinjaDynamicItemOverviewQueryParams,
+  ): Promise<ItemOverviewEntity[]>;
+}
+
+export interface PoeNinjaCurrencyOverviewQueryParams {
+  league: string;
+  type: string;
 }
 
 export interface ICurrencyOverviewRepository {
   fetchAll(
-    params: PoeNinjaQueryParams,
-  ): Promise<Array<EntityMap['CurrencyOverviewEntity']>>;
+    params: PoeNinjaCurrencyOverviewQueryParams,
+  ): Promise<CurrencyOverviewEntity[]>;
 }

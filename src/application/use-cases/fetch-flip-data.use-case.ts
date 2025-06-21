@@ -39,22 +39,40 @@ export default class FetchFlipDataUseCase {
   }
 
   async execute(leagues: string[]): Promise<Record<string, LeagueFlipData>> {
-    const { currencyRepository } = this.interfaces;
-    const { currencyType = DEFAULT_CURRENCY_TYPE } = this.config;
+    const promises = leagues.map((league) => this.fetchDataForLeague(league));
+    const outcomes = await Promise.allSettled(promises);
 
     const result: Record<string, LeagueFlipData> = {};
 
-    for (const league of leagues) {
-      const items = await this.fetchItemsByLeague(league);
-      const currencies = await currencyRepository.fetchAll({
-        league,
-        type: currencyType,
-      });
-
-      result[league] = { items, currencies };
-    }
+    outcomes.forEach((outcome) => {
+      if (outcome.status === 'fulfilled' && outcome.value) {
+        const { league, data } = outcome.value;
+        result[league] = data;
+      } else if (outcome.status === 'rejected') {
+        // TODO: Replace with a proper logger
+        console.error(`Failed to fetch data for a league:`, outcome.reason);
+      }
+    });
 
     return result;
+  }
+
+  private async fetchDataForLeague(
+    league: string,
+  ): Promise<{ league: string; data: LeagueFlipData } | null> {
+    const { currencyRepository } = this.interfaces;
+    const { currencyType = DEFAULT_CURRENCY_TYPE } = this.config;
+
+    const [items, currencies] = await Promise.all([
+      this.fetchItemsByLeague(league),
+      currencyRepository.fetchAll({ league, type: currencyType }),
+    ]);
+
+    if (!items.length || !currencies.length) {
+      return null;
+    }
+
+    return { league, data: { items, currencies } };
   }
 
   private async fetchItemsByLeague(
@@ -63,13 +81,11 @@ export default class FetchFlipDataUseCase {
     const { itemRepository } = this.interfaces;
     const { itemTypes } = this.config;
 
-    const items: ItemOverviewEntity[] = [];
+    const promises = itemTypes.map((type) =>
+      itemRepository.fetchAll({ league, type }),
+    );
 
-    for (const type of itemTypes) {
-      const fetched = await itemRepository.fetchAll({ league, type });
-      items.push(...fetched);
-    }
-
-    return items;
+    const results = await Promise.all(promises);
+    return results.flat();
   }
 }

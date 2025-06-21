@@ -2,20 +2,21 @@ import { IHttpClient } from 'application/ports/http-client.interface';
 import { ILeagueRepository } from 'application/ports/http-repository.interface';
 import { IHttpLeagueMapper } from 'application/ports/mapper.interface';
 import InfraException from 'infra/exceptions/infra.exception';
+import LeagueEntity from 'domain/entities/league.entity';
 
-import HttpLeagueMapper from './league.mapper';
 import { HttpLeagueResponse } from './types/http-league-response.type';
 
 export default class HttpLeagueRepository implements ILeagueRepository {
-  private readonly httpClient: IHttpClient;
+  private readonly mapper: IHttpLeagueMapper;
 
-  private readonly mapper: IHttpLeagueMapper = new HttpLeagueMapper();
-
-  constructor(httpClient: IHttpClient) {
-    this.httpClient = httpClient;
+  constructor(
+    private readonly httpClient: IHttpClient,
+    mapper: IHttpLeagueMapper,
+  ) {
+    this.mapper = mapper;
   }
 
-  async fetchAll() {
+  async fetchAll(): Promise<LeagueEntity[]> {
     const { data } = await this.httpClient.get<HttpLeagueResponse[]>({
       url: 'https://api.pathofexile.com/leagues',
     });

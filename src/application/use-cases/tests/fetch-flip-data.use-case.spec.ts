@@ -11,71 +11,85 @@ const league = 'Sanctum';
 const itemTypes: ItemOverviewType[] = ['DivinationCard'];
 
 describe(FetchFlipDataUseCase.name, () => {
-  it('aggregates data for each league', async () => {
-    const itemEntities = [
-      new ItemOverviewEntity({
-        chaosValue: 1,
-        detailsId: 'a',
-        name: 'ItemA',
-      }),
-    ];
-    const currencyEntities = [
-      new CurrencyOverviewEntity({
-        chaosEquivalent: 1,
-        currencyTypeName: 'Chaos Orb',
-        detailsId: 'chaos-orb',
-      }),
-    ];
-
-    const itemRepository: IItemOverviewRepository = {
-      fetchAll: jest.fn().mockResolvedValue(itemEntities),
-    };
-    const currencyRepository: ICurrencyOverviewRepository = {
-      fetchAll: jest.fn().mockResolvedValue(currencyEntities),
-    };
-
-    const useCase = new FetchFlipDataUseCase({
-      interfaces: { itemRepository, currencyRepository },
-      config: { itemTypes },
-    });
-
-    const result = await useCase.execute([league]);
-
-    expect(result[league].items).toEqual(itemEntities);
-    expect(result[league].currencies).toEqual(currencyEntities);
-    expect(itemRepository.fetchAll).toHaveBeenCalledWith({ league, type: 'DivinationCard' });
-    expect(currencyRepository.fetchAll).toHaveBeenCalledWith({ league, type: 'Currency' });
+  const mockItem = new ItemOverviewEntity({
+    chaosValue: 1,
+    detailsId: 'a',
+    name: 'ItemA',
+  });
+  const mockCurrency = new CurrencyOverviewEntity({
+    chaosEquivalent: 1,
+    currencyTypeName: 'Chaos Orb',
+    detailsId: 'chaos-orb',
   });
 
-  it('throws when item repository fails', async () => {
-    const itemRepository: IItemOverviewRepository = {
-      fetchAll: jest.fn().mockRejectedValue(new Error('fail')),
-    };
-    const currencyRepository: ICurrencyOverviewRepository = {
-      fetchAll: jest.fn(),
-    };
+  let itemRepository: IItemOverviewRepository;
+  let currencyRepository: ICurrencyOverviewRepository;
+  let useCase: FetchFlipDataUseCase;
 
-    const useCase = new FetchFlipDataUseCase({
+  beforeEach(() => {
+    itemRepository = {
+      fetchAll: jest.fn().mockResolvedValue([mockItem]),
+      fetchByNames: jest.fn(),
+    };
+    currencyRepository = {
+      fetchAll: jest.fn().mockResolvedValue([mockCurrency]),
+    };
+    useCase = new FetchFlipDataUseCase({
       interfaces: { itemRepository, currencyRepository },
       config: { itemTypes },
     });
-
-    await expect(useCase.execute([league])).rejects.toThrow('fail');
   });
 
-  it('throws when currency repository fails', async () => {
-    const itemRepository: IItemOverviewRepository = {
-      fetchAll: jest.fn().mockResolvedValue([]),
-    };
-    const currencyRepository: ICurrencyOverviewRepository = {
-      fetchAll: jest.fn().mockRejectedValue(new Error('fail')),
-    };
+  it('should aggregate data for multiple leagues in parallel', async () => {
+    const leagues = ['Sanctum', 'Standard'];
+    const result = await useCase.execute(leagues);
 
-    const useCase = new FetchFlipDataUseCase({
-      interfaces: { itemRepository, currencyRepository },
-      config: { itemTypes },
+    expect(Object.keys(result)).toEqual(leagues);
+    expect(result.Sanctum.items).toEqual([mockItem]);
+    expect(result.Standard.currencies).toEqual([mockCurrency]);
+
+    expect(itemRepository.fetchAll).toHaveBeenCalledTimes(leagues.length);
+    expect(currencyRepository.fetchAll).toHaveBeenCalledTimes(leagues.length);
+  });
+
+  it('should not throw if one league fails, but return successful ones', async () => {
+    const leagues = ['Sanctum', 'FailureLeague', 'Standard'];
+    console.error = jest.fn(); // Suppress console.error logging for this test
+
+    // Make one of the calls fail
+    (itemRepository.fetchAll as jest.Mock).mockImplementation(({ league }: { league: string }) => {
+      if (league === 'FailureLeague') {
+        return Promise.reject(new Error('API Down'));
+      }
+      return Promise.resolve([mockItem]);
     });
 
-    await expect(useCase.execute([league])).rejects.toThrow('fail');
+    const result = await useCase.execute(leagues);
+
+    expect(Object.keys(result)).toEqual(['Sanctum', 'Standard']);
+    expect(result.Sanctum).toBeDefined();
+    expect(result.Standard).toBeDefined();
+    expect(result.FailureLeague).toBeUndefined();
+    expect(console.error).toHaveBeenCalledWith(
+      'Failed to fetch data for a league:',
+      new Error('API Down'),
+    );
+  });
+
+  it('should not include leagues that return no data', async () => {
+    const leagues = ['Sanctum', 'EmptyLeague'];
+
+    (itemRepository.fetchAll as jest.Mock).mockImplementation(({ league }: { league: string }) => {
+      if (league === 'EmptyLeague') {
+        return Promise.resolve([]); // No items found
+      }
+      return Promise.resolve([mockItem]);
+    });
+
+    const result = await useCase.execute(leagues);
+
+    expect(Object.keys(result)).toEqual(['Sanctum']);
+    expect(result.Sanctum).toBeDefined();
+    expect(result.EmptyLeague).toBeUndefined();
   });
 });
