@@ -6,11 +6,9 @@ import type {
   HttpClientResponse,
 } from 'application/ports/http-client.interface';
 import StatusCode from 'status-code-enum';
-import cards from 'config/cards';
-import currencyCards from 'config/currency-cards';
-import parseDivinationCardReward, {
-  DivinationCardData,
-} from 'shared/helpers/parse-divination-card-reward.helper';
+import parseDivinationCardReward, { DivinationCardData } from '@/shared/helpers/parse-divination-card-reward.helper';
+import { CARDS } from '@/config/cards';
+import { CURRENCY_CARDS } from '@/config/currency-cards';
 
 class CurlHttpClient implements IHttpClient {
   async get<T>(props: HttpClientGetProps): Promise<HttpClientResponse<T>> {
@@ -37,7 +35,7 @@ describe('Parse divination card reward integration', () => {
     );
   }, 20000);
 
-  [...cards, ...currencyCards].forEach((card) => {
+  [...CARDS, ...CURRENCY_CARDS].forEach((card) => {
     const cardName = card.cardName;
     const expected = card.rewardName;
 
@@ -66,5 +64,64 @@ describe('Parse divination card reward integration', () => {
         expect(reward.quantity).toBe(card.amount);
       }
     });
+  });
+
+  it('should parse cards configuration correctly', () => {
+    expect(CARDS).toBeDefined();
+    expect(Array.isArray(CARDS)).toBe(true);
+    expect(CARDS.length).toBeGreaterThan(0);
+    
+    // Test that each card has the required properties
+    CARDS.forEach(card => {
+      expect(card).toHaveProperty('cardName');
+      expect(card).toHaveProperty('corrupted');
+      expect(card).toHaveProperty('gemLevel');
+      expect(card).toHaveProperty('itemClass');
+      expect(card).toHaveProperty('links');
+      expect(card).toHaveProperty('rewardName');
+    });
+  });
+
+  it('should parse currency cards configuration correctly', () => {
+    expect(CURRENCY_CARDS).toBeDefined();
+    expect(Array.isArray(CURRENCY_CARDS)).toBe(true);
+    expect(CURRENCY_CARDS.length).toBeGreaterThan(0);
+    
+    // Test that each currency card has the required properties
+    CURRENCY_CARDS.forEach(card => {
+      expect(card).toHaveProperty('cardName');
+      expect(card).toHaveProperty('amount');
+      expect(card).toHaveProperty('rewardName');
+    });
+  });
+
+  it('should parse divination card rewards', () => {
+    const mockCard: DivinationCardData = {
+      explicitModifiers: [
+        { text: '<uniqueitem>{Headhunter}' }
+      ]
+    };
+
+    const result = parseDivinationCardReward(mockCard);
+    
+    expect(result).toBeTruthy();
+    expect(result?.name).toBe('Headhunter');
+    expect(result?.type).toBe('uniqueitem');
+    expect(result?.corrupted).toBe(false);
+  });
+
+  it('should handle corrupted rewards', () => {
+    const mockCard: DivinationCardData = {
+      explicitModifiers: [
+        { text: '<corrupted><uniqueitem>{Headhunter}' }
+      ]
+    };
+
+    const result = parseDivinationCardReward(mockCard);
+    
+    expect(result).toBeTruthy();
+    expect(result?.name).toBe('Headhunter');
+    expect(result?.type).toBe('uniqueitem');
+    expect(result?.corrupted).toBe(true);
   });
 });
