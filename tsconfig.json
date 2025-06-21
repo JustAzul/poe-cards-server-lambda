@@ -7,6 +7,9 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "baseUrl": "./src",
+    "paths": {
+      "*": ["*"]
+    },
     "noImplicitAny": true,
     "outDir": "dist",
     "preserveConstEnums": true,

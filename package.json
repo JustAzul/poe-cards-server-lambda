@@ -7,18 +7,23 @@
     "build:aws": "npm run build && mkdirp ./dist-aws && cpy . ../dist-aws --cwd=dist && cpy ./package.json ./.env ./dist-aws",
     "build:clean": "rimraf ./dist",
     "build": "tsc",
-    "dev": "npm run build && concurrently \"tsc -w\" \"NODE_ENV=development nodemon dist/index.js\"",
+    "build:watch": "tsc -w",
+    "dev": "npm run build && concurrently \"npm run build:watch\" \"nodemon --delay 1 -r ./tsconfig-paths.js dist/index.js\"",
+    "dev:fast": "nodemon --delay 1 -r ./tsconfig-paths.js dist/index.js",
     "lint": "eslint . --ext .ts --fix",
     "prebuild": "npm run build:clean",
-    "start": "npm run build && NODE_ENV=development node ./dist/index.js",
-    "test": "jest"
+    "start": "npm run build && node -r ./tsconfig-paths.js ./dist/index.js",
+    "start:prod": "NODE_ENV=production node -r ./tsconfig-paths.js ./dist/index.js",
+    "start:dev": "NODE_ENV=development node -r ./tsconfig-paths.js ./dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "author": "Diego (Azul) Ferreira",
   "license": "ISC",
   "dependencies": {
     "agentkeepalive": "^4.5.0",
     "axios": "^1.1.2",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.5.0",
     "firebase-admin": "^13.4.0",
     "micromatch": "^4.0.8"
   },
@@ -49,6 +54,7 @@
     "status-code-enum": "^1.0.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "uuid": "^9.0.1"
   }
