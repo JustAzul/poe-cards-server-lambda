@@ -1,5 +1,5 @@
-const CurrencyCards = require('../config/currency-cards');
-const Cards = require('../config/cards');
+const { cardRepository } = require('../domain/repositories/card.repository');
+const { currencyCardRepository } = require('../domain/repositories/currency-card.repository');
 
 const { findCardOverview, GetLeagueExaltedValue, ChaosToExalted } = require('./utils');
 
@@ -165,8 +165,9 @@ async function GenerateFlipTableArray(Data = {}) {
   {
     const Workload = [];
     // Cards
-    for (let i = 0; i < Cards.length; i += 1) {
-      const Details = Cards[i];
+    const cards = cardRepository.getAllCards();
+    for (let i = 0; i < cards.length; i += 1) {
+      const Details = cards[i];
 
       const Work = () => new Promise((resolve) => {
         GenerateTableCardRowJson(Data, Details)
@@ -180,8 +181,9 @@ async function GenerateFlipTableArray(Data = {}) {
     }
 
     // Currency Cards
-    for (let i = 0; i < CurrencyCards.length; i += 1) {
-      const Details = CurrencyCards[i];
+    const currencyCards = currencyCardRepository.getAllCurrencyCards();
+    for (let i = 0; i < currencyCards.length; i += 1) {
+      const Details = currencyCards[i];
 
       const Work = () => new Promise((resolve) => {
         GenerateTableCurrencyCardsRowJson(Data, Details)
