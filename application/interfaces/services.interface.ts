@@ -1,0 +1,36 @@
+import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { CardDetailsDto, FlipTableRowDto, LeagueOverviewDto } from '../dtos/flip-table.dto';
+import { CardMatchResultDto, PriceCalculationDto } from '../dtos/card-match.dto';
+
+// Price conversion service
+export interface IPriceConversionService {
+  convertChaosToExalted(chaosValue: number, exaltedChaosEquivalent: number): number;
+  getExaltedValue(leagueData: Array<ItemOverview | CurrencyItem>): number;
+}
+
+// Card matching service
+export interface ICardMatchingService {
+  findCardMatch(
+    leagueData: Array<ItemOverview | CurrencyItem>,
+    cardDetails: CardDetailsDto,
+    isCurrency: boolean
+  ): CardMatchResultDto;
+}
+
+// League data service
+export interface ILeagueDataService {
+  fetchLeagueOverview(leagueName: string): Promise<Array<ItemOverview | CurrencyItem>>;
+}
+
+// Profit calculation service
+export interface IProfitCalculationService {
+  calculateCardProfit(
+    leagueData: Array<ItemOverview | CurrencyItem>,
+    cardDetails: CardDetailsDto,
+    isCurrency: boolean
+  ): Promise<FlipTableRowDto | null>;
+
+  generateFlipTable(
+    leagueData: Array<ItemOverview | CurrencyItem>
+  ): Promise<FlipTableRowDto[]>;
+}
