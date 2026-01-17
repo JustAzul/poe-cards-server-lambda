@@ -1,5 +1,5 @@
-const { cardRepository } = require('../domain/repositories/card.repository');
-const { currencyCardRepository } = require('../domain/repositories/currency-card.repository');
+const { cardRepository } = require('../infrastructure/repositories/card.repository');
+const { currencyCardRepository } = require('../infrastructure/repositories/currency-card.repository');
 
 const { findCardOverview, GetLeagueExaltedValue, ChaosToExalted } = require('./utils');
 
