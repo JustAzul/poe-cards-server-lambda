@@ -1,5 +1,5 @@
 import { CurrencyCardEntity } from '@domain/entities/currency-card.entity';
-import { ICurrencyCardRepository } from './interfaces/currency-card.repository.interface';
+import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currency-card.repository.interface';
 
 const currencyCardsData = require('../../config/currency-cards') as CurrencyCardEntity[];
 
