@@ -1,11 +1,11 @@
 const { GetLeagueOverview, Delay } = require('./components/utils');
-const { LeaguesOverview } = require('./components/fetch');
+const { leagueRepository } = require('./infrastructure/repositories/league.repository');
 const Generators = require('./components/generators');
 const firestore = require('./components/firestore');
 
 async function main() {
   console.log('Fetching Leagues..');
-  const Leagues = await LeaguesOverview();
+  const Leagues = await leagueRepository.getAllLeagues();
   console.log(`Found ${Object.keys(Leagues).length} leagues!`);
 
   const UpdateLeagueList = async () => {
