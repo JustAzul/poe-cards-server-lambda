@@ -1,3 +1,14 @@
+/**
+ * @deprecated This module is deprecated. Use infrastructure/repositories/http.repository.ts instead.
+ *
+ * Migration guide:
+ * - LeaguesOverview() → httpRepository.fetchLeagues()
+ * - ItemOverview(league, type) → httpRepository.fetchItemOverview(league, type)
+ * - CurrencyOverview(league) → httpRepository.fetchCurrencyOverview(league)
+ *
+ * This file will be removed in a future version.
+ */
+
 const got = require('got');
 const moment = require('moment');
 const { sleep } = require('azul-tools');
