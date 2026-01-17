@@ -2,7 +2,7 @@
 const { duration } = require('moment');
 const { sleep } = require('azul-tools');
 
-const { CurrencyOverview, ItemOverview } = require('./fetch');
+const { httpRepository } = require('../infrastructure/repositories/http.repository');
 const fetchList = require('../config/fetch-list');
 
 async function Delay(DelaySize = 2) {
@@ -48,7 +48,7 @@ async function GetLeagueOverview(leagueName = '') {
   const RequestCurrency = async () => {
     console.log(`Requesting league '${leagueName}' Currency..`);
 
-    const Result = await CurrencyOverview(leagueName);
+    const Result = await httpRepository.fetchCurrencyOverview(leagueName);
     return Result;
   };
 
@@ -62,7 +62,7 @@ async function GetLeagueOverview(leagueName = '') {
 
       {
         // eslint-disable-next-line no-await-in-loop
-        const Result = await ItemOverview(leagueName, Type);
+        const Result = await httpRepository.fetchItemOverview(leagueName, Type);
         console.log(`Found ${Result.length} ${leagueName} ${Type}'s!`);
 
         Results.push(...Result);
