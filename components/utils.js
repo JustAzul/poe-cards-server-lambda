@@ -1,4 +1,17 @@
 /* eslint-disable max-len */
+
+/**
+ * @deprecated This module is deprecated. Use application services instead.
+ *
+ * Migration guide:
+ * - GetLeagueOverview(league) → leagueDataService.fetchLeagueOverview(league)
+ * - ChaosToExalted(exalted, chaos) → priceConversionService.convertChaosToExalted(chaos, exalted)
+ * - GetLeagueExaltedValue(data) → priceConversionService.getExaltedValue(data)
+ * - findCardOverview(data, card, isCurrency) → cardMatchingService.findCardMatch(data, card, isCurrency)
+ *
+ * This file will be removed in a future version.
+ */
+
 const { duration } = require('moment');
 const { sleep } = require('azul-tools');
 

@@ -1,6 +1,7 @@
-const { GetLeagueOverview, Delay } = require('./components/utils');
+const { Delay } = require('./components/utils');
 const { leagueRepository } = require('./infrastructure/repositories/league.repository');
-const Generators = require('./components/generators');
+const { leagueDataService } = require('./application/services/league-data.service');
+const { profitCalculationService } = require('./application/services/profit-calculation.service');
 const firestore = require('./components/firestore');
 
 async function main() {
@@ -27,7 +28,7 @@ async function main() {
       const { leagueName } = LeaguesData[i];
 
       console.log(`Requesting league '${leagueName}' Overview..`);
-      Results[leagueName] = await GetLeagueOverview(leagueName);
+      Results[leagueName] = await leagueDataService.fetchLeagueOverview(leagueName);
       UpdatedAt[leagueName] = new Date().toISOString();
 
       if (i !== (LeaguesData.length - 1)) await Delay(2);
@@ -65,7 +66,7 @@ async function main() {
       );
 
       Workload.push(
-        Generators.FlipTable(LeagueDatas[leagueName])
+        profitCalculationService.generateFlipTable(LeagueDatas[leagueName])
           .then((Result) => {
             TableResults[leagueName] = Result;
           }),
