@@ -1,3 +1,12 @@
+/**
+ * @deprecated This module is deprecated. Use application/services/profit-calculation.service.ts instead.
+ *
+ * Migration guide:
+ * - FlipTable(data) → profitCalculationService.generateFlipTable(data)
+ *
+ * This file will be removed in a future version.
+ */
+
 const { cardRepository } = require('../infrastructure/repositories/card.repository');
 const { currencyCardRepository } = require('../infrastructure/repositories/currency-card.repository');
 
