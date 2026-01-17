@@ -21,7 +21,8 @@
       "@domain/*": ["domain/*"],
       "@components/*": ["components/*"],
       "@config/*": ["config/*"],
-      "@infrastructure/*": ["infrastructure/*"]
+      "@infrastructure/*": ["infrastructure/*"],
+      "@application/*": ["application/*"]
     }
   },
   "include": [
