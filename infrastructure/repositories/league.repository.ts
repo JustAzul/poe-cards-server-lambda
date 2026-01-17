@@ -1,7 +1,7 @@
 import { League } from '@domain/entities/league.entity';
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
 
-const { LeaguesOverview } = require('../../components/fetch');
+import { httpRepository } from './http.repository';
 
 export class LeagueRepository implements ILeagueRepository {
   private cache: Record<string, League> | null = null;
@@ -15,7 +15,7 @@ export class LeagueRepository implements ILeagueRepository {
     }
 
     // Fetch fresh data from API
-    const leagues = await LeaguesOverview();
+    const leagues = await httpRepository.fetchLeagues();
     this.cache = leagues;
     this.cacheTimestamp = Date.now();
 
