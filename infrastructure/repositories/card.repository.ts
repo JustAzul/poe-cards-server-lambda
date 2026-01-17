@@ -1,5 +1,5 @@
 import { CardEntity } from '@domain/entities/card.entity';
-import { ICardRepository } from './interfaces/card.repository.interface';
+import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
 
 const cardsData = require('../../config/cards') as CardEntity[];
 
