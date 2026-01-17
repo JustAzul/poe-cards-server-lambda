@@ -2,7 +2,7 @@ const { Delay } = require('./components/utils');
 const { leagueRepository } = require('./infrastructure/repositories/league.repository');
 const { leagueDataService } = require('./application/services/league-data.service');
 const { profitCalculationService } = require('./application/services/profit-calculation.service');
-const firestore = require('./components/firestore');
+const { dataStorageService } = require('./application/services/data-storage.service');
 
 async function main() {
   console.log('Fetching Leagues..');
@@ -10,9 +10,8 @@ async function main() {
   console.log(`Found ${Object.keys(Leagues).length} leagues!`);
 
   const UpdateLeagueList = async () => {
-    const LeaguesDoc = firestore.collection('leagues').doc('all');
-    console.log('Updating leagues realtime database..');
-    await LeaguesDoc.set(Leagues);
+    console.log('Storing leagues in memory...');
+    await dataStorageService.dataStorageRepository.setLeagues(Leagues);
   };
 
   await UpdateLeagueList();
@@ -77,28 +76,13 @@ async function main() {
   }
 
   {
-    const UpdateDatabase = async (Data = {}) => {
-      const LeagueItemsDoc = firestore.collection('items').doc('all');
-      await LeagueItemsDoc.set(Data);
-    };
-
-    const UpdateCurrencyDatabase = async (Data = {}) => {
-      const LeagueItemsDoc = firestore.collection('items').doc('currency');
-      await LeagueItemsDoc.set(Data);
-    };
-
-    const UpdateLeagueDates = async (Data = {}) => {
-      const LeagueItemsDoc = firestore.collection('items').doc('updated');
-      await LeagueItemsDoc.set(Data);
-    };
-
-    console.log('Updating realtime database..');
-
-    await Promise.all([
-      UpdateDatabase(TableResults),
-      UpdateCurrencyDatabase(CurrencyResults),
-      UpdateLeagueDates(UpdatedAt),
-    ]);
+    console.log('Storing processed data...');
+    await dataStorageService.storeAllData(
+      Leagues,
+      TableResults,
+      CurrencyResults,
+      UpdatedAt,
+    );
   }
 }
 
