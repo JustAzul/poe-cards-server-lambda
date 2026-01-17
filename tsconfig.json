@@ -20,7 +20,8 @@
     "paths": {
       "@domain/*": ["domain/*"],
       "@components/*": ["components/*"],
-      "@config/*": ["config/*"]
+      "@config/*": ["config/*"],
+      "@infrastructure/*": ["infrastructure/*"]
     }
   },
   "include": [
