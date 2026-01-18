@@ -1,6 +1,6 @@
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
-import { CardDetailsDto, FlipTableRowDto, LeagueOverviewDto } from '../dtos/flip-table.dto';
-import { CardMatchResultDto, PriceCalculationDto } from '../dtos/card-match.dto';
+import { CardDetailsDto, FlipTableRowDto } from '../dtos/flip-table.dto';
+import { CardMatchResultDto } from '../dtos/card-match.dto';
 
 // Price conversion service
 export interface IPriceConversionService {
