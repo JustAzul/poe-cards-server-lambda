@@ -38,7 +38,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
   /**
    * Generate complete flip table for all cards
    */
-  async generateFlipTable(
+  generateFlipTable(
     leagueData: Array<ItemOverview | CurrencyItem>
   ): Promise<FlipTableRowDto[]> {
     const workload: Promise<FlipTableRowDto | null>[] = [];
@@ -55,8 +55,9 @@ export class ProfitCalculationService implements IProfitCalculationService {
       workload.push(this.calculateCardProfit(leagueData, cardDetails, true));
     }
 
-    const results = await Promise.all(workload);
-    return results.filter((row): row is FlipTableRowDto => row !== null && row.chaosprofit > 0);
+    return Promise.all(workload).then(results =>
+      results.filter((row): row is FlipTableRowDto => row !== null && row.chaosprofit > 0)
+    );
   }
 
   private meetsMinimumTrust(
