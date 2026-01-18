@@ -10,6 +10,14 @@ module.exports = {
     ecmaVersion: 13,
     sourceType: 'module',
   },
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.ts'],
+        paths: ['.'],
+      },
+    },
+  },
   overrides: [
     {
       files: ['*.ts'],
@@ -23,6 +31,15 @@ module.exports = {
         ecmaVersion: 13,
         sourceType: 'module',
         project: './tsconfig.json',
+      },
+      rules: {
+        // TypeScript parameter properties are not useless constructors
+        'no-useless-constructor': 'off',
+        '@typescript-eslint/no-useless-constructor': 'off',
+        // Empty constructor body is valid with parameter properties
+        'no-empty-function': ['error', { allow: ['constructors'] }],
+        // Disable import resolution for TypeScript (tsc handles this)
+        'import/no-unresolved': 'off',
       },
     },
   ],
