@@ -1,5 +1,5 @@
 // Use-cases
-import { processLeaguesDataUseCase } from '@application/use-cases/process-leagues-data.use-case';
+import { processLeaguesDataUseCase as app } from '@infrastructure/app';
 
 /** AWS Lambda response structure */
 interface LambdaResponse {
@@ -8,10 +8,10 @@ interface LambdaResponse {
 }
 
 /**
- * Main orchestration function - delegates to use-case
+ * Main orchestration function
  */
 async function main(): Promise<void> {
-  await processLeaguesDataUseCase.execute();
+  await app.execute();
 }
 
 if (process.env.NODE_ENV === 'development') {
