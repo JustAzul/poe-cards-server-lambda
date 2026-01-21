@@ -1,4 +1,4 @@
-import { League } from '@domain/entities/league.entity';
+import { LeagueEntity } from '@domain/entities/league.entity';
 import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import {
   IDataStorageRepository,
@@ -10,16 +10,16 @@ import {
  * Stores processed data for quick access without external dependencies
  */
 export class InMemoryDataStorageRepository implements IDataStorageRepository {
-  private leagues: Record<string, League> | null = null;
+  private leagues: Record<string, LeagueEntity> | null = null;
   private flipTables: Record<string, FlipTableRowDto[]> | null = null;
   private currency: Record<string, CurrencyOverview[]> | null = null;
   private timestamps: Record<string, string> | null = null;
 
-  async setLeagues(leagues: Record<string, League>): Promise<void> {
+  async setLeagues(leagues: Record<string, LeagueEntity>): Promise<void> {
     this.leagues = leagues;
   }
 
-  async getLeagues(): Promise<Record<string, League> | null> {
+  async getLeagues(): Promise<Record<string, LeagueEntity> | null> {
     return this.leagues;
   }
 
@@ -76,7 +76,7 @@ export class InMemoryDataStorageRepository implements IDataStorageRepository {
   }
 
   async getAllData(): Promise<{
-    leagues: Record<string, League> | null;
+    leagues: Record<string, LeagueEntity> | null;
     flipTables: Record<string, FlipTableRowDto[]> | null;
     currency: Record<string, CurrencyOverview[]> | null;
     timestamps: Record<string, string> | null;

@@ -1,9 +1,7 @@
 import got from 'got';
 import { sleep } from 'azul-tools';
-import { IHttpRepository } from '@domain/repositories/interfaces/http.repository.interface';
+import { IHttpClient } from '@domain/repositories/interfaces/http.repository.interface';
 import {
-  LeaguesRecord,
-  LeagueApiResponse,
   ItemOverview,
   CurrencyItem,
   HttpRetryConfig,
@@ -11,7 +9,27 @@ import {
   CurrencyOverviewApiResponse,
 } from '@domain/entities/http.entity';
 
-export class HttpRepository implements IHttpRepository {
+export interface LeagueApiResponse {
+  id: string;
+  name: string;
+  realm: string;
+  url: string;
+  startAt: string | null;
+  endAt: string | null;
+  description: string;
+  category: {
+    id: string;
+  };
+  registerAt?: string;
+  delveEvent: boolean;
+  rules: Array<{
+    id: string;
+    name: string;
+    description: string;
+  }>;
+}
+
+export class HttpClient implements IHttpClient {
   private retryConfig: HttpRetryConfig = {
     maxRetries: 3,
     baseDelayMs: 2000,
@@ -22,40 +40,20 @@ export class HttpRepository implements IHttpRepository {
     this.retryConfig = { ...this.retryConfig, ...config };
   }
 
-  async fetchLeagues(): Promise<LeaguesRecord> {
+  async fetchLeagues(): Promise<LeagueApiResponse[]> {
     const url = 'https://api.pathofexile.com/leagues';
     const searchParams = {
       type: 'main',
       compact: 0,
     };
 
-    try {
-      const { body } = await got<LeagueApiResponse[]>({
-        url,
-        searchParams,
-        responseType: 'json',
-      });
+    const { body } = await got<LeagueApiResponse[]>({
+      url,
+      searchParams,
+      responseType: 'json',
+    });
 
-      // Filter and process leagues (same logic as fetch.js)
-      const filteredLeagues = body
-        .filter(({ id }) => id.indexOf('SSF') === -1)
-        .filter(({ event }) => !event)
-        .filter(({ realm }) => realm === 'pc')
-        .filter(({ id }) => id !== 'Hardcore');
-
-      const leagues: LeaguesRecord = {};
-      for (const { id, url: ladder } of filteredLeagues) {
-        leagues[id] = {
-          leagueName: id,
-          ladder,
-        };
-      }
-
-      return leagues;
-    } catch (error) {
-      console.error('Failed to fetch leagues:', error);
-      throw new Error(`Failed to fetch leagues: ${(error as Error).message}`);
-    }
+    return body;
   }
 
   async fetchItemOverview(league: string, type: string): Promise<ItemOverview[]> {
@@ -68,8 +66,8 @@ export class HttpRepository implements IHttpRepository {
 
     return this.retryableRequest<ItemOverviewApiResponse>(
       () => got<ItemOverviewApiResponse>({ url, searchParams, responseType: 'json' }),
-      `fetchItemOverview(${league}, ${type})`
-    ).then(response => response.lines);
+      `fetchItemOverview(${league}, ${type})`,
+    ).then((response) => response.lines);
   }
 
   async fetchCurrencyOverview(league: string): Promise<CurrencyItem[]> {
@@ -81,8 +79,8 @@ export class HttpRepository implements IHttpRepository {
 
     return this.retryableRequest<CurrencyOverviewApiResponse>(
       () => got<CurrencyOverviewApiResponse>({ url, searchParams, responseType: 'json' }),
-      `fetchCurrencyOverview(${league})`
-    ).then(response => response.lines);
+      `fetchCurrencyOverview(${league})`,
+    ).then((response) => response.lines);
   }
 
   /**
@@ -91,7 +89,7 @@ export class HttpRepository implements IHttpRepository {
   private async retryableRequest<T>(
     requestFn: () => Promise<{ body: T }>,
     operationName: string,
-    attempt: number = 0
+    attempt: number = 0,
   ): Promise<T> {
     try {
       const { body } = await requestFn();
@@ -105,7 +103,7 @@ export class HttpRepository implements IHttpRepository {
       }
 
       const delayMs = exponentialBackoff
-        ? baseDelayMs * Math.pow(2, attempt)
+        ? baseDelayMs * 2 ** attempt
         : baseDelayMs;
 
       console.warn(`${operationName} failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delayMs}ms...`);
@@ -116,4 +114,4 @@ export class HttpRepository implements IHttpRepository {
   }
 }
 
-export const httpRepository = new HttpRepository();
+export const httpRepository = new HttpClient();

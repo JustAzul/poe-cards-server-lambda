@@ -1,4 +1,4 @@
-import { League } from '@domain/entities/league.entity';
+import { LeagueEntity } from '@domain/entities/league.entity';
 import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
 
 /**
@@ -18,12 +18,12 @@ export interface IDataStorageRepository {
   /**
    * Stores league data
    */
-  setLeagues(leagues: Record<string, League>): Promise<void>;
+  setLeagues(leagues: Record<string, LeagueEntity>): Promise<void>;
 
   /**
    * Retrieves all stored leagues
    */
-  getLeagues(): Promise<Record<string, League> | null>;
+  getLeagues(): Promise<Record<string, LeagueEntity> | null>;
 
   /**
    * Stores flip tables for all leagues
@@ -79,7 +79,7 @@ export interface IDataStorageRepository {
    * Retrieves all stored data at once
    */
   getAllData(): Promise<{
-    leagues: Record<string, League> | null;
+    leagues: Record<string, LeagueEntity> | null;
     flipTables: Record<string, FlipTableRowDto[]> | null;
     currency: Record<string, CurrencyOverview[]> | null;
     timestamps: Record<string, string> | null;
