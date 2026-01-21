@@ -18,12 +18,12 @@ export interface IDataStorageRepository {
   /**
    * Stores league data
    */
-  setLeagues(leagues: Record<string, LeagueEntity>): Promise<void>;
+  setLeagues(leagues: LeagueEntity[]): Promise<void>;
 
   /**
    * Retrieves all stored leagues
    */
-  getLeagues(): Promise<Record<string, LeagueEntity> | null>;
+  getLeagues(): Promise<LeagueEntity[] | null>;
 
   /**
    * Stores flip tables for all leagues
@@ -79,7 +79,7 @@ export interface IDataStorageRepository {
    * Retrieves all stored data at once
    */
   getAllData(): Promise<{
-    leagues: Record<string, LeagueEntity> | null;
+    leagues: LeagueEntity[] | null;
     flipTables: Record<string, FlipTableRowDto[]> | null;
     currency: Record<string, CurrencyOverview[]> | null;
     timestamps: Record<string, string> | null;

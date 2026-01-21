@@ -18,7 +18,7 @@ export class DataStorageService {
    * @param timestamps - Update timestamps for all leagues
    */
   async storeAllData(
-    leagues: Record<string, LeagueEntity>,
+    leagues: LeagueEntity[],
     flipTables: Record<string, FlipTableRowDto[]>,
     currency: Record<string, CurrencyOverview[]>,
     timestamps: Record<string, string>,
@@ -35,7 +35,7 @@ export class DataStorageService {
    * Retrieves all stored data at once
    */
   async retrieveAllData(): Promise<{
-    leagues: Record<string, LeagueEntity> | null;
+    leagues: LeagueEntity[] | null;
     flipTables: Record<string, FlipTableRowDto[]> | null;
     currency: Record<string, CurrencyOverview[]> | null;
     timestamps: Record<string, string> | null;
