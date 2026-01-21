@@ -1,7 +1,7 @@
 import { ILeagueDataService } from '../interfaces/services.interface';
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 import { httpRepository } from '@infrastructure/repositories/http.repository';
-import { sleep } from 'azul-tools';
+import { sleep } from '@shared/utils';
 import { duration } from 'moment';
 
 const fetchList = require('../../config/fetch-list');
