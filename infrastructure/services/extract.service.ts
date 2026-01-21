@@ -1,6 +1,4 @@
 /* eslint-disable no-console */
-import { sleep } from '@shared/utils';
-import { duration } from 'moment';
 
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
@@ -10,19 +8,10 @@ import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
 import { ILeagueDataService } from '@application/interfaces/services.interface';
 
-/** Maps league names to their last update timestamp (ISO string) */
-type UpdateTimestamps = Record<string, string>;
-
-/** League data combining items and currency */
-type LeagueDataMap = Record<string, Array<ItemOverview | CurrencyItem>>;
-
-/**
- * Result of the extraction phase
- */
-export interface ExtractionResult {
-  leagues: LeagueEntity[];
-  rawData: LeagueDataMap;
-  timestamps: UpdateTimestamps;
+export interface LeagueExtractionYield {
+  league: LeagueEntity;
+  data: Array<ItemOverview | CurrencyItem>;
+  timestamp: string;
 }
 
 /**
@@ -37,42 +26,26 @@ export class ExtractService {
 
   /**
    * Extract raw league data with filtering and rate limiting
+   * Generator function that yields data for each league as it's extracted
    *
-   * Fetches all leagues, applies filtering criteria, and retrieves
-   * overview data for each qualifying league with API rate limiting
+   * Fetches all leagues, applies filtering criteria, and delegates
+   * to leagueDataService for batch processing with API rate limiting
+   *
+   * @yields Individual league extraction result for each league
    */
-  async extract(): Promise<ExtractionResult> {
+  async* extract(): AsyncGenerator<LeagueExtractionYield> {
     console.log('Fetching Leagues..');
 
-    const leaguesArray = await this.leagueRepository.getAllLeagues();
-    const filteredLeagues = leaguesArray
-      .filter(({ leagueName }) => leagueName.indexOf('SSF') === -1) // remove Solo Self Found leagues
+    const leagues = await this.leagueRepository.getAllLeagues();
+    const filteredLeagues = leagues
+      .filter(({ name }) => name.indexOf('SSF') === -1) // remove Solo Self Found leagues
       .filter(({ delveEvent }) => !delveEvent)
       .filter(({ realm }) => realm === 'pc')
-      .filter(({ leagueName }) => leagueName !== 'Hardcore'); // remove Standard Hardcore league
+      .filter(({ name }) => name !== 'Hardcore'); // remove Standard Hardcore league
 
-    console.log(`Found ${leaguesArray.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
+    console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
 
-    const timestamps: UpdateTimestamps = {};
-    const rawData: LeagueDataMap = {};
-
-    // Sequential processing with rate limiting to respect API constraints
-    for (let i = 0; i < filteredLeagues.length; i += 1) {
-      const { leagueName } = filteredLeagues[i];
-
-      console.log(`Requesting league '${leagueName}' Overview..`);
-
-      // eslint-disable-next-line no-await-in-loop
-      rawData[leagueName] = await this.leagueDataService.fetchLeagueOverview(leagueName);
-      timestamps[leagueName] = new Date().toISOString();
-
-      if (i !== filteredLeagues.length - 1) {
-        console.log('Waiting 2 seconds delay..');
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(duration(2, 'seconds').asMilliseconds());
-      }
-    }
-
-    return { leagues: filteredLeagues, rawData, timestamps };
+    // Delegate to leagueDataService generator using yield*
+    yield* this.leagueDataService.fetchBatchLeagueOverview(filteredLeagues);
   }
 }
