@@ -1,5 +1,5 @@
 import got from 'got';
-import { sleep } from 'azul-tools';
+import { sleep } from '@shared/utils';
 import { IHttpClient } from '@domain/repositories/interfaces/http.repository.interface';
 import {
   ItemOverview,
