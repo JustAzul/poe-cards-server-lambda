@@ -1,5 +1,5 @@
 // Use-cases
-import { processLeaguesDataUseCase as app } from '@infrastructure/app';
+import { app } from '@infrastructure/app';
 
 /** AWS Lambda response structure */
 interface LambdaResponse {
