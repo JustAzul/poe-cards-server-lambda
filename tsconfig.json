@@ -19,10 +19,10 @@
     "baseUrl": ".",
     "paths": {
       "@domain/*": ["domain/*"],
-      "@components/*": ["components/*"],
       "@config/*": ["config/*"],
       "@infrastructure/*": ["infrastructure/*"],
-      "@application/*": ["application/*"]
+      "@application/*": ["application/*"],
+      "@shared/*": ["shared/*"]
     }
   },
   "include": [
