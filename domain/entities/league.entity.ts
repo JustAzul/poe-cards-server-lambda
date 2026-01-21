@@ -1,5 +1,5 @@
 export interface LeagueEntity {
-  leagueName: string;
+  name: string;
   ladder: string;
   delveEvent: boolean;
   realm: string;
