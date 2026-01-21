@@ -28,9 +28,9 @@ export interface IProfitCalculationService {
     leagueData: Array<ItemOverview | CurrencyItem>,
     cardDetails: CardDetailsDto,
     isCurrency: boolean
-  ): Promise<FlipTableRowDto | null>;
+  ): FlipTableRowDto | null;
 
   generateFlipTable(
     leagueData: Array<ItemOverview | CurrencyItem>
-  ): Promise<FlipTableRowDto[]>;
+  ): FlipTableRowDto[];
 }
