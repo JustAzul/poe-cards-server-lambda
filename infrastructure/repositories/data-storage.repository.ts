@@ -31,13 +31,6 @@ export class InMemoryDataStorageRepository implements IDataStorageRepository {
     return this.flipTables;
   }
 
-  async getFlipTableByLeague(leagueName: string): Promise<FlipTableRowDto[] | null> {
-    if (!this.flipTables || !this.flipTables[leagueName]) {
-      return null;
-    }
-    return this.flipTables[leagueName];
-  }
-
   async setCurrencyData(currency: Record<string, CurrencyOverview[]>): Promise<void> {
     this.currency = currency;
   }
@@ -46,47 +39,12 @@ export class InMemoryDataStorageRepository implements IDataStorageRepository {
     return this.currency;
   }
 
-  async getCurrencyByLeague(leagueName: string): Promise<CurrencyOverview[] | null> {
-    if (!this.currency || !this.currency[leagueName]) {
-      return null;
-    }
-    return this.currency[leagueName];
-  }
-
   async setUpdateTimestamps(timestamps: Record<string, string>): Promise<void> {
     this.timestamps = timestamps;
   }
 
   async getUpdateTimestamps(): Promise<Record<string, string> | null> {
     return this.timestamps;
-  }
-
-  async getUpdateTimestamp(leagueName: string): Promise<string | null> {
-    if (!this.timestamps || !this.timestamps[leagueName]) {
-      return null;
-    }
-    return this.timestamps[leagueName];
-  }
-
-  clearAll(): void {
-    this.leagues = null;
-    this.flipTables = null;
-    this.currency = null;
-    this.timestamps = null;
-  }
-
-  async getAllData(): Promise<{
-    leagues: LeagueEntity[] | null;
-    flipTables: Record<string, FlipTableRowDto[]> | null;
-    currency: Record<string, CurrencyOverview[]> | null;
-    timestamps: Record<string, string> | null;
-  }> {
-    return {
-      leagues: this.leagues,
-      flipTables: this.flipTables,
-      currency: this.currency,
-      timestamps: this.timestamps,
-    };
   }
 }
 
