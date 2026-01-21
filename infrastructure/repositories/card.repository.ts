@@ -13,14 +13,6 @@ export class CardRepository implements ICardRepository {
   getAllCards(): CardEntity[] {
     return this.cards;
   }
-
-  getCardByName(name: string): CardEntity | undefined {
-    return this.cards.find(card => card.Name === name);
-  }
-
-  getCardsByReward(reward: string): CardEntity[] {
-    return this.cards.filter(card => card.Reward === reward);
-  }
 }
 
 export const cardRepository = new CardRepository();
