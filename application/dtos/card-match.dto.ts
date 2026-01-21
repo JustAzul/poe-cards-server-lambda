@@ -6,12 +6,3 @@ export interface CardMatchResultDto {
   rewardOverview: ItemOverview | CurrencyItem | null;
   isValid: boolean;
 }
-
-// Price calculation result
-export interface PriceCalculationDto {
-  chaosCost: number;
-  exaltedCost: number;
-  chaosReward: number;
-  exaltedReward: number;
-  chaosProfit: number;
-}

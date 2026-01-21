@@ -38,9 +38,3 @@ export interface FlipTableRowDto {
   chaosprofit: number;
   isCurrency: boolean;
 }
-
-// DTO for league overview data (combined items + currency)
-export interface LeagueOverviewDto {
-  items: ItemOverview[];
-  currency: CurrencyItem[];
-}
