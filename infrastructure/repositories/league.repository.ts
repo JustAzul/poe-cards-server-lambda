@@ -20,7 +20,7 @@ export class LeagueRepository implements ILeagueRepository {
     const leagues = await httpRepository.fetchLeagues();
 
     const mappedLeagues = leagues.map((league) => ({
-      leagueName: league.name,
+      name: league.name,
       ladder: league.url,
       delveEvent: league.delveEvent,
       realm: league.realm,
@@ -30,11 +30,6 @@ export class LeagueRepository implements ILeagueRepository {
     this.cacheTimestamp = Date.now();
 
     return mappedLeagues;
-  }
-
-  clearCache(): void {
-    this.cache = null;
-    this.cacheTimestamp = 0;
   }
 }
 
