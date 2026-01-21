@@ -37,15 +37,17 @@ export class ExtractService {
     console.log('Fetching Leagues..');
 
     const leagues = await this.leagueRepository.getAllLeagues();
-    const filteredLeagues = leagues
+    const filteredLeagues = ExtractService.selectLeagues(leagues);
+
+    console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
+    yield* this.leagueDataService.fetchBatchLeagueOverview(filteredLeagues);
+  }
+
+  private static selectLeagues(leagues: LeagueEntity[]): LeagueEntity[] {
+    return leagues
       .filter(({ name }) => name.indexOf('SSF') === -1) // remove Solo Self Found leagues
       .filter(({ delveEvent }) => !delveEvent)
       .filter(({ realm }) => realm === 'pc')
-      .filter(({ name }) => name !== 'Hardcore'); // remove Standard Hardcore league
-
-    console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
-
-    // Delegate to leagueDataService generator using yield*
-    yield* this.leagueDataService.fetchBatchLeagueOverview(filteredLeagues);
+      .filter(({ name }) => name !== 'Hardcore'); // remove Standard(Hardcore) league
   }
 }
