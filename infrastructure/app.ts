@@ -19,15 +19,23 @@ export class App {
   ) {}
 
   async execute(): Promise<void> {
-    const extractionResult = await this.extractService.extract();
-    const transformationResult = await this.transformService.transform(extractionResult.rawData);
+    console.log('Starting ETL pipeline with incremental processing...');
 
-    await this.loadService.load(
-      extractionResult.leagues,
-      transformationResult.tableResults,
-      transformationResult.currencyResults,
-      extractionResult.timestamps,
-    );
+    const extractionGenerator = this.extractService.extract();
+
+    // Process each league incrementally as it's extracted
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const { league, data, timestamp } of extractionGenerator) {
+      const { flipTable, currency } = this.transformService.transformLeague(
+        league.name,
+        data,
+      );
+
+      await this.loadService.loadLeague(league, flipTable, currency, timestamp);
+      console.log(`Successfully processed league: ${league.name}`);
+    }
+
+    console.log('ETL pipeline completed successfully');
   }
 }
 
