@@ -13,14 +13,6 @@ export class CurrencyCardRepository implements ICurrencyCardRepository {
   getAllCurrencyCards(): CurrencyCardEntity[] {
     return this.currencyCards;
   }
-
-  getCurrencyCardByName(name: string): CurrencyCardEntity | undefined {
-    return this.currencyCards.find(card => card.Name === name);
-  }
-
-  getCurrencyCardsByReward(reward: string): CurrencyCardEntity[] {
-    return this.currencyCards.filter(card => card.Reward === reward);
-  }
 }
 
 export const currencyCardRepository = new CurrencyCardRepository();
