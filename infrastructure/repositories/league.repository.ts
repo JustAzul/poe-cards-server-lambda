@@ -1,35 +1,35 @@
-import { League } from '@domain/entities/league.entity';
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
+import { LeagueEntity } from '@domain/entities/league.entity';
 
 import { httpRepository } from './http.repository';
 
-export class LeagueRepository implements ILeagueRepository {
-  private cache: Record<string, League> | null = null;
-  private cacheTimestamp: number = 0;
-  private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
-  async getAllLeagues(): Promise<Record<string, League>> {
-    // Return cached data if still valid
+export class LeagueRepository implements ILeagueRepository {
+  private cache: LeagueEntity[] | null = null;
+
+  private cacheTimestamp: number = 0;
+
+  private readonly CACHE_TTL_MS = FIVE_MINUTES_MS;
+
+  async getAllLeagues(): Promise<LeagueEntity[]> {
     if (this.cache && Date.now() - this.cacheTimestamp < this.CACHE_TTL_MS) {
       return this.cache;
     }
 
-    // Fetch fresh data from API
     const leagues = await httpRepository.fetchLeagues();
-    this.cache = leagues;
+
+    const mappedLeagues = leagues.map((league) => ({
+      leagueName: league.name,
+      ladder: league.url,
+      delveEvent: league.delveEvent,
+      realm: league.realm,
+    }));
+
+    this.cache = mappedLeagues;
     this.cacheTimestamp = Date.now();
 
-    return leagues;
-  }
-
-  async getLeagueByName(leagueName: string): Promise<League | undefined> {
-    const leagues = await this.getAllLeagues();
-    return leagues[leagueName];
-  }
-
-  async isLeagueActive(leagueName: string): Promise<boolean> {
-    const league = await this.getLeagueByName(leagueName);
-    return league !== undefined;
+    return mappedLeagues;
   }
 
   clearCache(): void {

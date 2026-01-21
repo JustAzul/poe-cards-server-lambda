@@ -1,4 +1,4 @@
-import { League } from '@domain/entities/league.entity';
+import { LeagueEntity } from '@domain/entities/league.entity';
 import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import { dataStorageRepository } from '@infrastructure/repositories/data-storage.repository';
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
@@ -18,7 +18,7 @@ export class DataStorageService {
    * @param timestamps - Update timestamps for all leagues
    */
   async storeAllData(
-    leagues: Record<string, League>,
+    leagues: Record<string, LeagueEntity>,
     flipTables: Record<string, FlipTableRowDto[]>,
     currency: Record<string, CurrencyOverview[]>,
     timestamps: Record<string, string>,
@@ -35,7 +35,7 @@ export class DataStorageService {
    * Retrieves all stored data at once
    */
   async retrieveAllData(): Promise<{
-    leagues: Record<string, League> | null;
+    leagues: Record<string, LeagueEntity> | null;
     flipTables: Record<string, FlipTableRowDto[]> | null;
     currency: Record<string, CurrencyOverview[]> | null;
     timestamps: Record<string, string> | null;

@@ -3,7 +3,7 @@ import { sleep } from 'azul-tools';
 import { duration } from 'moment';
 
 // Domain entities and types
-import { League } from '@domain/entities/league.entity';
+import { LeagueEntity } from '@domain/entities/league.entity';
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 import { isCurrencyItem } from '@domain/types';
 
@@ -60,23 +60,32 @@ export class App {
    * Extract phase: Fetch raw league data from API with rate limiting
    */
   private async extract(): Promise<{
-    leagues: Record<string, League>;
+    leagues: Record<string, LeagueEntity>;
     rawData: LeagueDataMap;
     timestamps: UpdateTimestamps;
   }> {
     console.log('Fetching Leagues..');
 
-    const leagues: Record<string, League> = await this.leagueRepository.getAllLeagues();
-    console.log(`Found ${Object.keys(leagues).length} leagues!`);
+    const leaguesArray = await this.leagueRepository.getAllLeagues();
+    const filteredLeagues = leaguesArray
+      .filter(({ leagueName }) => leagueName.indexOf('SSF') === -1) // remove Solo Self Found leagues
+      .filter(({ delveEvent }) => !delveEvent)
+      .filter(({ realm }) => realm === 'pc')
+      .filter(({ leagueName }) => leagueName !== 'Hardcore'); // remove Standard Hardcore league
+
+    console.log(`Found ${leaguesArray.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
+
+    const leagues: Record<string, LeagueEntity> = {};
+    filteredLeagues.forEach((league) => {
+      leagues[league.leagueName] = league;
+    });
 
     const timestamps: UpdateTimestamps = {};
     const rawData: LeagueDataMap = {};
 
-    const leagueArray = Object.values(leagues);
-
     // Sequential processing with rate limiting to respect API constraints
-    for (let i = 0; i < leagueArray.length; i += 1) {
-      const { leagueName } = leagueArray[i];
+    for (let i = 0; i < filteredLeagues.length; i += 1) {
+      const { leagueName } = filteredLeagues[i];
 
       console.log(`Requesting league '${leagueName}' Overview..`);
 
@@ -84,7 +93,7 @@ export class App {
       rawData[leagueName] = await this.leagueDataService.fetchLeagueOverview(leagueName);
       timestamps[leagueName] = new Date().toISOString();
 
-      if (i !== leagueArray.length - 1) {
+      if (i !== filteredLeagues.length - 1) {
         console.log('Waiting 2 seconds delay..');
         // eslint-disable-next-line no-await-in-loop
         await sleep(duration(2, 'seconds').asMilliseconds());
@@ -129,7 +138,7 @@ export class App {
    * Load phase: Store all processed data
    */
   private async load(
-    leagues: Record<string, League>,
+    leagues: Record<string, LeagueEntity>,
     tableResults: FlipTableResults,
     currencyResults: CurrencyResultsMap,
     timestamps: UpdateTimestamps,

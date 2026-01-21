@@ -1,6 +1,6 @@
 import { LeaguesRecord, ItemOverview, CurrencyItem, HttpRetryConfig } from '@domain/entities/http.entity';
 
-export interface IHttpRepository {
+export interface IHttpClient {
   /**
    * Fetch leagues from Path of Exile API
    * @returns Promise<LeaguesRecord> - Filtered and processed leagues
