@@ -30,46 +30,6 @@ export class DataStorageService {
       dataStorageRepository.setUpdateTimestamps(timestamps),
     ]);
   }
-
-  /**
-   * Retrieves all stored data at once
-   */
-  async retrieveAllData(): Promise<{
-    leagues: LeagueEntity[] | null;
-    flipTables: Record<string, FlipTableRowDto[]> | null;
-    currency: Record<string, CurrencyOverview[]> | null;
-    timestamps: Record<string, string> | null;
-  }> {
-    return await dataStorageRepository.getAllData();
-  }
-
-  /**
-   * Gets flip table for a specific league
-   */
-  async getLeagueFlipTable(leagueName: string): Promise<FlipTableRowDto[] | null> {
-    return await dataStorageRepository.getFlipTableByLeague(leagueName);
-  }
-
-  /**
-   * Gets currency data for a specific league
-   */
-  async getLeagueCurrency(leagueName: string): Promise<CurrencyOverview[] | null> {
-    return await dataStorageRepository.getCurrencyByLeague(leagueName);
-  }
-
-  /**
-   * Gets update timestamp for a specific league
-   */
-  async getLeagueUpdateTime(leagueName: string): Promise<string | null> {
-    return await dataStorageRepository.getUpdateTimestamp(leagueName);
-  }
-
-  /**
-   * Clears all stored data
-   */
-  clearAllData(): void {
-    dataStorageRepository.clearAll();
-  }
 }
 
 export const dataStorageService = new DataStorageService();
