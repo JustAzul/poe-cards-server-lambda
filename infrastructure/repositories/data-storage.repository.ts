@@ -10,16 +10,16 @@ import {
  * Stores processed data for quick access without external dependencies
  */
 export class InMemoryDataStorageRepository implements IDataStorageRepository {
-  private leagues: Record<string, LeagueEntity> | null = null;
+  private leagues: LeagueEntity[] | null = null;
   private flipTables: Record<string, FlipTableRowDto[]> | null = null;
   private currency: Record<string, CurrencyOverview[]> | null = null;
   private timestamps: Record<string, string> | null = null;
 
-  async setLeagues(leagues: Record<string, LeagueEntity>): Promise<void> {
+  async setLeagues(leagues: LeagueEntity[]): Promise<void> {
     this.leagues = leagues;
   }
 
-  async getLeagues(): Promise<Record<string, LeagueEntity> | null> {
+  async getLeagues(): Promise<LeagueEntity[] | null> {
     return this.leagues;
   }
 
@@ -76,7 +76,7 @@ export class InMemoryDataStorageRepository implements IDataStorageRepository {
   }
 
   async getAllData(): Promise<{
-    leagues: Record<string, LeagueEntity> | null;
+    leagues: LeagueEntity[] | null;
     flipTables: Record<string, FlipTableRowDto[]> | null;
     currency: Record<string, CurrencyOverview[]> | null;
     timestamps: Record<string, string> | null;
