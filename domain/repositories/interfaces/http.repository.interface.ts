@@ -25,10 +25,4 @@ export interface IHttpClient {
    * @throws Error if API call fails after retries
    */
   fetchCurrencyOverview(league: string): Promise<CurrencyItem[]>;
-
-  /**
-   * Configure retry behavior for HTTP requests
-   * @param config - Retry configuration
-   */
-  setRetryConfig(config: Partial<HttpRetryConfig>): void;
 }
