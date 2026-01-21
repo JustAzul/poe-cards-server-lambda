@@ -36,10 +36,6 @@ export class HttpClient implements IHttpClient {
     exponentialBackoff: true,
   };
 
-  setRetryConfig(config: Partial<HttpRetryConfig>): void {
-    this.retryConfig = { ...this.retryConfig, ...config };
-  }
-
   async fetchLeagues(): Promise<LeagueApiResponse[]> {
     const url = 'https://api.pathofexile.com/leagues';
     const searchParams = {
