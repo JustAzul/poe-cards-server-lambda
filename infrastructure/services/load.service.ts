@@ -2,22 +2,20 @@
 
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
-
-// DTOs
 import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
+
+// Application services
+import { DataStorageService } from '@application/services/data-storage.service';
 
 // Interfaces
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
-import { DataStorageService } from '@application/services/data-storage.service';
 
-/** Maps league names to their last update timestamp (ISO string) */
-type UpdateTimestamps = Record<string, string>;
-
-/** Maps league names to their flip table results */
-type FlipTableResults = Record<string, FlipTableRowDto[]>;
-
-/** Maps league names to their currency data */
-type CurrencyResultsMap = Record<string, CurrencyOverview[]>;
+// Infrastructure types
+import {
+  UpdateTimestamps,
+  FlipTableResults,
+  CurrencyResultsMap,
+} from '@infrastructure/types/etl.types';
 
 /**
  * Service responsible for loading processed data into storage
@@ -29,10 +27,66 @@ export class LoadService {
   ) {}
 
   /**
-   * Load processed data into storage
+   * Load a single league's data incrementally into storage
+   *
+   * Retrieves existing data, adds/updates the new league's data, and persists back
+   *
+   * @param league - The league entity to store
+   * @param flipTable - Flip table data for this league
+   * @param currency - Currency data for this league
+   * @param timestamp - Update timestamp for this league
+   */
+  async loadLeague(
+    league: LeagueEntity,
+    flipTable: FlipTableRowDto[],
+    currency: CurrencyOverview[],
+    timestamp: string,
+  ): Promise<void> {
+    console.log(`Loading data for league: ${league.name}`);
+
+    const repository = this.dataStorageService.dataStorageRepository;
+
+    // Get existing data
+    const [existingLeagues, existingFlipTables, existingCurrency, existingTimestamps] =
+      await Promise.all([
+        repository.getLeagues(),
+        repository.getFlipTables(),
+        repository.getCurrencyData(),
+        repository.getUpdateTimestamps(),
+      ]);
+
+    // Build updated data structures
+    const leagues = existingLeagues || [];
+    const leagueExists = leagues.some((l) => l.name === league.name);
+    if (!leagueExists) {
+      leagues.push(league);
+    }
+
+    const flipTables = existingFlipTables || {};
+    flipTables[league.name] = flipTable;
+
+    const currencyData = existingCurrency || {};
+    currencyData[league.name] = currency;
+
+    const timestamps = existingTimestamps || {};
+    timestamps[league.name] = timestamp;
+
+    // Persist updated data
+    await Promise.all([
+      repository.setLeagues(leagues),
+      repository.setFlipTables(flipTables),
+      repository.setCurrencyData(currencyData),
+      repository.setUpdateTimestamps(timestamps),
+    ]);
+  }
+
+  /**
+   * Load processed data into storage (batch processing)
    *
    * Stores leagues and their processed data (flip tables, currency results, timestamps)
    * into the data storage repository
+   *
+   * @deprecated Use loadLeague() for incremental processing
    */
   async load(
     leagues: LeagueEntity[],
