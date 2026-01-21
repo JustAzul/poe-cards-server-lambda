@@ -36,11 +36,6 @@ export interface IDataStorageRepository {
   getFlipTables(): Promise<Record<string, FlipTableRowDto[]> | null>;
 
   /**
-   * Retrieves flip table for a specific league
-   */
-  getFlipTableByLeague(leagueName: string): Promise<FlipTableRowDto[] | null>;
-
-  /**
    * Stores currency data for all leagues
    */
   setCurrencyData(currency: Record<string, CurrencyOverview[]>): Promise<void>;
@@ -51,11 +46,6 @@ export interface IDataStorageRepository {
   getCurrencyData(): Promise<Record<string, CurrencyOverview[]> | null>;
 
   /**
-   * Retrieves currency data for a specific league
-   */
-  getCurrencyByLeague(leagueName: string): Promise<CurrencyOverview[] | null>;
-
-  /**
    * Stores update timestamps for all leagues
    */
   setUpdateTimestamps(timestamps: Record<string, string>): Promise<void>;
@@ -64,24 +54,4 @@ export interface IDataStorageRepository {
    * Retrieves all stored update timestamps
    */
   getUpdateTimestamps(): Promise<Record<string, string> | null>;
-
-  /**
-   * Retrieves update timestamp for a specific league
-   */
-  getUpdateTimestamp(leagueName: string): Promise<string | null>;
-
-  /**
-   * Clears all stored data
-   */
-  clearAll(): void;
-
-  /**
-   * Retrieves all stored data at once
-   */
-  getAllData(): Promise<{
-    leagues: LeagueEntity[] | null;
-    flipTables: Record<string, FlipTableRowDto[]> | null;
-    currency: Record<string, CurrencyOverview[]> | null;
-    timestamps: Record<string, string> | null;
-  }>;
 }
