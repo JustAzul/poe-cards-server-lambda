@@ -12,11 +12,11 @@ export class ProfitCalculationService implements IProfitCalculationService {
   /**
    * Calculate profit for a single card
    */
-  async calculateCardProfit(
+  calculateCardProfit(
     leagueData: Array<ItemOverview | CurrencyItem>,
     cardDetails: CardDetailsDto,
     isCurrency: boolean
-  ): Promise<FlipTableRowDto | null> {
+  ): FlipTableRowDto | null {
     const matchResult = cardMatchingService.findCardMatch(leagueData, cardDetails, isCurrency);
 
     if (!matchResult.isValid || !matchResult.cardOverview || !matchResult.rewardOverview) {
@@ -40,24 +40,28 @@ export class ProfitCalculationService implements IProfitCalculationService {
    */
   generateFlipTable(
     leagueData: Array<ItemOverview | CurrencyItem>
-  ): Promise<FlipTableRowDto[]> {
-    const workload: Promise<FlipTableRowDto | null>[] = [];
+  ): FlipTableRowDto[] {
+    const results: FlipTableRowDto[] = [];
 
     // Process regular cards
     const cards = cardRepository.getAllCards();
-    for (const cardDetails of cards) {
-      workload.push(this.calculateCardProfit(leagueData, cardDetails, false));
-    }
+    cards.forEach(cardDetails => {
+      const result = this.calculateCardProfit(leagueData, cardDetails, false);
+      if (result !== null && result.chaosprofit > 0) {
+        results.push(result);
+      }
+    });
 
     // Process currency cards
     const currencyCards = currencyCardRepository.getAllCurrencyCards();
-    for (const cardDetails of currencyCards) {
-      workload.push(this.calculateCardProfit(leagueData, cardDetails, true));
-    }
+    currencyCards.forEach(cardDetails => {
+      const result = this.calculateCardProfit(leagueData, cardDetails, true);
+      if (result !== null && result.chaosprofit > 0) {
+        results.push(result);
+      }
+    });
 
-    return Promise.all(workload).then(results =>
-      results.filter((row): row is FlipTableRowDto => row !== null && row.chaosprofit > 0)
-    );
+    return results;
   }
 
   private meetsMinimumTrust(

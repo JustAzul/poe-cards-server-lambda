@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { sleep } from 'azul-tools';
 import { duration } from 'moment';
 
@@ -50,13 +51,8 @@ export class App {
    * Execute the complete league data processing workflow
    */
   async execute(): Promise<void> {
-    // Extract
     const { leagues, rawData, timestamps } = await this.extract();
-
-    // Transform
     const { tableResults, currencyResults } = await this.transform(rawData);
-
-    // Load
     await this.load(leagues, tableResults, currencyResults, timestamps);
   }
 
@@ -112,8 +108,8 @@ export class App {
 
     const leagueNames = Object.keys(rawData);
 
-    // Generate flip tables and currency mappings
-    for (const leagueName of leagueNames) {
+    // Process all leagues using array methods
+    leagueNames.forEach((leagueName) => {
       currencyResults[leagueName] = rawData[leagueName]
         .filter(isCurrencyItem)
         .map((Item: CurrencyItem): CurrencyOverview => ({
@@ -122,10 +118,9 @@ export class App {
           chaosEquivalent: Item.chaosEquivalent,
         })) as CurrencyOverview[];
 
-      // Flip table generation workload
-      tableResults[leagueName] = await this.profitCalculationService
+      tableResults[leagueName] = this.profitCalculationService
         .generateFlipTable(rawData[leagueName]);
-    }
+    });
 
     return { tableResults, currencyResults };
   }
