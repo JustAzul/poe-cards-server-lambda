@@ -1,17 +1,15 @@
-import got from 'got';
+import axios from 'axios';
 import { sleep } from '@shared/utils';
 import { HttpRetryConfig } from '@domain/entities/http.entity';
+import { RateLimitedQueue } from './rate-limited-queue';
 
 /**
- * HTTP Client with built-in rate limiting and request queue
- * Each instance manages rate limiting for a single domain
+ * HTTP Client with rate limiting via queue and retry logic
+ * Each instance manages requests for a single domain
+ * Uses RateLimitedQueue for sequential request processing with rate limiting
  */
 export class HttpClient {
-  private lastRequestTime: number | null = null;
-
-  private requestQueue: Array<() => Promise<void>> = [];
-
-  private isProcessingQueue: boolean = false;
+  private queue: RateLimitedQueue<unknown>;
 
   constructor(
     private readonly domain: string,
@@ -21,92 +19,38 @@ export class HttpClient {
       baseDelayMs: 2000,
       exponentialBackoff: true,
     },
-  ) {}
-
-  /**
-   * Make an HTTP GET request with rate limiting and retry logic
-   * Requests are queued and executed sequentially with rate limiting
-   */
-  async get<T>(url: string, searchParams?: Record<string, any>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      const requestTask = async () => {
-        try {
-          await this.enforceRateLimit();
-          const result = await this.retryableRequest<T>(
-            () => got<T>({ url, searchParams, responseType: 'json' }),
-            `GET ${url}`,
-          );
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        }
-      };
-
-      this.enqueueRequest(requestTask);
-    });
+  ) {
+    this.queue = new RateLimitedQueue(this.rateLimitDelayMs);
   }
 
   /**
-   * Add a request to the queue and start processing if not already running
+   * Make an HTTP GET request with retry logic
+   * Rate limiting is handled by the queue
    */
-  private enqueueRequest(requestTask: () => Promise<void>): void {
-    this.requestQueue.push(requestTask);
-
-    if (!this.isProcessingQueue) {
-      this.processQueue();
-    }
-  }
-
-  /**
-   * Process queued requests sequentially
-   */
-  private async processQueue(): Promise<void> {
-    this.isProcessingQueue = true;
-
-    while (this.requestQueue.length > 0) {
-      const task = this.requestQueue.shift();
-      if (task) {
-        await task();
-      }
-    }
-
-    this.isProcessingQueue = false;
-  }
-
-  /**
-   * Enforce rate limiting by waiting if necessary
-   * Tracks last request time and ensures minimum delay between requests
-   */
-  private async enforceRateLimit(): Promise<void> {
-    if (this.lastRequestTime !== null) {
-      const timeSinceLastRequest = Date.now() - this.lastRequestTime;
-      const remainingDelay = this.rateLimitDelayMs - timeSinceLastRequest;
-
-      if (remainingDelay > 0) {
-        console.log(`Rate limiting [${this.domain}]: waiting ${remainingDelay}ms...`);
-        await sleep(remainingDelay);
-      }
-    }
-
-    this.lastRequestTime = Date.now();
+  async get<T>(url: string, searchParams?: Record<string, unknown>): Promise<T> {
+    return this.queue.enqueue(async () => {
+      const result = await this.retryableRequest<T>(
+        () => axios.get<T>(url, { params: searchParams }),
+        `GET ${url}`,
+      );
+      return result.data;
+    }) as Promise<T>;
   }
 
   /**
    * Execute HTTP request with retry logic
    */
   private async retryableRequest<T>(
-    requestFn: () => Promise<{ body: T }>,
+    requestFn: () => Promise<{ data: T }>,
     operationName: string,
     attempt: number = 0,
-  ): Promise<T> {
+  ): Promise<{ data: T }> {
     try {
-      const { body } = await requestFn();
-      return body;
+      return await requestFn();
     } catch (error) {
       const { maxRetries, baseDelayMs, exponentialBackoff } = this.retryConfig;
 
       if (attempt >= maxRetries) {
-        console.error(`${operationName} failed after ${maxRetries} retries:`, error);
         throw new Error(`${operationName} failed: ${(error as Error).message}`);
       }
 
@@ -114,10 +58,11 @@ export class HttpClient {
         ? baseDelayMs * 2 ** attempt
         : baseDelayMs;
 
-      console.warn(`${operationName} failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delayMs}ms...`);
       await sleep(delayMs);
 
       return this.retryableRequest(requestFn, operationName, attempt + 1);
     }
   }
 }
+
+export default new HttpClient('default');
