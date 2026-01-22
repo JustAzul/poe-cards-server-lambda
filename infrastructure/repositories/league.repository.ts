@@ -1,7 +1,7 @@
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
 import { LeagueEntity } from '@domain/entities/league.entity';
 
-import { httpRepository } from './http.repository';
+import { httpService } from '@infrastructure/services/http.service';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
@@ -17,7 +17,7 @@ export class LeagueRepository implements ILeagueRepository {
       return this.cache;
     }
 
-    const leagues = await httpRepository.fetchLeagues();
+    const leagues = await httpService.fetchLeagues();
 
     const mappedLeagues = leagues.map((league) => ({
       name: league.name,
