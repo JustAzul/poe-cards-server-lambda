@@ -1,8 +1,6 @@
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
-import { LeagueEntity } from '@domain/entities/league.entity';
 import { CardDetailsDto, FlipTableRowDto } from '../dtos/flip-table.dto';
 import { CardMatchResultDto } from '../dtos/card-match.dto';
-import { LeagueDataYield } from '../services/league-data.service';
 
 // Price conversion service
 export interface IPriceConversionService {
@@ -17,12 +15,6 @@ export interface ICardMatchingService {
     cardDetails: CardDetailsDto,
     isCurrency: boolean
   ): CardMatchResultDto;
-}
-
-// League data service
-export interface ILeagueDataService {
-  fetchLeagueOverview(leagueName: string): Promise<Array<ItemOverview | CurrencyItem>>;
-  fetchBatchLeagueOverview(leagues: LeagueEntity[]): AsyncGenerator<LeagueDataYield>;
 }
 
 // Profit calculation service
