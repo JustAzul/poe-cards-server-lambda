@@ -6,11 +6,12 @@ import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
-import { ILeagueDataService } from '@domain/repositories/interfaces/league-data.service.interface';
+import { ILeagueService } from '@domain/repositories/interfaces/league.service.interface';
 
 export interface LeagueExtractionYield {
   league: LeagueEntity;
-  data: Array<ItemOverview | CurrencyItem>;
+  items: ItemOverview[];
+  currency: CurrencyItem[];
   timestamp: string;
 }
 
@@ -21,7 +22,7 @@ export interface LeagueExtractionYield {
 export class ExtractService {
   constructor(
     private readonly leagueRepository: ILeagueRepository,
-    private readonly leagueDataService: ILeagueDataService,
+    private readonly leagueService: ILeagueService,
   ) {}
 
   /**
@@ -29,7 +30,7 @@ export class ExtractService {
    * Generator function that yields data for each league as it's extracted
    *
    * Fetches all leagues, applies filtering criteria, and delegates
-   * to leagueDataService for batch processing with API rate limiting
+   * to leagueService for batch processing with API rate limiting
    *
    * @yields Individual league extraction result for each league
    */
@@ -40,7 +41,7 @@ export class ExtractService {
     const filteredLeagues = ExtractService.selectLeagues(leagues);
 
     console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
-    yield* this.leagueDataService.fetchBatchLeagueOverview(filteredLeagues);
+    yield* this.leagueService.fetchBatchLeagueOverview(filteredLeagues);
   }
 
   private static selectLeagues(leagues: LeagueEntity[]): LeagueEntity[] {
