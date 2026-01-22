@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { IHttpService } from '@domain/services/interfaces/http.service.interface';
 import {
   ItemOverview,
@@ -37,7 +38,6 @@ export class HttpService implements IHttpService {
   private readonly poeNinjaClient: HttpClient;
 
   constructor() {
-    // Each client manages its own rate limiting and request queue
     this.poeApiClient = new HttpClient('api.pathofexile.com', 2000);
     this.poeNinjaClient = new HttpClient('poe.ninja', 2000);
   }
@@ -53,6 +53,8 @@ export class HttpService implements IHttpService {
   }
 
   async fetchItemOverview(league: string, type: string): Promise<ItemOverview[]> {
+    console.log(`Requesting league '${league}' ${type}'s..`);
+
     const url = 'https://poe.ninja/api/data/itemoverview';
     const searchParams = {
       league,
