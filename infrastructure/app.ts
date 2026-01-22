@@ -5,7 +5,7 @@ import { leagueRepository as defaultLeagueRepository } from '@infrastructure/rep
 
 // Services
 import { profitCalculationService as defaultProfitCalculationService } from '@application/services/profit-calculation.service';
-import { leagueDataService as defaultLeagueDataService } from '@infrastructure/services/league-data.service';
+import { leagueService as defaultLeagueService } from '@infrastructure/services/league.service';
 import { dataStorageService as defaultDataStorageService } from '@application/services/data-storage.service';
 import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';
@@ -23,15 +23,20 @@ export class App {
 
     const extractionGenerator = this.extractService.extract();
 
-    // Process each league incrementally as it's extracted
     // eslint-disable-next-line no-restricted-syntax
-    for await (const { league, data, timestamp } of extractionGenerator) {
-      const { flipTable, currency } = this.transformService.transformLeague(
+    for await (const {
+      league,
+      items,
+      currency,
+      timestamp,
+    } of extractionGenerator) {
+      const data = [...items, ...currency];
+      const { flipTable, currency: currencyData } = this.transformService.transformLeague(
         league.name,
         data,
       );
 
-      await this.loadService.loadLeague(league, flipTable, currency, timestamp);
+      await this.loadService.loadLeague(league, flipTable, currencyData, timestamp);
       console.log(`Successfully processed league: ${league.name}`);
     }
 
@@ -41,7 +46,7 @@ export class App {
 
 const defaultExtractService = new ExtractService(
   defaultLeagueRepository,
-  defaultLeagueDataService,
+  defaultLeagueService,
 );
 
 const defaultTransformService = new TransformService(
