@@ -5,7 +5,7 @@ import { leagueRepository as defaultLeagueRepository } from '@infrastructure/rep
 
 // Services
 import { profitCalculationService as defaultProfitCalculationService } from '@application/services/profit-calculation.service';
-import { leagueDataService as defaultLeagueDataService } from '@application/services/league-data.service';
+import { leagueDataService as defaultLeagueDataService } from '@infrastructure/services/league-data.service';
 import { dataStorageService as defaultDataStorageService } from '@application/services/data-storage.service';
 import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';
