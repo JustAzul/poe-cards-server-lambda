@@ -46,8 +46,7 @@ export class ExtractService {
 
   private static selectLeagues(leagues: LeagueEntity[]): LeagueEntity[] {
     return leagues
-      .filter(({ name }) => name.indexOf('SSF') === -1) // remove Solo Self Found leagues
-      .filter(({ delveEvent }) => !delveEvent)
+      .filter(({ name }) => !name.includes('SSF') && !name.includes('Solo Self-Found')) // remove Solo Self Found leagues
       .filter(({ realm }) => realm === 'pc')
       .filter(({ name }) => name !== 'Hardcore'); // remove Standard(Hardcore) league
   }
