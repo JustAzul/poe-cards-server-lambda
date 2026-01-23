@@ -1,11 +1,11 @@
 import { sleep } from '@shared/utils';
-import { Queue } from '@infrastructure/queue';
+import { FIFOQueue } from '@infrastructure/queue/fifo-queue';
 
 /**
  * Rate-limited queue for processing tasks sequentially with rate limiting
  * Enforces minimum delay between task executions
  */
-export class RateLimitedQueue<T> extends Queue<T> {
+export class RateLimitedQueue<T> extends FIFOQueue<T> {
   private lastExecutionTime: number | null = null;
 
   constructor(private readonly delayMs: number = 2000) {
