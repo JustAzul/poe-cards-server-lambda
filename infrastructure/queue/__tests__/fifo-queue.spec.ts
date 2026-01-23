@@ -1,17 +1,17 @@
-import { Queue } from '../queue';
 import { sleep } from '@shared/utils';
+import { FIFOQueue } from '../fifo-queue';
 
 describe('Queue - Black Box Tests', () => {
   describe('Task Execution', () => {
     it('should execute a single task successfully', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
       const result = await queue.enqueue(async () => 'test-result');
 
       expect(result).toBe('test-result');
     });
 
     it('should execute tasks in FIFO order', async () => {
-      const queue = new Queue<number>();
+      const queue = new FIFOQueue<number>();
       const results: number[] = [];
 
       const promises = [
@@ -26,7 +26,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should handle multiple tasks and return correct results', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
 
       const [r1, r2, r3] = await Promise.all([
         queue.enqueue(async () => 'first'),
@@ -40,7 +40,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should process tasks sequentially, not in parallel', async () => {
-      const queue = new Queue<number>();
+      const queue = new FIFOQueue<number>();
       let activeTaskCount = 0;
       let maxConcurrent = 0;
 
@@ -64,7 +64,7 @@ describe('Queue - Black Box Tests', () => {
 
   describe('Error Handling', () => {
     it('should reject when task throws an error', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
       const error = new Error('Task failed');
 
       await expect(
@@ -75,7 +75,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should continue processing after error', async () => {
-      const queue = new Queue<number>();
+      const queue = new FIFOQueue<number>();
 
       const p1 = queue.enqueue(async () => {
         throw new Error('First task failed');
@@ -89,7 +89,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should handle non-Error throws', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
 
       await expect(
         queue.enqueue(async () => {
@@ -100,7 +100,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should reject all affected promises when task fails', async () => {
-      const queue = new Queue<number>();
+      const queue = new FIFOQueue<number>();
 
       const p1 = queue.enqueue(async () => 1);
       const p2 = queue.enqueue(async () => {
@@ -118,14 +118,14 @@ describe('Queue - Black Box Tests', () => {
 
   describe('Queue State', () => {
     it('should start with empty queue', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
 
       expect(queue.getQueueLength()).toBe(0);
       expect(queue.isProcessingTask()).toBe(false);
     });
 
     it('should track queue length correctly', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
 
       expect(queue.getQueueLength()).toBe(0);
 
@@ -137,7 +137,7 @@ describe('Queue - Black Box Tests', () => {
       const p3 = queue.enqueue(async () => 'test3');
 
       // Give time for first task to start processing
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await sleep(50);
 
       // At this point, one task is processing and two are queued
       expect(queue.getQueueLength()).toBeLessThanOrEqual(2);
@@ -148,7 +148,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should track processing state correctly', async () => {
-      const queue = new Queue<string>();
+      const queue = new FIFOQueue<string>();
 
       expect(queue.isProcessingTask()).toBe(false);
 
@@ -158,7 +158,7 @@ describe('Queue - Black Box Tests', () => {
       });
 
       // Give time for task to start
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await sleep(50);
 
       expect(queue.isProcessingTask()).toBe(true);
 
@@ -168,7 +168,7 @@ describe('Queue - Black Box Tests', () => {
     });
 
     it('should return to idle state after completing all tasks', async () => {
-      const queue = new Queue<number>();
+      const queue = new FIFOQueue<number>();
 
       await Promise.all([
         queue.enqueue(async () => 1),

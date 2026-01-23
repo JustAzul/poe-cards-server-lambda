@@ -1,5 +1,5 @@
-import { RateLimitedQueue } from '../rate-limited-queue';
 import { sleep } from '@shared/utils';
+import { RateLimitedQueue } from './rate-limited-queue';
 
 describe('RateLimitedQueue - Rate Limiting Tests', () => {
   describe('Rate Limiting Enforcement', () => {

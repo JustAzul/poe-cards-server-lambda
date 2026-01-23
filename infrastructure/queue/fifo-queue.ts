@@ -10,7 +10,7 @@ export interface QueuedTask<T> {
  * Generic queue for processing tasks sequentially via pub/sub events
  * Tasks are executed one at a time in FIFO order
  */
-export class Queue<T> extends EventEmitter {
+export class FIFOQueue<T> extends EventEmitter {
   protected tasks: Array<QueuedTask<T>> = [];
 
   protected isProcessing: boolean = false;

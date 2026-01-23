@@ -6,7 +6,7 @@ import {
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,
 } from '@domain/entities/http.entity';
-import { HttpClient } from '@infrastructure/http-client';
+import { HttpClient } from '@infrastructure/http/http-client';
 
 export interface LeagueApiResponse {
   id: string;
