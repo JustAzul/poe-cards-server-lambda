@@ -1,5 +1,5 @@
 import { sleep } from '@shared/utils';
-import { FIFOQueue } from '../fifo-queue';
+import { FIFOQueue } from '@infrastructure/queue/fifo-queue';
 
 describe('Queue - Black Box Tests', () => {
   describe('Task Execution', () => {
