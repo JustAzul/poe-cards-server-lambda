@@ -5,7 +5,7 @@ import { IHttpService } from '@domain/services/interfaces/http.service.interface
 import { ILeagueService } from '@domain/repositories/interfaces/league.service.interface';
 import { httpService as _httpService } from '@infrastructure/services/http.service';
 
-const fetchList = require('../../config/fetch-list');
+const fetchList = require('@config/fetch-list');
 
 /**
  * Individual league data result yielded by generator
