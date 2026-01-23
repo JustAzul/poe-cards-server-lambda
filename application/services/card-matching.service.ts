@@ -1,7 +1,7 @@
-import { ICardMatchingService } from '../interfaces/services.interface';
+import { ICardMatchingService } from '@application/interfaces/services.interface';
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
-import { CardDetailsDto } from '../dtos/flip-table.dto';
-import { CardMatchResultDto } from '../dtos/card-match.dto';
+import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { CardMatchResultDto } from '@application/dtos/card-match.dto';
 
 export class CardMatchingService implements ICardMatchingService {
   /**

@@ -1,10 +1,10 @@
-import { IProfitCalculationService } from '../interfaces/services.interface';
+import { IProfitCalculationService } from '@application/interfaces/services.interface';
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
-import { CardDetailsDto, FlipTableRowDto } from '../dtos/flip-table.dto';
+import { CardDetailsDto, FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import { cardRepository } from '@infrastructure/repositories/card.repository';
 import { currencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
-import { priceConversionService } from './price-conversion.service';
-import { cardMatchingService } from './card-matching.service';
+import { priceConversionService } from '@application/services/price-conversion.service';
+import { cardMatchingService } from '@application/services/card-matching.service';
 
 export class ProfitCalculationService implements IProfitCalculationService {
   private readonly MIN_TRUST_COUNT = 10;

@@ -6,7 +6,7 @@ import {
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,
 } from '@domain/entities/http.entity';
-import { HttpClient } from '../http-client';
+import { HttpClient } from '@infrastructure/http-client';
 
 export interface LeagueApiResponse {
   id: string;
@@ -30,7 +30,7 @@ export interface LeagueApiResponse {
 
 /**
  * HTTP Service that coordinates API requests to different domains
- * Uses separate HttpClient instances for each domain to manage rate limiting independently
+ * Uses separate HttpClient instances to manage rate limiting independently
  */
 export class HttpService implements IHttpService {
   private readonly poeApiClient: HttpClient;
@@ -38,8 +38,8 @@ export class HttpService implements IHttpService {
   private readonly poeNinjaClient: HttpClient;
 
   constructor() {
-    this.poeApiClient = new HttpClient('api.pathofexile.com', 2000);
-    this.poeNinjaClient = new HttpClient('poe.ninja', 2000);
+    this.poeApiClient = new HttpClient(2000);
+    this.poeNinjaClient = new HttpClient(2000);
   }
 
   async fetchLeagues(): Promise<LeagueApiResponse[]> {
