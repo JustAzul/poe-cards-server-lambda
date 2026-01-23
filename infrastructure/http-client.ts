@@ -1,26 +1,33 @@
 import axios from 'axios';
 import { sleep } from '@shared/utils';
 import { HttpRetryConfig } from '@domain/entities/http.entity';
-import { RateLimitedQueue } from './rate-limited-queue';
+import { RateLimitedQueue } from '@infrastructure/rate-limited-queue';
+
+const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36';
 
 /**
  * HTTP Client with rate limiting via queue and retry logic
- * Each instance manages requests for a single domain
  * Uses RateLimitedQueue for sequential request processing with rate limiting
  */
 export class HttpClient {
   private queue: RateLimitedQueue<unknown>;
 
+  private readonly headers: Record<string, string>;
+
   constructor(
-    private readonly domain: string,
     private readonly rateLimitDelayMs: number = 2000,
     private readonly retryConfig: HttpRetryConfig = {
       maxRetries: 3,
       baseDelayMs: 2000,
       exponentialBackoff: true,
     },
+    additionalHeaders: Record<string, string> = {},
   ) {
     this.queue = new RateLimitedQueue(this.rateLimitDelayMs);
+    this.headers = {
+      'User-Agent': DEFAULT_USER_AGENT,
+      ...additionalHeaders,
+    };
   }
 
   /**
@@ -30,7 +37,10 @@ export class HttpClient {
   async get<T>(url: string, searchParams?: Record<string, unknown>): Promise<T> {
     return this.queue.enqueue(async () => {
       const result = await this.retryableRequest<T>(
-        () => axios.get<T>(url, { params: searchParams }),
+        () => axios.get<T>(url, {
+          params: searchParams,
+          headers: this.headers,
+        }),
         `GET ${url}`,
       );
       return result.data;
@@ -65,4 +75,4 @@ export class HttpClient {
   }
 }
 
-export default new HttpClient('default');
+export default new HttpClient();

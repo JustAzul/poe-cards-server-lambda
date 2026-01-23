@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 /**
  * Utility functions shared across the application
  */

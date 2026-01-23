@@ -1,5 +1,5 @@
 import { sleep } from '@shared/utils';
-import { Queue } from './queue';
+import { Queue } from '@infrastructure/queue';
 
 /**
  * Rate-limited queue for processing tasks sequentially with rate limiting

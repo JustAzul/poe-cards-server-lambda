@@ -1,4 +1,4 @@
-import { IPriceConversionService } from '../interfaces/services.interface';
+import { IPriceConversionService } from '@application/interfaces/services.interface';
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 
 export class PriceConversionService implements IPriceConversionService {
