@@ -9,20 +9,6 @@ import { isCurrencyItem } from '@domain/types';
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
 import { IProfitCalculationService } from '@application/interfaces/services.interface';
 
-// Infrastructure types
-import {
-  FlipTableResults,
-  CurrencyResultsMap,
-  LeagueDataMap,
-} from '@infrastructure/types/etl.types';
-
-/**
- * Result of the transformation phase
- */
-export interface TransformationResult {
-  tableResults: FlipTableResults;
-  currencyResults: CurrencyResultsMap;
-}
 
 /**
  * Result of transforming a single league
@@ -65,40 +51,5 @@ export class TransformService {
     const flipTable = this.profitCalculationService.generateFlipTable(data);
 
     return { flipTable, currency };
-  }
-
-  /**
-   * Transform raw league data into structured results (batch processing)
-   *
-   * Processes raw data to generate flip tables and currency overviews
-   * for each league
-   *
-   * @deprecated Use transformLeague() for incremental processing
-   */
-  async transform(rawData: LeagueDataMap): Promise<TransformationResult> {
-    console.log('Generating tables and mapping results...');
-
-    const tableResults: FlipTableResults = {};
-    const currencyResults: CurrencyResultsMap = {};
-
-    const leagueNames = Object.keys(rawData);
-
-    // Process all leagues using array methods
-    leagueNames.forEach((leagueName) => {
-      const leagueData = rawData[leagueName].data;
-
-      currencyResults[leagueName] = leagueData
-        .filter(isCurrencyItem)
-        .map((Item: CurrencyItem): CurrencyOverview => ({
-          Name: Item.currencyTypeName,
-          detailsId: '', // CurrencyItem doesn't have detailsId
-          chaosEquivalent: Item.chaosEquivalent,
-        })) as CurrencyOverview[];
-
-      tableResults[leagueName] = this.profitCalculationService
-        .generateFlipTable(leagueData);
-    });
-
-    return { tableResults, currencyResults };
   }
 }

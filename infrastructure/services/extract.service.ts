@@ -6,7 +6,7 @@ import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
-import { ILeagueService } from '@domain/repositories/interfaces/league.service.interface';
+import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
 
 export interface LeagueExtractionYield {
   league: LeagueEntity;
