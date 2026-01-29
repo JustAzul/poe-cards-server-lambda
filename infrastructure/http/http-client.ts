@@ -12,17 +12,21 @@ const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKi
 export class HttpClient {
   private queue: RateLimitedQueue<unknown>;
 
+  private readonly config: Required<HttpConfig>;
+
   private readonly headers: Record<string, string>;
 
   constructor(
-    private readonly config: HttpConfig = {
+    config: HttpConfig = {},
+    additionalHeaders: Record<string, string> = {},
+  ) {
+    const defaults: Required<HttpConfig> = {
       throttleDelayMs: 2000,
       maxRetries: 3,
       retryDelayMs: 2000,
       exponentialBackoff: true,
-    },
-    additionalHeaders: Record<string, string> = {},
-  ) {
+    };
+    this.config = { ...defaults, ...config };
     this.queue = new RateLimitedQueue(this.config.throttleDelayMs);
     this.headers = {
       'User-Agent': DEFAULT_USER_AGENT,
