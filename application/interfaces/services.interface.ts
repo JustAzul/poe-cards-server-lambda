@@ -4,12 +4,6 @@ import { CardDetailsDto } from '@application/dtos/flip-table.dto';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import { CardMatchResultDto } from '@application/dtos/card-match.dto';
 
-// Price conversion service
-export interface IPriceConversionService {
-  convertChaosToExalted(chaosValue: number, exaltedChaosEquivalent: number): number;
-  getExaltedValue(leagueData: Array<ItemOverview | CurrencyItem>): number;
-}
-
 // Card matching service
 export interface ICardMatchingService {
   findCardMatch(
