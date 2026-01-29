@@ -1,5 +1,5 @@
 import { LeagueEntity } from '@domain/entities/league.entity';
-import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import {
   CurrencyOverview,
   IDataStorageRepository,

@@ -1,6 +1,7 @@
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto, FlipTableRowDto } from '@application/dtos/flip-table.dto';
+import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import { CardMatchResultDto } from '@application/dtos/card-match.dto';
 
 // Price conversion service
