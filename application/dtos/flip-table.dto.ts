@@ -1,4 +1,5 @@
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 
 // Input DTO - Card details from repository
 export interface CardDetailsDto {

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { LeagueEntity } from '@domain/entities/league.entity';
 import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
 import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';

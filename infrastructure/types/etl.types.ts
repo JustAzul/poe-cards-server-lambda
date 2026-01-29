@@ -1,6 +1,7 @@
 // ETL (Extract, Transform, Load) shared type definitions
 
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
 

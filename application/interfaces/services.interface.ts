@@ -1,4 +1,5 @@
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { CardDetailsDto, FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import { CardMatchResultDto } from '@application/dtos/card-match.dto';
 

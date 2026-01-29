@@ -1,14 +1,14 @@
 /* eslint-disable no-console */
 
 // Domain entities and types
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import { isCurrencyItem } from '@domain/types';
 
 // Interfaces
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
 import { IProfitCalculationService } from '@application/interfaces/services.interface';
-
 
 /**
  * Result of transforming a single league

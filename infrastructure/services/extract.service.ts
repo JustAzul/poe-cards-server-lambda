@@ -2,7 +2,8 @@
 
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
