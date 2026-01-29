@@ -1,12 +1,12 @@
 // Input DTO - Card details from repository
 export interface CardDetailsDto {
-  Name: string;
-  Reward: string;
+  name: string;
+  reward: string;
   iClass?: number;
-  Corrupted?: boolean;
-  Links?: number;
+  corrupted?: boolean;
+  links?: number;
   gemLevel?: number;
-  Amount?: number; // For currency cards
+  amount?: number; // For currency cards
 }
 
 // Output DTO - Flip table row result
@@ -14,25 +14,22 @@ export interface FlipTableRowDto {
   Card: {
     name: string;
     stack: number;
-    chaosprice: number;
-    exaltedprice: number;
-    Details: {
+    chaosPrice: number;
+    details: {
       artFilename: string;
-      CardName: string;
-      CardStack: number;
-      RewardName: string;
+      cardName: string;
+      cardStack: number;
+      rewardName: string;
       rewardClass: number | string;
       isCorrupted: boolean;
-      Flavour: string;
+      flavour: string;
     };
   };
-  Reward: {
+  reward: {
     name: string;
-    chaosprice: number;
-    exaltedprice: number;
+    chaosPrice: number;
   };
-  setchaosprice: number;
-  setexprice: number;
-  chaosprofit: number;
+  setChaosPrice: number;
+  chaosProfit: number;
   isCurrency: boolean;
 }
