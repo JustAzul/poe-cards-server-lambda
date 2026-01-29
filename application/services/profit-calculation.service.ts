@@ -1,6 +1,5 @@
 import {
   IProfitCalculationService,
-  IPriceConversionService,
   ICardMatchingService,
 } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
@@ -13,7 +12,6 @@ import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currenc
 // Default implementations
 import { cardRepository as defaultCardRepository } from '@infrastructure/repositories/card.repository';
 import { currencyCardRepository as defaultCurrencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
-import { priceConversionService as defaultPriceConversionService } from '@application/services/price-conversion.service';
 import { cardMatchingService as defaultCardMatchingService } from '@application/services/card-matching.service';
 
 export class ProfitCalculationService implements IProfitCalculationService {
@@ -22,7 +20,6 @@ export class ProfitCalculationService implements IProfitCalculationService {
   constructor(
     private readonly cardRepository: ICardRepository = defaultCardRepository,
     private readonly currencyCardRepository: ICurrencyCardRepository = defaultCurrencyCardRepository,
-    private readonly priceConversionService: IPriceConversionService = defaultPriceConversionService,
     private readonly cardMatchingService: ICardMatchingService = defaultCardMatchingService,
   ) {}
 
@@ -32,7 +29,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
   calculateCardProfit(
     leagueData: Array<ItemOverview | CurrencyItem>,
     cardDetails: CardDetailsDto,
-    isCurrency: boolean
+    isCurrency: boolean,
   ): FlipTableRowDto | null {
     const matchResult = this.cardMatchingService.findCardMatch(leagueData, cardDetails, isCurrency);
 
@@ -45,35 +42,33 @@ export class ProfitCalculationService implements IProfitCalculationService {
       return null;
     }
 
-    const exaltedValue = this.priceConversionService.getExaltedValue(leagueData);
-
     return isCurrency
-      ? this.buildCurrencyCardRow(matchResult.cardOverview, matchResult.rewardOverview as CurrencyItem, cardDetails, exaltedValue)
-      : this.buildItemCardRow(matchResult.cardOverview, matchResult.rewardOverview as ItemOverview, cardDetails, exaltedValue);
+      ? this.buildCurrencyCardRow(matchResult.cardOverview, matchResult.rewardOverview as CurrencyItem, cardDetails)
+      : this.buildItemCardRow(matchResult.cardOverview, matchResult.rewardOverview as ItemOverview, cardDetails);
   }
 
   /**
    * Generate complete flip table for all cards
    */
   generateFlipTable(
-    leagueData: Array<ItemOverview | CurrencyItem>
+    leagueData: Array<ItemOverview | CurrencyItem>,
   ): FlipTableRowDto[] {
     const results: FlipTableRowDto[] = [];
 
     // Process regular cards
     const cards = this.cardRepository.getAllCards();
-    cards.forEach(cardDetails => {
+    cards.forEach((cardDetails) => {
       const result = this.calculateCardProfit(leagueData, cardDetails, false);
-      if (result !== null && result.chaosprofit > 0) {
+      if (result !== null && result.chaosProfit > 0) {
         results.push(result);
       }
     });
 
     // Process currency cards
     const currencyCards = this.currencyCardRepository.getAllCurrencyCards();
-    currencyCards.forEach(cardDetails => {
+    currencyCards.forEach((cardDetails) => {
       const result = this.calculateCardProfit(leagueData, cardDetails, true);
-      if (result !== null && result.chaosprofit > 0) {
+      if (result !== null && result.chaosProfit > 0) {
         results.push(result);
       }
     });
@@ -85,7 +80,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
     cardOverview: ItemOverview,
     rewardOverview: ItemOverview | CurrencyItem,
     cardDetails: CardDetailsDto,
-    isCurrency: boolean
+    isCurrency: boolean,
   ): boolean {
     const cardCount = cardOverview.count ?? 0;
     if (cardCount < this.MIN_TRUST_COUNT) return false;
@@ -107,21 +102,10 @@ export class ProfitCalculationService implements IProfitCalculationService {
     cardOverview: ItemOverview,
     rewardOverview: ItemOverview,
     cardDetails: CardDetailsDto,
-    exaltedValue: number
   ): FlipTableRowDto | null {
-    const cardExaltedPrice = cardOverview.exaltedValue ??
-      this.priceConversionService.convertChaosToExalted(cardOverview.chaosValue, exaltedValue);
-
     const rewardChaosValue = rewardOverview.chaosValue;
-    const rewardExaltedValue = rewardOverview.exaltedValue ??
-      this.priceConversionService.convertChaosToExalted(rewardChaosValue, exaltedValue);
-
     const stackSize = cardOverview.stackSize ?? 1;
     const cardSetChaosValue = stackSize * cardOverview.chaosValue;
-    const cardSetExaltedValue = cardOverview.exaltedValue
-      ? cardExaltedPrice * stackSize
-      : this.priceConversionService.convertChaosToExalted(cardSetChaosValue, exaltedValue);
-
     const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
 
     const rewardText = rewardOverview.itemClass === 4
@@ -132,26 +116,23 @@ export class ProfitCalculationService implements IProfitCalculationService {
       Card: {
         name: cardOverview.name,
         stack: stackSize,
-        chaosprice: parseInt(String(cardOverview.chaosValue), 10),
-        exaltedprice: parseFloat(cardExaltedPrice.toFixed(2)),
-        Details: {
+        chaosPrice: parseInt(String(cardOverview.chaosValue), 10),
+        details: {
           artFilename: cardOverview.artFilename ?? '',
-          CardName: cardOverview.name,
-          CardStack: stackSize,
-          RewardName: rewardText,
+          cardName: cardOverview.name,
+          cardStack: stackSize,
+          rewardName: rewardText,
           rewardClass: rewardOverview.itemClass,
           isCorrupted: !!rewardOverview.corrupted,
-          Flavour: cardOverview.flavourText ?? '',
+          flavour: cardOverview.flavourText ?? '',
         },
       },
-      Reward: {
+      reward: {
         name: rewardText,
-        chaosprice: parseInt(String(rewardChaosValue), 10),
-        exaltedprice: parseFloat(rewardExaltedValue.toFixed(2)),
+        chaosPrice: parseInt(String(rewardChaosValue), 10),
       },
-      setchaosprice: parseInt(String(cardSetChaosValue), 10),
-      setexprice: parseFloat(cardSetExaltedValue.toFixed(2)),
-      chaosprofit: chaosProfit,
+      setChaosPrice: parseInt(String(cardSetChaosValue), 10),
+      chaosProfit,
       isCurrency: false,
     };
   }
@@ -160,7 +141,6 @@ export class ProfitCalculationService implements IProfitCalculationService {
     cardOverview: ItemOverview,
     rewardOverview: CurrencyItem,
     cardDetails: CardDetailsDto,
-    exaltedValue: number
   ): FlipTableRowDto | null {
     const rewardChaosEquivalent = cardDetails.Reward === 'Chaos Orb'
       ? 1
@@ -168,18 +148,9 @@ export class ProfitCalculationService implements IProfitCalculationService {
 
     if (!rewardChaosEquivalent) return null;
 
-    const cardExaltedPrice = cardOverview.exaltedValue ??
-      this.priceConversionService.convertChaosToExalted(cardOverview.chaosValue, exaltedValue);
-
     const rewardChaosValue = rewardChaosEquivalent * (cardDetails.Amount ?? 1);
-    const rewardExaltedValue = this.priceConversionService.convertChaosToExalted(rewardChaosValue, exaltedValue);
-
     const stackSize = cardOverview.stackSize ?? 1;
     const cardSetChaosValue = stackSize * cardOverview.chaosValue;
-    const cardSetExaltedValue = cardOverview.exaltedValue
-      ? cardExaltedPrice * stackSize
-      : this.priceConversionService.convertChaosToExalted(cardSetChaosValue, exaltedValue);
-
     const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
 
     const rewardText = (cardDetails.Amount ?? 1) > 1
@@ -190,26 +161,23 @@ export class ProfitCalculationService implements IProfitCalculationService {
       Card: {
         name: cardDetails.Name,
         stack: stackSize,
-        chaosprice: parseInt(String(cardOverview.chaosValue), 10),
-        exaltedprice: parseFloat(cardExaltedPrice.toFixed(2)),
-        Details: {
+        chaosPrice: parseInt(String(cardOverview.chaosValue), 10),
+        details: {
           artFilename: cardOverview.artFilename ?? '',
-          CardName: cardOverview.name,
-          CardStack: stackSize,
-          RewardName: rewardText,
+          cardName: cardOverview.name,
+          cardStack: stackSize,
+          rewardName: rewardText,
           rewardClass: '00',
           isCorrupted: false,
-          Flavour: cardOverview.flavourText ?? '',
+          flavour: cardOverview.flavourText ?? '',
         },
       },
-      Reward: {
+      reward: {
         name: rewardText,
-        chaosprice: parseInt(String(rewardChaosValue), 10),
-        exaltedprice: parseFloat(rewardExaltedValue.toFixed(2)),
+        chaosPrice: parseInt(String(rewardChaosValue), 10),
       },
-      setchaosprice: parseInt(String(cardSetChaosValue), 10),
-      setexprice: parseFloat(cardSetExaltedValue.toFixed(2)),
-      chaosprofit: chaosProfit,
+      setChaosPrice: parseInt(String(cardSetChaosValue), 10),
+      chaosProfit,
       isCurrency: true,
     };
   }
