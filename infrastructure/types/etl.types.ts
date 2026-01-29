@@ -2,7 +2,7 @@
 
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
 
 /** Maps league names to their last update timestamp (ISO string) */
