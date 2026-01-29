@@ -5,7 +5,8 @@ import {
 } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto, FlipTableRowDto } from '@application/dtos/flip-table.dto';
+import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
 import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currency-card.repository.interface';
 

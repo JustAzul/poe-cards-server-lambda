@@ -1,6 +1,3 @@
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
-
 // Input DTO - Card details from repository
 export interface CardDetailsDto {
   Name: string;
@@ -10,32 +7,4 @@ export interface CardDetailsDto {
   Links?: number;
   gemLevel?: number;
   Amount?: number; // For currency cards
-}
-
-// Output DTO - Flip table row result
-export interface FlipTableRowDto {
-  Card: {
-    name: string;
-    stack: number;
-    chaosprice: number;
-    exaltedprice: number;
-    Details: {
-      artFilename: string;
-      CardName: string;
-      CardStack: number;
-      RewardName: string;
-      rewardClass: number | string;
-      isCorrupted: boolean;
-      Flavour: string;
-    };
-  };
-  Reward: {
-    name: string;
-    chaosprice: number;
-    exaltedprice: number;
-  };
-  setchaosprice: number;
-  setexprice: number;
-  chaosprofit: number;
-  isCurrency: boolean;
 }
