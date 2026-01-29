@@ -28,10 +28,10 @@ export class App {
       currency,
       timestamp,
     } of this.extractService.extract()) {
-      const data = [...items, ...currency];
       const { flipTable, currency: currencyData } = this.transformService.transformLeague(
         league.name,
-        data,
+        items,
+        currency,
       );
 
       await this.loadService.loadLeague(league, flipTable, currencyData, timestamp);

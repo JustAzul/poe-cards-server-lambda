@@ -3,8 +3,7 @@
 // Domain entities and types
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
-import { isCurrencyItem } from '@domain/types';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 
 // Interfaces
 import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
@@ -31,24 +30,24 @@ export class TransformService {
    * Transform a single league's data into flip table and currency results
    *
    * @param leagueName - Name of the league being processed
-   * @param data - Raw item and currency data for the league
+   * @param items - Raw item data for the league
+   * @param currencyItems - Raw currency data for the league
    * @returns Transformed flip table and currency overview for the league
    */
   transformLeague(
     leagueName: string,
-    data: Array<ItemOverview | CurrencyItem>,
+    items: ItemOverview[],
+    currencyItems: CurrencyItem[],
   ): SingleLeagueTransformResult {
     console.log(`Transforming data for league: ${leagueName}`);
 
-    const currency = data
-      .filter(isCurrencyItem)
-      .map((item: CurrencyItem): CurrencyOverview => ({
-        Name: item.currencyTypeName,
-        detailsId: '', // CurrencyItem doesn't have detailsId
-        chaosEquivalent: item.chaosEquivalent,
-      }));
+    const currency = currencyItems.map((item: CurrencyItem): CurrencyOverview => ({
+      name: item.currencyTypeName,
+      detailsId: '', // CurrencyItem doesn't have detailsId
+      chaosEquivalent: item.chaosEquivalent,
+    }));
 
-    const flipTable = this.profitCalculationService.generateFlipTable(data);
+    const flipTable = this.profitCalculationService.generateFlipTable(items);
 
     return { flipTable, currency };
   }
