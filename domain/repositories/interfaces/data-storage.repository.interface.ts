@@ -1,11 +1,11 @@
 import { LeagueEntity } from '@domain/entities/league.entity';
-import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 
 /**
  * Currency overview data structure
  */
 export interface CurrencyOverview {
-  Name: string;
+  name: string;
   detailsId: string;
   chaosEquivalent: number;
 }
