@@ -1,32 +1,13 @@
 /* eslint-disable no-console */
 import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import {
-  ItemOverview,
-  CurrencyItem,
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,
-} from '@domain/entities/http.entity';
+} from '@infrastructure/types/poe-ninja.types';
+import { LeagueApiResponse } from '@infrastructure/types/poe-api.types';
 import { HttpClient } from '@infrastructure/http/http-client';
-
-export interface LeagueApiResponse {
-  id: string;
-  name: string;
-  realm: string;
-  url: string;
-  startAt: string | null;
-  endAt: string | null;
-  description: string;
-  category: {
-    id: string;
-  };
-  registerAt?: string;
-  delveEvent: boolean;
-  rules: Array<{
-    id: string;
-    name: string;
-    description: string;
-  }>;
-}
 
 /**
  * HTTP Service that coordinates API requests to different domains
@@ -41,8 +22,8 @@ export class HttpService implements IHttpService {
     poeApiClient?: HttpClient,
     poeNinjaClient?: HttpClient,
   ) {
-    this.poeApiClient = poeApiClient || new HttpClient(2000);
-    this.poeNinjaClient = poeNinjaClient || new HttpClient(2000);
+    this.poeApiClient = poeApiClient || new HttpClient({ throttleDelayMs: 2000 });
+    this.poeNinjaClient = poeNinjaClient || new HttpClient({ throttleDelayMs: 2000 });
   }
 
   async fetchLeagues(): Promise<LeagueApiResponse[]> {

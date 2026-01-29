@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { sleep } from '@shared/utils';
-import { HttpRetryConfig } from '@domain/entities/http.entity';
+import { HttpConfig } from '@infrastructure/types/http-config.types';
 import { RateLimitedQueue } from '@infrastructure/queue/rate-limited-queue';
 
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36';
@@ -15,15 +15,15 @@ export class HttpClient {
   private readonly headers: Record<string, string>;
 
   constructor(
-    private readonly rateLimitDelayMs: number = 2000,
-    private readonly retryConfig: HttpRetryConfig = {
+    private readonly config: HttpConfig = {
+      throttleDelayMs: 2000,
       maxRetries: 3,
-      baseDelayMs: 2000,
+      retryDelayMs: 2000,
       exponentialBackoff: true,
     },
     additionalHeaders: Record<string, string> = {},
   ) {
-    this.queue = new RateLimitedQueue(this.rateLimitDelayMs);
+    this.queue = new RateLimitedQueue(this.config.throttleDelayMs);
     this.headers = {
       'User-Agent': DEFAULT_USER_AGENT,
       ...additionalHeaders,
@@ -58,15 +58,15 @@ export class HttpClient {
     try {
       return await requestFn();
     } catch (error) {
-      const { maxRetries, baseDelayMs, exponentialBackoff } = this.retryConfig;
+      const { maxRetries, retryDelayMs, exponentialBackoff } = this.config;
 
       if (attempt >= maxRetries) {
         throw new Error(`${operationName} failed: ${(error as Error).message}`);
       }
 
       const delayMs = exponentialBackoff
-        ? baseDelayMs * 2 ** attempt
-        : baseDelayMs;
+        ? retryDelayMs * 2 ** attempt
+        : retryDelayMs;
 
       await sleep(delayMs);
 
