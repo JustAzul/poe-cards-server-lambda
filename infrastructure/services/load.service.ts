@@ -2,7 +2,7 @@
 
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
-import { FlipTableRowDto } from '@application/dtos/flip-table.dto';
+import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 
 // Application services
 import { StorageService } from '@application/services/storage.service';
