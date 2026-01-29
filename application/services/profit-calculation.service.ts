@@ -53,27 +53,29 @@ export class ProfitCalculationService implements IProfitCalculationService {
   generateFlipTable(
     leagueData: Array<ItemOverview | CurrencyItem>,
   ): FlipTableRowDto[] {
-    const results: FlipTableRowDto[] = [];
+    const regularCards = this.processCardsBatch(
+      this.cardRepository.getAllCards(),
+      leagueData,
+      false,
+    );
 
-    // Process regular cards
-    const cards = this.cardRepository.getAllCards();
-    cards.forEach((cardDetails) => {
-      const result = this.calculateCardProfit(leagueData, cardDetails, false);
-      if (result !== null && result.chaosProfit > 0) {
-        results.push(result);
-      }
-    });
+    const currencyCards = this.processCardsBatch(
+      this.currencyCardRepository.getAllCurrencyCards(),
+      leagueData,
+      true,
+    );
 
-    // Process currency cards
-    const currencyCards = this.currencyCardRepository.getAllCurrencyCards();
-    currencyCards.forEach((cardDetails) => {
-      const result = this.calculateCardProfit(leagueData, cardDetails, true);
-      if (result !== null && result.chaosProfit > 0) {
-        results.push(result);
-      }
-    });
+    return [...regularCards, ...currencyCards];
+  }
 
-    return results;
+  private processCardsBatch(
+    cards: CardDetailsDto[],
+    leagueData: Array<ItemOverview | CurrencyItem>,
+    isCurrency: boolean,
+  ): FlipTableRowDto[] {
+    return cards
+      .map((cardDetails) => this.calculateCardProfit(leagueData, cardDetails, isCurrency))
+      .filter((result): result is FlipTableRowDto => result !== null && result.chaosProfit > 0);
   }
 
   private meetsMinimumTrust(
@@ -82,17 +84,33 @@ export class ProfitCalculationService implements IProfitCalculationService {
     cardDetails: CardDetailsDto,
     isCurrency: boolean,
   ): boolean {
-    const cardCount = cardOverview.count ?? 0;
-    if (cardCount < this.MIN_TRUST_COUNT) return false;
+    if (!this.hasMinimumCardCount(cardOverview)) {
+      return false;
+    }
 
-    if (isCurrency && cardDetails.Reward !== 'Chaos Orb') {
+    return this.hasMinimumRewardCount(rewardOverview, isCurrency, cardDetails.Reward === 'Chaos Orb');
+  }
+
+  private hasMinimumCardCount(cardOverview: ItemOverview): boolean {
+    const cardCount = cardOverview.count ?? 0;
+    return cardCount >= this.MIN_TRUST_COUNT;
+  }
+
+  private hasMinimumRewardCount(
+    rewardOverview: ItemOverview | CurrencyItem,
+    isCurrency: boolean,
+    isChaoOrb: boolean,
+  ): boolean {
+    if (isCurrency && !isChaoOrb) {
       const currencyReward = rewardOverview as CurrencyItem;
       const receiveCount = currencyReward.receive?.count ?? 0;
-      if (receiveCount < this.MIN_TRUST_COUNT) return false;
-    } else if (!isCurrency) {
+      return receiveCount >= this.MIN_TRUST_COUNT;
+    }
+
+    if (!isCurrency) {
       const itemReward = rewardOverview as ItemOverview;
       const rewardCount = itemReward.count ?? 0;
-      if (rewardCount < this.MIN_TRUST_COUNT) return false;
+      return rewardCount >= this.MIN_TRUST_COUNT;
     }
 
     return true;
@@ -105,10 +123,14 @@ export class ProfitCalculationService implements IProfitCalculationService {
   ): FlipTableRowDto | null {
     const rewardChaosValue = rewardOverview.chaosValue;
     const stackSize = cardOverview.stackSize ?? 1;
-    const cardSetChaosValue = stackSize * cardOverview.chaosValue;
-    const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
+    const { setChaosPrice, chaosProfit } = ProfitCalculationService.calculateProfitMetrics(
+      rewardChaosValue,
+      stackSize,
+      cardOverview.chaosValue,
+    );
 
-    const rewardText = rewardOverview.itemClass === 4
+    const isGem = rewardOverview.itemClass === 4;
+    const rewardText = isGem
       ? `Level ${rewardOverview.gemLevel ?? 0} ${rewardOverview.name}`
       : rewardOverview.name;
 
@@ -131,7 +153,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
         name: rewardText,
         chaosPrice: parseInt(String(rewardChaosValue), 10),
       },
-      setChaosPrice: parseInt(String(cardSetChaosValue), 10),
+      setChaosPrice,
       chaosProfit,
       isCurrency: false,
     };
@@ -150,10 +172,14 @@ export class ProfitCalculationService implements IProfitCalculationService {
 
     const rewardChaosValue = rewardChaosEquivalent * (cardDetails.Amount ?? 1);
     const stackSize = cardOverview.stackSize ?? 1;
-    const cardSetChaosValue = stackSize * cardOverview.chaosValue;
-    const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
+    const { setChaosPrice, chaosProfit } = ProfitCalculationService.calculateProfitMetrics(
+      rewardChaosValue,
+      stackSize,
+      cardOverview.chaosValue,
+    );
 
-    const rewardText = (cardDetails.Amount ?? 1) > 1
+    const hasMultipleRewards = (cardDetails.Amount ?? 1) > 1;
+    const rewardText = hasMultipleRewards
       ? `${cardDetails.Amount}x ${cardDetails.Reward}`
       : cardDetails.Reward;
 
@@ -176,9 +202,23 @@ export class ProfitCalculationService implements IProfitCalculationService {
         name: rewardText,
         chaosPrice: parseInt(String(rewardChaosValue), 10),
       },
-      setChaosPrice: parseInt(String(cardSetChaosValue), 10),
+      setChaosPrice,
       chaosProfit,
       isCurrency: true,
+    };
+  }
+
+  private static calculateProfitMetrics(
+    rewardChaosValue: number,
+    stackSize: number,
+    cardChaosValue: number,
+  ): { setChaosPrice: number; chaosProfit: number } {
+    const cardSetChaosValue = stackSize * cardChaosValue;
+    const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
+
+    return {
+      setChaosPrice: parseInt(String(cardSetChaosValue), 10),
+      chaosProfit,
     };
   }
 }
