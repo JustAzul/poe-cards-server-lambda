@@ -3,7 +3,8 @@ import {
   IPriceConversionService,
   ICardMatchingService,
 } from '@application/interfaces/services.interface';
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { CardDetailsDto, FlipTableRowDto } from '@application/dtos/flip-table.dto';
 import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
 import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currency-card.repository.interface';

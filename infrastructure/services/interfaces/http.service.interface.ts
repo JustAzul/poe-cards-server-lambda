@@ -1,5 +1,6 @@
-import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
-import type { LeagueApiResponse } from '@infrastructure/services/http.service';
+import { ItemOverview } from '@domain/entities/item-overview.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
+import type { LeagueApiResponse } from '@infrastructure/types/poe-api.types';
 
 export interface IHttpService {
   /**
