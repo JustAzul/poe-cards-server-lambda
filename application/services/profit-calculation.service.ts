@@ -1,13 +1,28 @@
-import { IProfitCalculationService } from '@application/interfaces/services.interface';
+import {
+  IProfitCalculationService,
+  IPriceConversionService,
+  ICardMatchingService,
+} from '@application/interfaces/services.interface';
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 import { CardDetailsDto, FlipTableRowDto } from '@application/dtos/flip-table.dto';
-import { cardRepository } from '@infrastructure/repositories/card.repository';
-import { currencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
-import { priceConversionService } from '@application/services/price-conversion.service';
-import { cardMatchingService } from '@application/services/card-matching.service';
+import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
+import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currency-card.repository.interface';
+
+// Default implementations
+import { cardRepository as defaultCardRepository } from '@infrastructure/repositories/card.repository';
+import { currencyCardRepository as defaultCurrencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
+import { priceConversionService as defaultPriceConversionService } from '@application/services/price-conversion.service';
+import { cardMatchingService as defaultCardMatchingService } from '@application/services/card-matching.service';
 
 export class ProfitCalculationService implements IProfitCalculationService {
   private readonly MIN_TRUST_COUNT = 10;
+
+  constructor(
+    private readonly cardRepository: ICardRepository = defaultCardRepository,
+    private readonly currencyCardRepository: ICurrencyCardRepository = defaultCurrencyCardRepository,
+    private readonly priceConversionService: IPriceConversionService = defaultPriceConversionService,
+    private readonly cardMatchingService: ICardMatchingService = defaultCardMatchingService,
+  ) {}
 
   /**
    * Calculate profit for a single card
@@ -17,7 +32,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
     cardDetails: CardDetailsDto,
     isCurrency: boolean
   ): FlipTableRowDto | null {
-    const matchResult = cardMatchingService.findCardMatch(leagueData, cardDetails, isCurrency);
+    const matchResult = this.cardMatchingService.findCardMatch(leagueData, cardDetails, isCurrency);
 
     if (!matchResult.isValid || !matchResult.cardOverview || !matchResult.rewardOverview) {
       return null;
@@ -28,7 +43,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
       return null;
     }
 
-    const exaltedValue = priceConversionService.getExaltedValue(leagueData);
+    const exaltedValue = this.priceConversionService.getExaltedValue(leagueData);
 
     return isCurrency
       ? this.buildCurrencyCardRow(matchResult.cardOverview, matchResult.rewardOverview as CurrencyItem, cardDetails, exaltedValue)
@@ -44,7 +59,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
     const results: FlipTableRowDto[] = [];
 
     // Process regular cards
-    const cards = cardRepository.getAllCards();
+    const cards = this.cardRepository.getAllCards();
     cards.forEach(cardDetails => {
       const result = this.calculateCardProfit(leagueData, cardDetails, false);
       if (result !== null && result.chaosprofit > 0) {
@@ -53,7 +68,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
     });
 
     // Process currency cards
-    const currencyCards = currencyCardRepository.getAllCurrencyCards();
+    const currencyCards = this.currencyCardRepository.getAllCurrencyCards();
     currencyCards.forEach(cardDetails => {
       const result = this.calculateCardProfit(leagueData, cardDetails, true);
       if (result !== null && result.chaosprofit > 0) {
@@ -93,17 +108,17 @@ export class ProfitCalculationService implements IProfitCalculationService {
     exaltedValue: number
   ): FlipTableRowDto | null {
     const cardExaltedPrice = cardOverview.exaltedValue ??
-      priceConversionService.convertChaosToExalted(cardOverview.chaosValue, exaltedValue);
+      this.priceConversionService.convertChaosToExalted(cardOverview.chaosValue, exaltedValue);
 
     const rewardChaosValue = rewardOverview.chaosValue;
     const rewardExaltedValue = rewardOverview.exaltedValue ??
-      priceConversionService.convertChaosToExalted(rewardChaosValue, exaltedValue);
+      this.priceConversionService.convertChaosToExalted(rewardChaosValue, exaltedValue);
 
     const stackSize = cardOverview.stackSize ?? 1;
     const cardSetChaosValue = stackSize * cardOverview.chaosValue;
     const cardSetExaltedValue = cardOverview.exaltedValue
       ? cardExaltedPrice * stackSize
-      : priceConversionService.convertChaosToExalted(cardSetChaosValue, exaltedValue);
+      : this.priceConversionService.convertChaosToExalted(cardSetChaosValue, exaltedValue);
 
     const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
 
@@ -152,16 +167,16 @@ export class ProfitCalculationService implements IProfitCalculationService {
     if (!rewardChaosEquivalent) return null;
 
     const cardExaltedPrice = cardOverview.exaltedValue ??
-      priceConversionService.convertChaosToExalted(cardOverview.chaosValue, exaltedValue);
+      this.priceConversionService.convertChaosToExalted(cardOverview.chaosValue, exaltedValue);
 
     const rewardChaosValue = rewardChaosEquivalent * (cardDetails.Amount ?? 1);
-    const rewardExaltedValue = priceConversionService.convertChaosToExalted(rewardChaosValue, exaltedValue);
+    const rewardExaltedValue = this.priceConversionService.convertChaosToExalted(rewardChaosValue, exaltedValue);
 
     const stackSize = cardOverview.stackSize ?? 1;
     const cardSetChaosValue = stackSize * cardOverview.chaosValue;
     const cardSetExaltedValue = cardOverview.exaltedValue
       ? cardExaltedPrice * stackSize
-      : priceConversionService.convertChaosToExalted(cardSetChaosValue, exaltedValue);
+      : this.priceConversionService.convertChaosToExalted(cardSetChaosValue, exaltedValue);
 
     const chaosProfit = parseInt(String(rewardChaosValue - cardSetChaosValue), 10);
 

@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { ItemOverview, CurrencyItem } from '@domain/entities/http.entity';
 import { LeagueEntity } from '@domain/entities/league.entity';
-import { IHttpService } from '@domain/services/interfaces/http.service.interface';
-import { ILeagueService } from '@domain/repositories/interfaces/league.service.interface';
+import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
+import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
 import { httpService as _httpService } from '@infrastructure/services/http.service';
 
 const fetchList = require('@config/fetch-list');

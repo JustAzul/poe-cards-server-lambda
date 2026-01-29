@@ -6,7 +6,7 @@ import { leagueRepository as defaultLeagueRepository } from '@infrastructure/rep
 // Services
 import { profitCalculationService as defaultProfitCalculationService } from '@application/services/profit-calculation.service';
 import { leagueService as defaultLeagueService } from '@infrastructure/services/league.service';
-import { dataStorageService as defaultDataStorageService } from '@application/services/data-storage.service';
+import { storageService as defaultStorageService } from '@application/services/storage.service';
 import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';
 import { LoadService } from '@infrastructure/services/load.service';
@@ -21,15 +21,13 @@ export class App {
   async execute(): Promise<void> {
     console.log('Starting ETL pipeline with incremental processing...');
 
-    const extractionGenerator = this.extractService.extract();
-
     // eslint-disable-next-line no-restricted-syntax
     for await (const {
       league,
       items,
       currency,
       timestamp,
-    } of extractionGenerator) {
+    } of this.extractService.extract()) {
       const data = [...items, ...currency];
       const { flipTable, currency: currencyData } = this.transformService.transformLeague(
         league.name,
@@ -54,7 +52,7 @@ const defaultTransformService = new TransformService(
 );
 
 const defaultLoadService = new LoadService(
-  defaultDataStorageService,
+  defaultStorageService,
 );
 
 export const app = new App(

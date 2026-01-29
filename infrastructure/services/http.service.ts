@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { IHttpService } from '@domain/services/interfaces/http.service.interface';
+import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
 import {
   ItemOverview,
   CurrencyItem,
@@ -37,9 +37,12 @@ export class HttpService implements IHttpService {
 
   private readonly poeNinjaClient: HttpClient;
 
-  constructor() {
-    this.poeApiClient = new HttpClient(2000);
-    this.poeNinjaClient = new HttpClient(2000);
+  constructor(
+    poeApiClient?: HttpClient,
+    poeNinjaClient?: HttpClient,
+  ) {
+    this.poeApiClient = poeApiClient || new HttpClient(2000);
+    this.poeNinjaClient = poeNinjaClient || new HttpClient(2000);
   }
 
   async fetchLeagues(): Promise<LeagueApiResponse[]> {
