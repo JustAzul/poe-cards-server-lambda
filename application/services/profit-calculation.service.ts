@@ -1,61 +1,67 @@
 import {
   IProfitCalculationService,
   ICardMatcher,
+  LeagueData,
 } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card, isItemCard, isCurrencyCard, CurrencyCard } from '@domain/entities/card.entity';
+import {
+  Card, isItemCard, isCurrencyCard, CurrencyCard,
+} from '@domain/entities/card.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
-import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
 
 // Default instance with concrete dependencies
-import { cardRepository as _cardRepository } from '@infrastructure/repositories/card.repository';
-import { ExactItemMatcher } from '@application/services/matchers/exact-item.matcher';
-import { ExactCurrencyMatcher } from '@application/services/matchers/exact-currency.matcher';
+import { CardMatcher } from '@application/services/matchers/card.matcher';
 
 export class ProfitCalculationService implements IProfitCalculationService {
   private readonly MIN_TRUST_COUNT = 10;
 
   constructor(
-    private readonly cardRepository: ICardRepository,
-    private readonly itemMatcher: ICardMatcher,
-    private readonly currencyMatcher: ICardMatcher,
+    private readonly cardMatcher: ICardMatcher,
   ) {}
 
   /**
    * Calculate profit for a single card using domain metadata
    */
   calculateCardProfit(
-    leagueData: Array<ItemOverview | CurrencyItem>,
+    leagueData: LeagueData,
     card: Card,
   ): FlipTableRowDto | null {
-    // Use type guards to select matcher based on domain metadata
+    const cardOverview = this.cardMatcher.matchCard(leagueData.items, card.name);
+    const rewardOverview = this.cardMatcher.matchReward(
+      leagueData.items,
+      leagueData.currency,
+      card,
+    );
+
+    if (!cardOverview || !rewardOverview) return null;
+
+    // Use type guards for trust validation
     if (isItemCard(card)) {
-      const cardOverview = this.itemMatcher.matchCard(leagueData, card.name);
-      const rewardOverview = this.itemMatcher.matchReward(leagueData, card);
-
-      if (!cardOverview || !rewardOverview) return null;
-
-      // Trust validation using domain metadata
       if (!this.meetsMinimumTrustForItem(cardOverview, rewardOverview as ItemOverview)) {
         return null;
       }
 
-      return ProfitCalculationService.buildItemCardRow(cardOverview, rewardOverview as ItemOverview);
+      return ProfitCalculationService.buildItemCardRow(
+        cardOverview,
+        rewardOverview as ItemOverview,
+      );
     }
 
     if (isCurrencyCard(card)) {
-      const cardOverview = this.currencyMatcher.matchCard(leagueData, card.name);
-      const rewardOverview = this.currencyMatcher.matchReward(leagueData, card);
-
-      if (!cardOverview || !rewardOverview) return null;
-
-      // Trust validation using domain metadata
-      if (!this.meetsMinimumTrustForCurrency(cardOverview, rewardOverview as CurrencyItem, card)) {
+      if (!this.meetsMinimumTrustForCurrency(
+        cardOverview,
+        rewardOverview as CurrencyItem,
+        card,
+      )) {
         return null;
       }
 
-      return ProfitCalculationService.buildCurrencyCardRow(cardOverview, rewardOverview as CurrencyItem, card);
+      return ProfitCalculationService.buildCurrencyCardRow(
+        cardOverview,
+        rewardOverview as CurrencyItem,
+        card,
+      );
     }
 
     return null;
@@ -65,12 +71,10 @@ export class ProfitCalculationService implements IProfitCalculationService {
    * Generate complete flip table for all cards
    */
   generateFlipTable(
-    leagueData: Array<ItemOverview | CurrencyItem>,
+    leagueData: LeagueData,
+    cards: Card[],
   ): FlipTableRowDto[] {
-    // Single batch - no separation needed!
-    const allCards = this.cardRepository.getAllCards();
-
-    return allCards
+    return cards
       .map((card) => this.calculateCardProfit(leagueData, card))
       .filter((result): result is FlipTableRowDto => result !== null && result.chaosProfit > 0);
   }
@@ -206,12 +210,9 @@ export class ProfitCalculationService implements IProfitCalculationService {
   }
 }
 
-// Singleton instances
-const exactItemMatcher = new ExactItemMatcher();
-const exactCurrencyMatcher = new ExactCurrencyMatcher();
+// Singleton instance
+const cardMatcher = new CardMatcher();
 
 export const profitCalculationService = new ProfitCalculationService(
-  _cardRepository,
-  exactItemMatcher,
-  exactCurrencyMatcher,
+  cardMatcher,
 );
