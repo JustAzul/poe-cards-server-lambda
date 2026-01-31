@@ -42,6 +42,8 @@ module.exports = {
         'import/no-unresolved': 'off',
         // Allow named exports without default export
         'import/prefer-default-export': 'off',
+        // Allow class methods that don't use 'this'
+        'class-methods-use-this': 'off',
       },
     },
   ],
