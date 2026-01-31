@@ -4,7 +4,9 @@ import {
   CurrencyOverview,
   IDataStorageRepository,
 } from '@domain/repositories/interfaces/data-storage.repository.interface';
-import { dataStorageRepository as defaultRepository } from '@infrastructure/repositories/data-storage.repository';
+
+// Default instance with concrete dependencies
+import { dataStorageRepository as _dataStorageRepository } from '@infrastructure/repositories/data-storage.repository';
 
 /**
  * Application service for orchestrating data storage operations
@@ -12,7 +14,7 @@ import { dataStorageRepository as defaultRepository } from '@infrastructure/repo
  */
 export class StorageService {
   constructor(
-    private readonly repository: IDataStorageRepository = defaultRepository,
+    private readonly repository: IDataStorageRepository,
   ) {}
 
   /**
@@ -31,13 +33,12 @@ export class StorageService {
     timestamp: string,
   ): Promise<void> {
     // Get existing data in parallel
-    const [existingLeagues, existingFlipTables, existingCurrency, existingTimestamps] =
-      await Promise.all([
-        this.repository.getLeagues(),
-        this.repository.getFlipTables(),
-        this.repository.getCurrencyData(),
-        this.repository.getUpdateTimestamps(),
-      ]);
+    const [existingLeagues, existingFlipTables, existingCurrency, existingTimestamps] = await Promise.all([
+      this.repository.getLeagues(),
+      this.repository.getFlipTables(),
+      this.repository.getCurrencyData(),
+      this.repository.getUpdateTimestamps(),
+    ]);
 
     // Build updated data structures
     const leagues = existingLeagues || [];
@@ -93,4 +94,4 @@ export class StorageService {
   }
 }
 
-export const storageService = new StorageService();
+export const storageService = new StorageService(_dataStorageRepository);
