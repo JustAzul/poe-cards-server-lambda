@@ -4,54 +4,61 @@ import {
 } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { Card, isItemCard, isCurrencyCard, CurrencyCard } from '@domain/entities/card.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
-import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currency-card.repository.interface';
 
 // Default instance with concrete dependencies
 import { cardRepository as _cardRepository } from '@infrastructure/repositories/card.repository';
-import { currencyCardRepository as _currencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
-import { exactItemMatcher, exactCurrencyMatcher } from '@application/services/matchers';
+import { ExactItemMatcher } from '@application/services/matchers/exact-item.matcher';
+import { ExactCurrencyMatcher } from '@application/services/matchers/exact-currency.matcher';
 
 export class ProfitCalculationService implements IProfitCalculationService {
   private readonly MIN_TRUST_COUNT = 10;
 
   constructor(
     private readonly cardRepository: ICardRepository,
-    private readonly currencyCardRepository: ICurrencyCardRepository,
     private readonly itemMatcher: ICardMatcher,
     private readonly currencyMatcher: ICardMatcher,
   ) {}
 
   /**
-   * Calculate profit for a single card
+   * Calculate profit for a single card using domain metadata
    */
   calculateCardProfit(
     leagueData: Array<ItemOverview | CurrencyItem>,
-    cardDetails: CardDetailsDto,
-    isCurrency: boolean,
+    card: Card,
   ): FlipTableRowDto | null {
-    const matcher = isCurrency ? this.currencyMatcher : this.itemMatcher;
-    const cardOverview = matcher.matchCard(leagueData, cardDetails.Name);
-    const rewardOverview = matcher.matchReward(leagueData, cardDetails);
+    // Use type guards to select matcher based on domain metadata
+    if (isItemCard(card)) {
+      const cardOverview = this.itemMatcher.matchCard(leagueData, card.name);
+      const rewardOverview = this.itemMatcher.matchReward(leagueData, card);
 
-    if (!cardOverview || !rewardOverview) {
-      return null;
+      if (!cardOverview || !rewardOverview) return null;
+
+      // Trust validation using domain metadata
+      if (!this.meetsMinimumTrustForItem(cardOverview, rewardOverview as ItemOverview)) {
+        return null;
+      }
+
+      return ProfitCalculationService.buildItemCardRow(cardOverview, rewardOverview as ItemOverview);
     }
 
-    // Trust system: require minimum trade counts
-    if (!this.meetsMinimumTrust(cardOverview, rewardOverview, cardDetails, isCurrency)) {
-      return null;
+    if (isCurrencyCard(card)) {
+      const cardOverview = this.currencyMatcher.matchCard(leagueData, card.name);
+      const rewardOverview = this.currencyMatcher.matchReward(leagueData, card);
+
+      if (!cardOverview || !rewardOverview) return null;
+
+      // Trust validation using domain metadata
+      if (!this.meetsMinimumTrustForCurrency(cardOverview, rewardOverview as CurrencyItem, card)) {
+        return null;
+      }
+
+      return ProfitCalculationService.buildCurrencyCardRow(cardOverview, rewardOverview as CurrencyItem, card);
     }
 
-    return isCurrency
-      ? ProfitCalculationService.buildCurrencyCardRow(
-        cardOverview,
-        rewardOverview as CurrencyItem,
-        cardDetails,
-      )
-      : ProfitCalculationService.buildItemCardRow(cardOverview, rewardOverview as ItemOverview);
+    return null;
   }
 
   /**
@@ -60,67 +67,37 @@ export class ProfitCalculationService implements IProfitCalculationService {
   generateFlipTable(
     leagueData: Array<ItemOverview | CurrencyItem>,
   ): FlipTableRowDto[] {
-    const regularCards = this.processCardsBatch(
-      this.cardRepository.getAllCards(),
-      leagueData,
-      false,
-    );
+    // Single batch - no separation needed!
+    const allCards = this.cardRepository.getAllCards();
 
-    const currencyCards = this.processCardsBatch(
-      this.currencyCardRepository.getAllCurrencyCards(),
-      leagueData,
-      true,
-    );
-
-    return [...regularCards, ...currencyCards];
-  }
-
-  private processCardsBatch(
-    cards: CardDetailsDto[],
-    leagueData: Array<ItemOverview | CurrencyItem>,
-    isCurrency: boolean,
-  ): FlipTableRowDto[] {
-    return cards
-      .map((cardDetails) => this.calculateCardProfit(leagueData, cardDetails, isCurrency))
+    return allCards
+      .map((card) => this.calculateCardProfit(leagueData, card))
       .filter((result): result is FlipTableRowDto => result !== null && result.chaosProfit > 0);
   }
 
-  private meetsMinimumTrust(
+  private meetsMinimumTrustForItem(
     cardOverview: ItemOverview,
-    rewardOverview: ItemOverview | CurrencyItem,
-    cardDetails: CardDetailsDto,
-    isCurrency: boolean,
+    rewardOverview: ItemOverview,
   ): boolean {
-    if (!this.hasMinimumCardCount(cardOverview)) {
-      return false;
-    }
-
-    return this.hasMinimumRewardCount(rewardOverview, isCurrency, cardDetails.Reward === 'Chaos Orb');
-  }
-
-  private hasMinimumCardCount(cardOverview: ItemOverview): boolean {
     const cardCount = cardOverview.count ?? 0;
-    return cardCount >= this.MIN_TRUST_COUNT;
+    const rewardCount = rewardOverview.count ?? 0;
+
+    return cardCount >= this.MIN_TRUST_COUNT && rewardCount >= this.MIN_TRUST_COUNT;
   }
 
-  private hasMinimumRewardCount(
-    rewardOverview: ItemOverview | CurrencyItem,
-    isCurrency: boolean,
-    isChaoOrb: boolean,
+  private meetsMinimumTrustForCurrency(
+    cardOverview: ItemOverview,
+    rewardOverview: CurrencyItem,
+    card: CurrencyCard,
   ): boolean {
-    if (isCurrency && !isChaoOrb) {
-      const currencyReward = rewardOverview as CurrencyItem;
-      const receiveCount = currencyReward.receive?.count ?? 0;
-      return receiveCount >= this.MIN_TRUST_COUNT;
-    }
+    const cardCount = cardOverview.count ?? 0;
+    if (cardCount < this.MIN_TRUST_COUNT) return false;
 
-    if (!isCurrency) {
-      const itemReward = rewardOverview as ItemOverview;
-      const rewardCount = itemReward.count ?? 0;
-      return rewardCount >= this.MIN_TRUST_COUNT;
-    }
+    // Chaos Orb is baseline - always trusted
+    if (card.reward === 'Chaos Orb') return true;
 
-    return true;
+    const receiveCount = rewardOverview.receive?.count ?? 0;
+    return receiveCount >= this.MIN_TRUST_COUNT;
   }
 
   private static buildItemCardRow(
@@ -168,15 +145,15 @@ export class ProfitCalculationService implements IProfitCalculationService {
   private static buildCurrencyCardRow(
     cardOverview: ItemOverview,
     rewardOverview: CurrencyItem,
-    cardDetails: CardDetailsDto,
+    card: CurrencyCard,
   ): FlipTableRowDto | null {
-    const rewardChaosEquivalent = cardDetails.Reward === 'Chaos Orb'
+    const rewardChaosEquivalent = card.reward === 'Chaos Orb'
       ? 1
       : rewardOverview.chaosEquivalent;
 
     if (!rewardChaosEquivalent) return null;
 
-    const rewardChaosValue = rewardChaosEquivalent * (cardDetails.Amount ?? 1);
+    const rewardChaosValue = rewardChaosEquivalent * card.rewardSpec.amount;
     const stackSize = cardOverview.stackSize ?? 1;
     const { setChaosPrice, chaosProfit } = ProfitCalculationService.calculateProfitMetrics(
       rewardChaosValue,
@@ -184,14 +161,14 @@ export class ProfitCalculationService implements IProfitCalculationService {
       cardOverview.chaosValue,
     );
 
-    const hasMultipleRewards = (cardDetails.Amount ?? 1) > 1;
+    const hasMultipleRewards = card.rewardSpec.amount > 1;
     const rewardText = hasMultipleRewards
-      ? `${cardDetails.Amount}x ${cardDetails.Reward}`
-      : cardDetails.Reward;
+      ? `${card.rewardSpec.amount}x ${card.reward}`
+      : card.reward;
 
     return {
       Card: {
-        name: cardDetails.Name,
+        name: card.name,
         stack: stackSize,
         chaosPrice: parseInt(String(cardOverview.chaosValue), 10),
         details: {
@@ -229,9 +206,12 @@ export class ProfitCalculationService implements IProfitCalculationService {
   }
 }
 
+// Singleton instances
+const exactItemMatcher = new ExactItemMatcher();
+const exactCurrencyMatcher = new ExactCurrencyMatcher();
+
 export const profitCalculationService = new ProfitCalculationService(
   _cardRepository,
-  _currencyCardRepository,
   exactItemMatcher,
   exactCurrencyMatcher,
 );

@@ -1,6 +1,6 @@
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { Card } from '@domain/entities/card.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 
 // Card matcher interface (Strategy Pattern)
@@ -15,10 +15,13 @@ export interface ICardMatcher {
 
   /**
    * Find matching reward in league data
+   * Note: Implementation specializes this method:
+   * - ExactItemMatcher uses ItemCard
+   * - ExactCurrencyMatcher uses CurrencyCard
    */
   matchReward(
     leagueData: Array<ItemOverview | CurrencyItem>,
-    cardDetails: CardDetailsDto
+    cardDetails: Card
   ): ItemOverview | CurrencyItem | null;
 }
 
@@ -26,8 +29,7 @@ export interface ICardMatcher {
 export interface IProfitCalculationService {
   calculateCardProfit(
     leagueData: Array<ItemOverview | CurrencyItem>,
-    cardDetails: CardDetailsDto,
-    isCurrency: boolean
+    card: Card
   ): FlipTableRowDto | null;
 
   generateFlipTable(
