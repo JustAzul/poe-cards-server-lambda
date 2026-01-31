@@ -1,20 +1,22 @@
-import { TransformService } from '../transform.service';
-import { IProfitCalculationService } from '@application/interfaces/services.interface';
+import { IArbitrageEvaluator } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.entity';
-import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
+import { Card } from '@domain/entities/card.base.entity';
+import { ItemCard } from '@domain/entities/item-card.entity';
+import { Arbitrage } from '@domain/models/arbitrage';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
+import { TransformService } from '../transform.service';
 
 describe('TransformService', () => {
   let service: TransformService;
-  let mockProfitService: jest.Mocked<IProfitCalculationService>;
+  let mockArbitrageEvaluator: jest.Mocked<IArbitrageEvaluator>;
 
   beforeEach(() => {
-    mockProfitService = {
-      calculateCardProfit: jest.fn(),
-      buildFlipTable: jest.fn(),
+    mockArbitrageEvaluator = {
+      evaluateCardArbitrage: jest.fn(),
+      findAllArbitrageOpportunities: jest.fn(),
     };
-    service = new TransformService(mockProfitService);
+    service = new TransformService(mockArbitrageEvaluator);
   });
 
   describe('transformLeague', () => {
@@ -37,39 +39,35 @@ describe('TransformService', () => {
 
       const cards: Card[] = [];
 
-      const mockFlipTable: FlipTableRowDto[] = [];
-      mockProfitService.buildFlipTable.mockReturnValue(mockFlipTable);
+      const mockFlipTable: Arbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockFlipTable);
 
       service.transform('Standard', items, currencyItems, cards);
 
-      expect(mockProfitService.buildFlipTable).toHaveBeenCalledWith(
+      expect(mockArbitrageEvaluator.findAllArbitrageOpportunities).toHaveBeenCalledWith(
         { items, currency: currencyItems },
         cards,
       );
     });
 
-    it('should pass cards parameter to profit service', () => {
+    it('should pass cards parameter to arbitrage evaluator', () => {
       const items: ItemOverview[] = [];
       const currencyItems: CurrencyItem[] = [];
       const cards: Card[] = [
-        {
-          type: 'item',
-          name: 'The Doctor',
-          reward: 'Headhunter',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        },
+        new ItemCard('The Doctor', 'Headhunter', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        }),
       ];
 
-      mockProfitService.buildFlipTable.mockReturnValue([]);
+      const mockDomainResults: Arbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
 
       service.transform('Standard', items, currencyItems, cards);
 
-      expect(mockProfitService.buildFlipTable).toHaveBeenCalledWith(
+      expect(mockArbitrageEvaluator.findAllArbitrageOpportunities).toHaveBeenCalledWith(
         expect.objectContaining({
           items: expect.any(Array),
           currency: expect.any(Array),
@@ -92,7 +90,8 @@ describe('TransformService', () => {
       ];
       const cards: Card[] = [];
 
-      mockProfitService.buildFlipTable.mockReturnValue([]);
+      const mockDomainResults: Arbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
@@ -107,42 +106,41 @@ describe('TransformService', () => {
       });
     });
 
-    it('should return flip table from profit service', () => {
+    it('should return profit table from arbitrage evaluator', () => {
       const items: ItemOverview[] = [];
       const currencyItems: CurrencyItem[] = [];
       const cards: Card[] = [];
 
-      const mockFlipTable: FlipTableRowDto[] = [
+      const mockDomainResults: Arbitrage[] = [
         {
-          card: {
-            name: 'The Doctor',
-            stack: 8,
-            chaosPrice: 500,
-            details: {
-              artFilename: '',
-              cardName: 'The Doctor',
-              cardStack: 8,
-              rewardName: 'Headhunter',
-              rewardClass: 2,
-              isCorrupted: false,
-              flavour: '',
-            },
-          },
-          reward: {
-            name: 'Headhunter',
-            chaosPrice: 5000,
-          },
+          cardName: 'The Doctor',
+          cardStack: 8,
+          cardChaosPrice: 500,
+          cardArtFilename: '',
+          cardFlavourText: '',
+          rewardName: 'Headhunter',
+          rewardChaosPrice: 5000,
+          rewardClass: 2,
+          isCorrupted: false,
           setChaosPrice: 4000,
           chaosProfit: 1000,
           isCurrency: false,
         },
       ];
 
-      mockProfitService.buildFlipTable.mockReturnValue(mockFlipTable);
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
-      expect(result.flipTable).toEqual(mockFlipTable);
+      expect(result.profitTable).toHaveLength(1);
+      expect(result.profitTable[0].card.name).toBe('The Doctor');
+      expect(result.profitTable[0].card.stack).toBe(8);
+      expect(result.profitTable[0].card.chaosPrice).toBe(500);
+      expect(result.profitTable[0].reward.name).toBe('Headhunter');
+      expect(result.profitTable[0].reward.chaosPrice).toBe(5000);
+      expect(result.profitTable[0].setChaosPrice).toBe(4000);
+      expect(result.profitTable[0].chaosProfit).toBe(1000);
+      expect(result.profitTable[0].isCurrency).toBe(false);
     });
 
     it('should return correct structure', () => {
@@ -155,13 +153,14 @@ describe('TransformService', () => {
       ];
       const cards: Card[] = [];
 
-      mockProfitService.buildFlipTable.mockReturnValue([]);
+      const mockDomainResults: Arbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
-      expect(result).toHaveProperty('flipTable');
+      expect(result).toHaveProperty('profitTable');
       expect(result).toHaveProperty('currency');
-      expect(Array.isArray(result.flipTable)).toBe(true);
+      expect(Array.isArray(result.profitTable)).toBe(true);
       expect(Array.isArray(result.currency)).toBe(true);
     });
 
@@ -170,11 +169,12 @@ describe('TransformService', () => {
       const currencyItems: CurrencyItem[] = [];
       const cards: Card[] = [];
 
-      mockProfitService.buildFlipTable.mockReturnValue([]);
+      const mockDomainResults: Arbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
-      expect(result.flipTable).toEqual([]);
+      expect(result.profitTable).toEqual([]);
       expect(result.currency).toEqual([]);
     });
   });
