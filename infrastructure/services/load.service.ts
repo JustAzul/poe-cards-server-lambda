@@ -3,7 +3,7 @@
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
 
 /**
  * Service responsible for displaying processed data to console
@@ -15,21 +15,21 @@ export class LoadService {
    * Display a single league's data to console
    *
    * @param league - The league entity
-   * @param flipTable - Flip table data for this league
+   * @param profitTable - Profit table data for this league
    * @param currency - Currency data for this league
    * @param timestamp - Update timestamp for this league
    */
   async load(
     league: LeagueEntity,
-    flipTable: FlipTableRowDto[],
+    profitTable: ProfitTableRowDto[],
     currency: CurrencyItem[],
     timestamp: string,
   ): Promise<void> {
     console.log(`Loading data for league: ${league.name}`);
     console.log(`Timestamp: ${timestamp}`);
-    console.log(`Flip table entries: ${flipTable.length}`);
+    console.log(`Profit table entries: ${profitTable.length}`);
     console.log(`Currency items: ${currency.length}`);
-    console.log('Flip table data:', flipTable);
+    console.log('Profit table data:', profitTable);
     console.log('Currency data:', currency);
   }
 }
