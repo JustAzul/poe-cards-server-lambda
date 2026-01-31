@@ -1,20 +1,21 @@
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { ItemCard, CurrencyCard } from '@domain/entities/card.entity';
-import { CardMatcher } from '../card.matcher';
+import { ItemCard } from '@domain/entities/item-card.entity';
+import { CurrencyCard } from '@domain/entities/currency-card.entity';
+import { CardPriceResolver } from '../card.matcher';
 
-describe('CardMatcher', () => {
-  let matcher: CardMatcher;
+describe('CardPriceResolver', () => {
+  let matcher: CardPriceResolver;
   let items: ItemOverview[];
   let currency: CurrencyItem[];
 
   beforeEach(() => {
-    matcher = new CardMatcher();
+    matcher = new CardPriceResolver();
     items = [];
     currency = [];
   });
 
-  describe('matchCard', () => {
+  describe('findCardPrice', () => {
     it('should find divination card by name and class', () => {
       const divinationCard: ItemOverview = {
         name: 'The Doctor',
@@ -25,7 +26,7 @@ describe('CardMatcher', () => {
 
       items = [divinationCard];
 
-      const result = matcher.matchCard(items, 'The Doctor');
+      const result = matcher.findCardPrice(items, 'The Doctor');
 
       expect(result).toEqual(divinationCard);
     });
@@ -40,7 +41,7 @@ describe('CardMatcher', () => {
 
       items = [otherCard];
 
-      const result = matcher.matchCard(items, 'The Doctor');
+      const result = matcher.findCardPrice(items, 'The Doctor');
 
       expect(result).toBeNull();
     });
@@ -55,7 +56,7 @@ describe('CardMatcher', () => {
 
       items = [nonDivinationCard];
 
-      const result = matcher.matchCard(items, 'The Doctor');
+      const result = matcher.findCardPrice(items, 'The Doctor');
 
       expect(result).toBeNull();
     });
@@ -69,13 +70,13 @@ describe('CardMatcher', () => {
       currency = [currencyItem];
       items = [];
 
-      const result = matcher.matchCard(items, 'The Doctor');
+      const result = matcher.findCardPrice(items, 'The Doctor');
 
       expect(result).toBeNull();
     });
   });
 
-  describe('matchReward - item cards', () => {
+  describe('findRewardPrice - item cards', () => {
     it('should match item with exact criteria', () => {
       const targetItem: ItemOverview = {
         name: 'Headhunter',
@@ -89,19 +90,14 @@ describe('CardMatcher', () => {
 
       items = [targetItem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Doctor',
-        reward: 'Headhunter',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Doctor', 'Headhunter', {
+        iClass: 2,
+        corrupted: false,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(targetItem);
     });
@@ -119,19 +115,14 @@ describe('CardMatcher', () => {
 
       items = [corruptedItem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Fiend',
-        reward: 'Headhunter',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: true,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Fiend', 'Headhunter', {
+        iClass: 2,
+        corrupted: true,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(corruptedItem);
     });
@@ -149,19 +140,14 @@ describe('CardMatcher', () => {
 
       items = [linkedItem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Chains that Bind',
-        reward: 'Six-Link Chest',
-        rewardSpec: {
-          iClass: 1,
-          corrupted: false,
-          links: 6,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Chains that Bind', 'Six-Link Chest', {
+        iClass: 1,
+        corrupted: false,
+        links: 6,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(linkedItem);
     });
@@ -179,19 +165,14 @@ describe('CardMatcher', () => {
 
       items = [gem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Wretched',
-        reward: 'Awakened Added Fire Damage Support',
-        rewardSpec: {
-          iClass: 4,
-          corrupted: false,
-          links: 0,
-          gemLevel: 5,
-        },
-      };
+      const cardDetails = new ItemCard('The Wretched', 'Awakened Added Fire Damage Support', {
+        iClass: 4,
+        corrupted: false,
+        links: 0,
+        gemLevel: 5,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(gem);
     });
@@ -209,19 +190,14 @@ describe('CardMatcher', () => {
 
       items = [item];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Doctor',
-        reward: 'Headhunter',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Doctor', 'Headhunter', {
+        iClass: 2,
+        corrupted: false,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -249,19 +225,14 @@ describe('CardMatcher', () => {
 
       items = [item1, item2];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Doctor',
-        reward: 'Headhunter',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Doctor', 'Headhunter', {
+        iClass: 2,
+        corrupted: false,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -279,19 +250,14 @@ describe('CardMatcher', () => {
 
       items = [normalItem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Fiend',
-        reward: 'Headhunter',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: true,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Fiend', 'Headhunter', {
+        iClass: 2,
+        corrupted: true,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -309,19 +275,14 @@ describe('CardMatcher', () => {
 
       items = [fiveLinkItem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Chains that Bind',
-        reward: 'Chest Armor',
-        rewardSpec: {
-          iClass: 1,
-          corrupted: false,
-          links: 6,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('The Chains that Bind', 'Chest Armor', {
+        iClass: 1,
+        corrupted: false,
+        links: 6,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -339,19 +300,14 @@ describe('CardMatcher', () => {
 
       items = [lowLevelGem];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'The Wretched',
-        reward: 'Awakened Added Fire Damage Support',
-        rewardSpec: {
-          iClass: 4,
-          corrupted: false,
-          links: 0,
-          gemLevel: 5,
-        },
-      };
+      const cardDetails = new ItemCard('The Wretched', 'Awakened Added Fire Damage Support', {
+        iClass: 4,
+        corrupted: false,
+        links: 0,
+        gemLevel: 5,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -366,19 +322,14 @@ describe('CardMatcher', () => {
 
       items = [item];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'Test Card',
-        reward: 'Simple Item',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('Test Card', 'Simple Item', {
+        iClass: 2,
+        corrupted: false,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(item);
     });
@@ -392,25 +343,20 @@ describe('CardMatcher', () => {
       currency = [currencyItem];
       items = [];
 
-      const cardDetails: ItemCard = {
-        type: 'item',
-        name: 'Test Card',
-        reward: 'Chaos Orb',
-        rewardSpec: {
-          iClass: 5,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const cardDetails = new ItemCard('Test Card', 'Chaos Orb', {
+        iClass: 5,
+        corrupted: false,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
   });
 
-  describe('matchReward - currency cards', () => {
+  describe('findRewardPrice - currency cards', () => {
     it('should match currency by currencyTypeName', () => {
       const currencyItem: CurrencyItem = {
         currencyTypeName: 'Exalted Orb',
@@ -423,16 +369,11 @@ describe('CardMatcher', () => {
       currency = [currencyItem];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'The Hoarder',
-        reward: 'Exalted Orb',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('The Hoarder', 'Exalted Orb', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(currencyItem);
     });
@@ -446,16 +387,11 @@ describe('CardMatcher', () => {
       currency = [chaosOrb];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'Three Faces in the Dark',
-        reward: 'Chaos Orb',
-        rewardSpec: {
-          amount: 3,
-        },
-      };
+      const cardDetails = new CurrencyCard('Three Faces in the Dark', 'Chaos Orb', {
+        amount: 3,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(chaosOrb);
     });
@@ -472,16 +408,11 @@ describe('CardMatcher', () => {
       currency = [divineOrb];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'The Apothecary',
-        reward: 'Divine Orb',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('The Apothecary', 'Divine Orb', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(divineOrb);
     });
@@ -495,16 +426,11 @@ describe('CardMatcher', () => {
       currency = [otherCurrency];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'Test Card',
-        reward: 'Exalted Orb',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('Test Card', 'Exalted Orb', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -520,16 +446,11 @@ describe('CardMatcher', () => {
       items = [regularItem];
       currency = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'Test Card',
-        reward: 'Exalted Orb',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('Test Card', 'Exalted Orb', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toBeNull();
     });
@@ -553,16 +474,11 @@ describe('CardMatcher', () => {
       items = [regularItem];
       currency = [currencyItem];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'The Hoarder',
-        reward: 'Exalted Orb',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('The Hoarder', 'Exalted Orb', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(currencyItem);
     });
@@ -576,16 +492,11 @@ describe('CardMatcher', () => {
       currency = [chaosOrb];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'Three Faces in the Dark',
-        reward: 'Chaos Orb',
-        rewardSpec: {
-          amount: 3,
-        },
-      };
+      const cardDetails = new CurrencyCard('Three Faces in the Dark', 'Chaos Orb', {
+        amount: 3,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(chaosOrb);
     });
@@ -602,16 +513,11 @@ describe('CardMatcher', () => {
       currency = [mirrorOfKalandra];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'House of Mirrors',
-        reward: 'Mirror of Kalandra',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('House of Mirrors', 'Mirror of Kalandra', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(mirrorOfKalandra);
     });
@@ -630,16 +536,11 @@ describe('CardMatcher', () => {
       currency = [currency1, currency2];
       items = [];
 
-      const cardDetails: CurrencyCard = {
-        type: 'currency',
-        name: 'The Hoarder',
-        reward: 'Exalted Orb',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const cardDetails = new CurrencyCard('The Hoarder', 'Exalted Orb', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, cardDetails);
+      const result = matcher.findRewardPrice(items, currency, cardDetails);
 
       expect(result).toEqual(currency1);
     });
@@ -660,19 +561,14 @@ describe('CardMatcher', () => {
       items = [item];
       currency = [];
 
-      const itemCard: ItemCard = {
-        type: 'item',
-        name: 'Test Card',
-        reward: 'Test Item',
-        rewardSpec: {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        },
-      };
+      const itemCard = new ItemCard('Test Card', 'Test Item', {
+        iClass: 2,
+        corrupted: false,
+        links: 0,
+        gemLevel: 0,
+      });
 
-      const result = matcher.matchReward(items, currency, itemCard);
+      const result = matcher.findRewardPrice(items, currency, itemCard);
 
       expect(result).toEqual(item);
     });
@@ -686,16 +582,11 @@ describe('CardMatcher', () => {
       currency = [currencyItem];
       items = [];
 
-      const currencyCard: CurrencyCard = {
-        type: 'currency',
-        name: 'Test Card',
-        reward: 'Test Currency',
-        rewardSpec: {
-          amount: 1,
-        },
-      };
+      const currencyCard = new CurrencyCard('Test Card', 'Test Currency', {
+        amount: 1,
+      });
 
-      const result = matcher.matchReward(items, currency, currencyCard);
+      const result = matcher.findRewardPrice(items, currency, currencyCard);
 
       expect(result).toEqual(currencyItem);
     });
