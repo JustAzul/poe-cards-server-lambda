@@ -40,7 +40,7 @@ export interface IProfitCalculationService {
     card: Card
   ): FlipTableRowDto | null;
 
-  generateFlipTable(
+  buildFlipTable(
     leagueData: LeagueData,
     cards: Card[]
   ): FlipTableRowDto[];
