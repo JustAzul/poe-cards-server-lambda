@@ -122,7 +122,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
       : rewardOverview.name;
 
     return {
-      Card: {
+      card: {
         name: cardOverview.name,
         stack: stackSize,
         chaosPrice: parseInt(String(cardOverview.chaosValue), 10),
@@ -171,7 +171,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
       : card.reward;
 
     return {
-      Card: {
+      card: {
         name: card.name,
         stack: stackSize,
         chaosPrice: parseInt(String(cardOverview.chaosValue), 10),

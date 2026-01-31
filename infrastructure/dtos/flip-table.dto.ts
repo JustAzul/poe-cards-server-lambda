@@ -1,6 +1,6 @@
 // Output DTO - Flip table row result (external representation for API/infrastructure)
 export interface FlipTableRowDto {
-  Card: {
+  card: {
     name: string;
     stack: number;
     chaosPrice: number;
