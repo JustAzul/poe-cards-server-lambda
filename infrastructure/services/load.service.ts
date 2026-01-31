@@ -2,13 +2,11 @@
 
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 
 // Application services
 import { StorageService } from '@application/services/storage.service';
-
-// Interfaces
-import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
 
 /**
  * Service responsible for loading processed data into storage
@@ -30,7 +28,7 @@ export class LoadService {
   async loadLeague(
     league: LeagueEntity,
     flipTable: FlipTableRowDto[],
-    currency: CurrencyOverview[],
+    currency: CurrencyItem[],
     timestamp: string,
   ): Promise<void> {
     console.log(`Loading data for league: ${league.name}`);

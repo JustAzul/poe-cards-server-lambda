@@ -1,8 +1,8 @@
 import { LeagueEntity } from '@domain/entities/league.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import {
   IDataStorageRepository,
-  CurrencyOverview,
 } from '@domain/repositories/interfaces/data-storage.repository.interface';
 
 /**
@@ -12,7 +12,7 @@ import {
 export class InMemoryDataStorageRepository implements IDataStorageRepository {
   private leagues: LeagueEntity[] | null = null;
   private flipTables: Record<string, FlipTableRowDto[]> | null = null;
-  private currency: Record<string, CurrencyOverview[]> | null = null;
+  private currency: Record<string, CurrencyItem[]> | null = null;
   private timestamps: Record<string, string> | null = null;
 
   async setLeagues(leagues: LeagueEntity[]): Promise<void> {
@@ -31,11 +31,11 @@ export class InMemoryDataStorageRepository implements IDataStorageRepository {
     return this.flipTables;
   }
 
-  async setCurrencyData(currency: Record<string, CurrencyOverview[]>): Promise<void> {
+  async setCurrencyData(currency: Record<string, CurrencyItem[]>): Promise<void> {
     this.currency = currency;
   }
 
-  async getCurrencyData(): Promise<Record<string, CurrencyOverview[]> | null> {
+  async getCurrencyData(): Promise<Record<string, CurrencyItem[]> | null> {
     return this.currency;
   }
 
