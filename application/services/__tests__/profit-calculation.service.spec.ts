@@ -1,26 +1,28 @@
-import { ICardMatcher, LeagueData } from '@application/interfaces/services.interface';
+import { ICardPriceResolver, LeagueData } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { ItemCard, CurrencyCard, Card } from '@domain/entities/card.entity';
-import { ProfitCalculationService } from '../profit-calculation.service';
+import { Card } from '@domain/entities/card.base.entity';
+import { ItemCard } from '@domain/entities/item-card.entity';
+import { CurrencyCard } from '@domain/entities/currency-card.entity';
+import { ArbitrageEvaluator } from '../profit-calculation.service';
 
-describe('ProfitCalculationService', () => {
-  let service: ProfitCalculationService;
-  let mockCardMatcher: jest.Mocked<ICardMatcher>;
+describe('ArbitrageEvaluator', () => {
+  let service: ArbitrageEvaluator;
+  let mockPriceResolver: jest.Mocked<ICardPriceResolver>;
   let leagueData: LeagueData;
 
   beforeEach(() => {
-    mockCardMatcher = {
-      matchCard: jest.fn(),
-      matchReward: jest.fn(),
+    mockPriceResolver = {
+      findCardPrice: jest.fn(),
+      findRewardPrice: jest.fn(),
     };
-    service = new ProfitCalculationService(mockCardMatcher);
+    service = new ArbitrageEvaluator(mockPriceResolver);
     leagueData = { items: [], currency: [] };
   });
 
-  describe('calculateCardProfit', () => {
+  describe('evaluateCardArbitrage', () => {
     describe('item cards', () => {
-      it('should calculate profit for valid item card', () => {
+      it('should evaluate arbitrage for valid item card', () => {
         const leagueData: LeagueData = { items: [], currency: [] };
 
         const cardOverview: ItemOverview = {
@@ -40,35 +42,32 @@ describe('ProfitCalculationService', () => {
           count: 20,
         };
 
-        const card: ItemCard = {
-          type: 'item',
-          name: 'The Doctor',
-          reward: 'Headhunter',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        };
+        const card = new ItemCard('The Doctor', 'Headhunter', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(mockCardMatcher.matchCard).toHaveBeenCalledWith(leagueData.items, card.name);
-        expect(mockCardMatcher.matchReward).toHaveBeenCalledWith(
+        expect(mockPriceResolver.findCardPrice).toHaveBeenCalledWith(leagueData.items, card.name);
+        expect(mockPriceResolver.findRewardPrice).toHaveBeenCalledWith(
           leagueData.items,
           leagueData.currency,
           card,
         );
         expect(result).toBeDefined();
-        expect(result?.card.name).toBe('The Doctor');
-        expect(result?.card.stack).toBe(8);
-        expect(result?.card.chaosPrice).toBe(500);
-        expect(result?.reward.name).toBe('Headhunter');
-        expect(result?.reward.chaosPrice).toBe(5000);
+        expect(result?.cardName).toBe('The Doctor');
+        expect(result?.cardStack).toBe(8);
+        expect(result?.cardChaosPrice).toBe(500);
+        expect(result?.rewardName).toBe('Headhunter');
+        expect(result?.rewardChaosPrice).toBe(5000);
+        expect(result?.cardArtFilename).toBe('doctor.png');
+        expect(result?.cardFlavourText).toBe('You are the Disease');
         expect(result?.setChaosPrice).toBe(4000); // 8 * 500
         expect(result?.chaosProfit).toBe(1000); // 5000 - 4000
         expect(result?.isCurrency).toBe(false);
@@ -91,24 +90,19 @@ describe('ProfitCalculationService', () => {
           gemLevel: 5,
         };
 
-        const card: ItemCard = {
-          type: 'item',
-          name: 'The Wretched',
-          reward: 'Awakened Added Fire Damage Support',
-          rewardSpec: {
-            iClass: 4,
-            corrupted: false,
-            links: 0,
-            gemLevel: 5,
-          },
-        };
+        const card = new ItemCard('The Wretched', 'Awakened Added Fire Damage Support', {
+          iClass: 4,
+          corrupted: false,
+          links: 0,
+          gemLevel: 5,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(result?.reward.name).toBe('Level 5 Awakened Added Fire Damage Support');
+        expect(result?.rewardName).toBe('Level 5 Awakened Added Fire Damage Support');
       });
 
       it('should return null when card count below minimum trust', () => {
@@ -126,22 +120,17 @@ describe('ProfitCalculationService', () => {
           count: 20,
         };
 
-        const card: ItemCard = {
-          type: 'item',
-          name: 'Test Card',
-          reward: 'Test Item',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        };
+        const card = new ItemCard('Test Card', 'Test Item', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
@@ -161,43 +150,33 @@ describe('ProfitCalculationService', () => {
           count: 5, // Below MIN_TRUST_COUNT
         };
 
-        const card: ItemCard = {
-          type: 'item',
-          name: 'Test Card',
-          reward: 'Test Item',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        };
+        const card = new ItemCard('Test Card', 'Test Item', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
 
       it('should return null when card not found', () => {
-        const card: ItemCard = {
-          type: 'item',
-          name: 'Missing Card',
-          reward: 'Test Item',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        };
+        const card = new ItemCard('Missing Card', 'Test Item', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(null);
-        mockCardMatcher.matchReward.mockReturnValue(null);
+        mockPriceResolver.findCardPrice.mockReturnValue(null);
+        mockPriceResolver.findRewardPrice.mockReturnValue(null);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
@@ -210,22 +189,17 @@ describe('ProfitCalculationService', () => {
           count: 20,
         };
 
-        const card: ItemCard = {
-          type: 'item',
-          name: 'Test Card',
-          reward: 'Missing Item',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        };
+        const card = new ItemCard('Test Card', 'Missing Item', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(null);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(null);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
@@ -249,24 +223,19 @@ describe('ProfitCalculationService', () => {
           },
         };
 
-        const card: CurrencyCard = {
-          type: 'currency',
-          name: 'The Hoarder',
-          reward: 'Exalted Orb',
-          rewardSpec: {
-            amount: 1,
-          },
-        };
+        const card = new CurrencyCard('The Hoarder', 'Exalted Orb', {
+          amount: 1,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeDefined();
-        expect(result?.card.name).toBe('The Hoarder');
-        expect(result?.reward.name).toBe('Exalted Orb');
-        expect(result?.reward.chaosPrice).toBe(150);
+        expect(result?.cardName).toBe('The Hoarder');
+        expect(result?.rewardName).toBe('Exalted Orb');
+        expect(result?.rewardChaosPrice).toBe(150);
         expect(result?.setChaosPrice).toBe(24); // 12 * 2
         expect(result?.chaosProfit).toBe(126); // 150 - 24
         expect(result?.isCurrency).toBe(true);
@@ -286,22 +255,17 @@ describe('ProfitCalculationService', () => {
           chaosEquivalent: 1,
         };
 
-        const card: CurrencyCard = {
-          type: 'currency',
-          name: 'Three Faces in the Dark',
-          reward: 'Chaos Orb',
-          rewardSpec: {
-            amount: 3,
-          },
-        };
+        const card = new CurrencyCard('Three Faces in the Dark', 'Chaos Orb', {
+          amount: 3,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(result?.reward.name).toBe('3x Chaos Orb');
-        expect(result?.reward.chaosPrice).toBe(3);
+        expect(result?.rewardName).toBe('3x Chaos Orb');
+        expect(result?.rewardChaosPrice).toBe(3);
       });
 
       it('should handle Chaos Orb as always trusted', () => {
@@ -318,22 +282,17 @@ describe('ProfitCalculationService', () => {
           // No receive data - should still pass for Chaos Orb
         };
 
-        const card: CurrencyCard = {
-          type: 'currency',
-          name: 'Test Card',
-          reward: 'Chaos Orb',
-          rewardSpec: {
-            amount: 2,
-          },
-        };
+        const card = new CurrencyCard('Test Card', 'Chaos Orb', {
+          amount: 2,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeDefined();
-        expect(result?.reward.chaosPrice).toBe(2);
+        expect(result?.rewardChaosPrice).toBe(2);
       });
 
       it('should return null when card count below minimum trust', () => {
@@ -350,19 +309,14 @@ describe('ProfitCalculationService', () => {
           receive: { count: 50 },
         };
 
-        const card: CurrencyCard = {
-          type: 'currency',
-          name: 'Test Card',
-          reward: 'Exalted Orb',
-          rewardSpec: {
-            amount: 1,
-          },
-        };
+        const card = new CurrencyCard('Test Card', 'Exalted Orb', {
+          amount: 1,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
@@ -381,27 +335,22 @@ describe('ProfitCalculationService', () => {
           receive: { count: 5 }, // Below MIN_TRUST_COUNT
         };
 
-        const card: CurrencyCard = {
-          type: 'currency',
-          name: 'Test Card',
-          reward: 'Exalted Orb',
-          rewardSpec: {
-            amount: 1,
-          },
-        };
+        const card = new CurrencyCard('Test Card', 'Exalted Orb', {
+          amount: 1,
+        });
 
-        mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-        mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-        const result = service.calculateCardProfit(leagueData, card);
+        const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
     });
   });
 
-  describe('generateFlipTable', () => {
-    it('should generate flip table for multiple cards', () => {
+  describe('findAllArbitrageOpportunities', () => {
+    it('should find all profitable opportunities for multiple cards', () => {
       const leagueData: LeagueData = { items: [], currency: [] };
 
       const card1Overview: ItemOverview = {
@@ -433,39 +382,29 @@ describe('ProfitCalculationService', () => {
       };
 
       const cards: Card[] = [
-        {
-          type: 'item',
-          name: 'Card 1',
-          reward: 'Item 1',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        },
-        {
-          type: 'currency',
-          name: 'Card 2',
-          reward: 'Chaos Orb',
-          rewardSpec: {
-            amount: 2,
-          },
-        },
+        new ItemCard('Card 1', 'Item 1', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        }),
+        new CurrencyCard('Card 2', 'Chaos Orb', {
+          amount: 2,
+        }),
       ];
 
-      mockCardMatcher.matchCard
+      mockPriceResolver.findCardPrice
         .mockReturnValueOnce(card1Overview)
         .mockReturnValueOnce(card2Overview);
 
-      mockCardMatcher.matchReward
+      mockPriceResolver.findRewardPrice
         .mockReturnValueOnce(card1Reward)
         .mockReturnValueOnce(card2Reward);
 
-      const result = service.buildFlipTable(leagueData, cards);
+      const result = service.findAllArbitrageOpportunities(leagueData, cards);
 
       expect(result).toHaveLength(1); // Only card 1 is profitable (100 - 10 = 90)
-      expect(result[0].card.name).toBe('Card 1');
+      expect(result[0].cardName).toBe('Card 1');
       expect(result[0].chaosProfit).toBeGreaterThan(0);
     });
 
@@ -486,52 +425,42 @@ describe('ProfitCalculationService', () => {
       };
 
       const cards: Card[] = [
-        {
-          type: 'item',
-          name: 'Unprofitable Card',
-          reward: 'Low Value Item',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        },
+        new ItemCard('Unprofitable Card', 'Low Value Item', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        }),
       ];
 
-      mockCardMatcher.matchCard.mockReturnValue(cardOverview);
-      mockCardMatcher.matchReward.mockReturnValue(rewardOverview);
+      mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
+      mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
 
-      const result = service.buildFlipTable(leagueData, cards);
+      const result = service.findAllArbitrageOpportunities(leagueData, cards);
 
       expect(result).toHaveLength(0);
     });
 
     it('should filter out cards with missing matches', () => {
       const cards: Card[] = [
-        {
-          type: 'item',
-          name: 'Missing Card',
-          reward: 'Missing Item',
-          rewardSpec: {
-            iClass: 2,
-            corrupted: false,
-            links: 0,
-            gemLevel: 0,
-          },
-        },
+        new ItemCard('Missing Card', 'Missing Item', {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        }),
       ];
 
-      mockCardMatcher.matchCard.mockReturnValue(null);
-      mockCardMatcher.matchReward.mockReturnValue(null);
+      mockPriceResolver.findCardPrice.mockReturnValue(null);
+      mockPriceResolver.findRewardPrice.mockReturnValue(null);
 
-      const result = service.buildFlipTable(leagueData, cards);
+      const result = service.findAllArbitrageOpportunities(leagueData, cards);
 
       expect(result).toHaveLength(0);
     });
 
     it('should return empty array for empty cards array', () => {
-      const result = service.buildFlipTable(leagueData, []);
+      const result = service.findAllArbitrageOpportunities(leagueData, []);
 
       expect(result).toEqual([]);
     });
