@@ -3,37 +3,39 @@
 // Domain entities and types
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.entity';
-import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
+import { Card } from '@domain/entities/card.base.entity';
+import { Arbitrage } from '@domain/models/arbitrage';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
+import { ArbitrageMapper } from '@infrastructure/mappers/arbitrage.mapper';
 
 // Interfaces
-import { IProfitCalculationService } from '@application/interfaces/services.interface';
+import { IArbitrageEvaluator } from '@application/interfaces/services.interface';
 
 /**
  * Result of transforming a single league
  */
 export interface SingleLeagueTransformResult {
-  flipTable: FlipTableRowDto[];
+  profitTable: ProfitTableRowDto[];
   currency: CurrencyItem[];
 }
 
 /**
  * Service responsible for transforming raw league data
- * Processes raw data into structured flip tables and currency results
+ * Processes raw data into structured arbitrage opportunities and currency results
  */
 export class TransformService {
   constructor(
-    private readonly profitCalculationService: IProfitCalculationService,
+    private readonly arbitrageEvaluator: IArbitrageEvaluator,
   ) {}
 
   /**
-   * Transform a single league's data into flip table and currency results
+   * Transform a single league's data into profit table and currency results
    *
    * @param leagueName - Name of the league being processed
    * @param items - Raw item data for the league
    * @param currencyItems - Raw currency data for the league
    * @param cards - Divination cards to process
-   * @returns Transformed flip table and currency for the league
+   * @returns Transformed profit table and currency for the league
    */
   transform(
     leagueName: string,
@@ -44,8 +46,18 @@ export class TransformService {
     console.log(`Transforming data for league: ${leagueName}`);
 
     const leagueData = { items, currency: currencyItems };
-    const flipTable = this.profitCalculationService.buildFlipTable(leagueData, cards);
 
-    return { flipTable, currency: currencyItems };
+    // Application layer returns domain models
+    const domainResults: Arbitrage[] = this.arbitrageEvaluator.findAllArbitrageOpportunities(
+      leagueData,
+      cards,
+    );
+
+    // Infrastructure layer maps domain → DTO at architectural boundary
+    const profitTable: ProfitTableRowDto[] = domainResults.map(
+      (result) => ArbitrageMapper.toDto(result),
+    );
+
+    return { profitTable, currency: currencyItems };
   }
 }
