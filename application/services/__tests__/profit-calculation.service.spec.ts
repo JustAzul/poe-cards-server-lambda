@@ -64,9 +64,9 @@ describe('ProfitCalculationService', () => {
           card,
         );
         expect(result).toBeDefined();
-        expect(result?.Card.name).toBe('The Doctor');
-        expect(result?.Card.stack).toBe(8);
-        expect(result?.Card.chaosPrice).toBe(500);
+        expect(result?.card.name).toBe('The Doctor');
+        expect(result?.card.stack).toBe(8);
+        expect(result?.card.chaosPrice).toBe(500);
         expect(result?.reward.name).toBe('Headhunter');
         expect(result?.reward.chaosPrice).toBe(5000);
         expect(result?.setChaosPrice).toBe(4000); // 8 * 500
@@ -264,7 +264,7 @@ describe('ProfitCalculationService', () => {
         const result = service.calculateCardProfit(leagueData, card);
 
         expect(result).toBeDefined();
-        expect(result?.Card.name).toBe('The Hoarder');
+        expect(result?.card.name).toBe('The Hoarder');
         expect(result?.reward.name).toBe('Exalted Orb');
         expect(result?.reward.chaosPrice).toBe(150);
         expect(result?.setChaosPrice).toBe(24); // 12 * 2
@@ -465,7 +465,7 @@ describe('ProfitCalculationService', () => {
       const result = service.buildFlipTable(leagueData, cards);
 
       expect(result).toHaveLength(1); // Only card 1 is profitable (100 - 10 = 90)
-      expect(result[0].Card.name).toBe('Card 1');
+      expect(result[0].card.name).toBe('Card 1');
       expect(result[0].chaosProfit).toBeGreaterThan(0);
     });
 
