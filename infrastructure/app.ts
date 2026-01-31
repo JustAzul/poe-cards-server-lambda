@@ -1,12 +1,13 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 
 // Repositories
-import { leagueRepository as defaultLeagueRepository } from '@infrastructure/repositories/league.repository';
-import { cardRepository as defaultCardRepository } from '@infrastructure/repositories/card.repository';
+import { leagueRepository as _leagueRepository } from '@infrastructure/repositories/league.repository';
+import { cardRepository as _cardRepository } from '@infrastructure/repositories/card.repository';
 
 // Services
-import { profitCalculationService as defaultProfitCalculationService } from '@application/services/profit-calculation.service';
-import { leagueService as defaultLeagueService } from '@infrastructure/services/league.service';
+import { arbitrageEvaluator as _arbitrageEvaluator } from '@application/services/profit-calculation.service';
+import { leagueService as _leagueService } from '@infrastructure/services/league.service';
 import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';
 import { LoadService } from '@infrastructure/services/load.service';
@@ -23,14 +24,14 @@ export class App {
 
     // eslint-disable-next-line no-restricted-syntax
     for await (const { league, data } of this.extractService.extract()) {
-      const { flipTable, currency: currencyData } = this.transformService.transform(
+      const { profitTable, currency: currencyData } = this.transformService.transform(
         league.name,
         data.items,
         data.currency,
         data.cards,
       );
 
-      await this.loadService.load(league, flipTable, currencyData, data.timestamp);
+      await this.loadService.load(league, profitTable, currencyData, data.timestamp);
       console.log(`Successfully processed league: ${league.name}`);
     }
 
@@ -38,20 +39,20 @@ export class App {
   }
 }
 
-const defaultExtractService = new ExtractService(
-  defaultLeagueRepository,
-  defaultCardRepository,
-  defaultLeagueService,
+const _extractService = new ExtractService(
+  _leagueRepository,
+  _cardRepository,
+  _leagueService,
 );
 
-const defaultTransformService = new TransformService(
-  defaultProfitCalculationService,
+const _transformService = new TransformService(
+  _arbitrageEvaluator,
 );
 
-const defaultLoadService = new LoadService();
+const _loadService = new LoadService();
 
 export const app = new App(
-  defaultExtractService,
-  defaultTransformService,
-  defaultLoadService,
+  _extractService,
+  _transformService,
+  _loadService,
 );
