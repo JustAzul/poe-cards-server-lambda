@@ -12,37 +12,26 @@ import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';
 import { LoadService } from '@infrastructure/services/load.service';
 
-// Interfaces
-import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
-
 export class App {
   constructor(
     private readonly extractService: ExtractService,
     private readonly transformService: TransformService,
     private readonly loadService: LoadService,
-    private readonly cardRepository: ICardRepository,
   ) {}
 
   async execute(): Promise<void> {
     console.log('Starting ETL pipeline with incremental processing...');
 
-    const cards = this.cardRepository.getAllCards();
-
     // eslint-disable-next-line no-restricted-syntax
-    for await (const {
-      league,
-      items,
-      currency,
-      timestamp,
-    } of this.extractService.extract()) {
+    for await (const { league, data } of this.extractService.extract()) {
       const { flipTable, currency: currencyData } = this.transformService.transformLeague(
         league.name,
-        items,
-        currency,
-        cards,
+        data.items,
+        data.currency,
+        data.cards,
       );
 
-      await this.loadService.loadLeague(league, flipTable, currencyData, timestamp);
+      await this.loadService.loadLeague(league, flipTable, currencyData, data.timestamp);
       console.log(`Successfully processed league: ${league.name}`);
     }
 
@@ -52,6 +41,7 @@ export class App {
 
 const defaultExtractService = new ExtractService(
   defaultLeagueRepository,
+  defaultCardRepository,
   defaultLeagueService,
 );
 
@@ -67,5 +57,4 @@ export const app = new App(
   defaultExtractService,
   defaultTransformService,
   defaultLoadService,
-  defaultCardRepository,
 );
