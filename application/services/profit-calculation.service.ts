@@ -70,7 +70,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
   /**
    * Generate complete flip table for all cards
    */
-  generateFlipTable(
+  buildFlipTable(
     leagueData: LeagueData,
     cards: Card[],
   ): FlipTableRowDto[] {
