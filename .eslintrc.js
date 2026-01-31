@@ -40,6 +40,8 @@ module.exports = {
         'no-empty-function': ['error', { allow: ['constructors'] }],
         // Disable import resolution for TypeScript (tsc handles this)
         'import/no-unresolved': 'off',
+        // Allow named exports without default export
+        'import/prefer-default-export': 'off',
       },
     },
   ],
