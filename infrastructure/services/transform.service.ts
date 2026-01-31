@@ -44,7 +44,7 @@ export class TransformService {
     console.log(`Transforming data for league: ${leagueName}`);
 
     const leagueData = { items, currency: currencyItems };
-    const flipTable = this.profitCalculationService.generateFlipTable(leagueData, cards);
+    const flipTable = this.profitCalculationService.buildFlipTable(leagueData, cards);
 
     return { flipTable, currency: currencyItems };
   }
