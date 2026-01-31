@@ -35,7 +35,7 @@ export class TransformService {
    * @param cards - Divination cards to process
    * @returns Transformed flip table and currency for the league
    */
-  transformLeague(
+  transform(
     leagueName: string,
     items: ItemOverview[],
     currencyItems: CurrencyItem[],
