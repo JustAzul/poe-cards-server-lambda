@@ -7,7 +7,6 @@ import { cardRepository as defaultCardRepository } from '@infrastructure/reposit
 // Services
 import { profitCalculationService as defaultProfitCalculationService } from '@application/services/profit-calculation.service';
 import { leagueService as defaultLeagueService } from '@infrastructure/services/league.service';
-import { storageService as defaultStorageService } from '@application/services/storage.service';
 import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';
 import { LoadService } from '@infrastructure/services/load.service';
@@ -24,14 +23,14 @@ export class App {
 
     // eslint-disable-next-line no-restricted-syntax
     for await (const { league, data } of this.extractService.extract()) {
-      const { flipTable, currency: currencyData } = this.transformService.transformLeague(
+      const { flipTable, currency: currencyData } = this.transformService.transform(
         league.name,
         data.items,
         data.currency,
         data.cards,
       );
 
-      await this.loadService.loadLeague(league, flipTable, currencyData, data.timestamp);
+      await this.loadService.load(league, flipTable, currencyData, data.timestamp);
       console.log(`Successfully processed league: ${league.name}`);
     }
 
@@ -49,9 +48,7 @@ const defaultTransformService = new TransformService(
   defaultProfitCalculationService,
 );
 
-const defaultLoadService = new LoadService(
-  defaultStorageService,
-);
+const defaultLoadService = new LoadService();
 
 export const app = new App(
   defaultExtractService,

@@ -45,9 +45,3 @@ export interface IProfitCalculationService {
     cards: Card[]
   ): FlipTableRowDto[];
 }
-
-// Price conversion service
-export interface IPriceConversionService {
-  convertChaosToExalted(chaosValue: number, exaltedChaosEquivalent: number): number;
-  getExaltedValue(leagueData: Array<ItemOverview | CurrencyItem>): number;
-}
