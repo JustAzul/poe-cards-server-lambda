@@ -1,6 +1,6 @@
 import {
   IProfitCalculationService,
-  ICardMatchingService,
+  ICardMatcher,
 } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
@@ -9,18 +9,19 @@ import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
 import { ICurrencyCardRepository } from '@domain/repositories/interfaces/currency-card.repository.interface';
 
-// Default implementations
-import { cardRepository as defaultCardRepository } from '@infrastructure/repositories/card.repository';
-import { currencyCardRepository as defaultCurrencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
-import { cardMatchingService as defaultCardMatchingService } from '@application/services/card-matching.service';
+// Default instance with concrete dependencies
+import { cardRepository as _cardRepository } from '@infrastructure/repositories/card.repository';
+import { currencyCardRepository as _currencyCardRepository } from '@infrastructure/repositories/currency-card.repository';
+import { exactItemMatcher, exactCurrencyMatcher } from '@application/services/matchers';
 
 export class ProfitCalculationService implements IProfitCalculationService {
   private readonly MIN_TRUST_COUNT = 10;
 
   constructor(
-    private readonly cardRepository: ICardRepository = defaultCardRepository,
-    private readonly currencyCardRepository: ICurrencyCardRepository = defaultCurrencyCardRepository,
-    private readonly cardMatchingService: ICardMatchingService = defaultCardMatchingService,
+    private readonly cardRepository: ICardRepository,
+    private readonly currencyCardRepository: ICurrencyCardRepository,
+    private readonly itemMatcher: ICardMatcher,
+    private readonly currencyMatcher: ICardMatcher,
   ) {}
 
   /**
@@ -31,20 +32,26 @@ export class ProfitCalculationService implements IProfitCalculationService {
     cardDetails: CardDetailsDto,
     isCurrency: boolean,
   ): FlipTableRowDto | null {
-    const matchResult = this.cardMatchingService.findCardMatch(leagueData, cardDetails, isCurrency);
+    const matcher = isCurrency ? this.currencyMatcher : this.itemMatcher;
+    const cardOverview = matcher.matchCard(leagueData, cardDetails.Name);
+    const rewardOverview = matcher.matchReward(leagueData, cardDetails);
 
-    if (!matchResult.isValid || !matchResult.cardOverview || !matchResult.rewardOverview) {
+    if (!cardOverview || !rewardOverview) {
       return null;
     }
 
     // Trust system: require minimum trade counts
-    if (!this.meetsMinimumTrust(matchResult.cardOverview, matchResult.rewardOverview, cardDetails, isCurrency)) {
+    if (!this.meetsMinimumTrust(cardOverview, rewardOverview, cardDetails, isCurrency)) {
       return null;
     }
 
     return isCurrency
-      ? this.buildCurrencyCardRow(matchResult.cardOverview, matchResult.rewardOverview as CurrencyItem, cardDetails)
-      : this.buildItemCardRow(matchResult.cardOverview, matchResult.rewardOverview as ItemOverview, cardDetails);
+      ? ProfitCalculationService.buildCurrencyCardRow(
+        cardOverview,
+        rewardOverview as CurrencyItem,
+        cardDetails,
+      )
+      : ProfitCalculationService.buildItemCardRow(cardOverview, rewardOverview as ItemOverview);
   }
 
   /**
@@ -116,10 +123,9 @@ export class ProfitCalculationService implements IProfitCalculationService {
     return true;
   }
 
-  private buildItemCardRow(
+  private static buildItemCardRow(
     cardOverview: ItemOverview,
     rewardOverview: ItemOverview,
-    cardDetails: CardDetailsDto,
   ): FlipTableRowDto | null {
     const rewardChaosValue = rewardOverview.chaosValue;
     const stackSize = cardOverview.stackSize ?? 1;
@@ -159,7 +165,7 @@ export class ProfitCalculationService implements IProfitCalculationService {
     };
   }
 
-  private buildCurrencyCardRow(
+  private static buildCurrencyCardRow(
     cardOverview: ItemOverview,
     rewardOverview: CurrencyItem,
     cardDetails: CardDetailsDto,
@@ -223,4 +229,9 @@ export class ProfitCalculationService implements IProfitCalculationService {
   }
 }
 
-export const profitCalculationService = new ProfitCalculationService();
+export const profitCalculationService = new ProfitCalculationService(
+  _cardRepository,
+  _currencyCardRepository,
+  exactItemMatcher,
+  exactCurrencyMatcher,
+);
