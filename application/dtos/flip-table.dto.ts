@@ -1,4 +1,4 @@
-// Input DTO - Card details from repository
+// Internal DTO - Card details from repository (matches config file structure)
 export interface CardDetailsDto {
   Name: string;
   Reward: string;

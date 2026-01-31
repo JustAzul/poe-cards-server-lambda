@@ -1,15 +1,4 @@
-// Input DTO - Card details from repository
-export interface CardDetailsDto {
-  name: string;
-  reward: string;
-  iClass?: number;
-  corrupted?: boolean;
-  links?: number;
-  gemLevel?: number;
-  amount?: number; // For currency cards
-}
-
-// Output DTO - Flip table row result
+// Output DTO - Flip table row result (external representation for API/infrastructure)
 export interface FlipTableRowDto {
   Card: {
     name: string;
