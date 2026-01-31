@@ -3,24 +3,32 @@ import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { Card } from '@domain/entities/card.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 
+/**
+ * Separated league data structure
+ * Items and currency kept in distinct arrays for type safety
+ */
+export interface LeagueData {
+  items: ItemOverview[];
+  currency: CurrencyItem[];
+}
+
 // Card matcher interface (Strategy Pattern)
 export interface ICardMatcher {
   /**
-   * Find matching divination card in league data
+   * Find matching divination card in items
    */
   matchCard(
-    leagueData: Array<ItemOverview | CurrencyItem>,
+    items: ItemOverview[],
     cardName: string
   ): ItemOverview | null;
 
   /**
    * Find matching reward in league data
-   * Note: Implementation specializes this method:
-   * - ExactItemMatcher uses ItemCard
-   * - ExactCurrencyMatcher uses CurrencyCard
+   * Uses card type discriminator to determine matching strategy
    */
   matchReward(
-    leagueData: Array<ItemOverview | CurrencyItem>,
+    items: ItemOverview[],
+    currency: CurrencyItem[],
     cardDetails: Card
   ): ItemOverview | CurrencyItem | null;
 }
@@ -28,12 +36,13 @@ export interface ICardMatcher {
 // Profit calculation service
 export interface IProfitCalculationService {
   calculateCardProfit(
-    leagueData: Array<ItemOverview | CurrencyItem>,
+    leagueData: LeagueData,
     card: Card
   ): FlipTableRowDto | null;
 
   generateFlipTable(
-    leagueData: Array<ItemOverview | CurrencyItem>
+    leagueData: LeagueData,
+    cards: Card[]
   ): FlipTableRowDto[];
 }
 
