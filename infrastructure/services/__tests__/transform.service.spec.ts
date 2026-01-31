@@ -40,7 +40,7 @@ describe('TransformService', () => {
       const mockFlipTable: FlipTableRowDto[] = [];
       mockProfitService.buildFlipTable.mockReturnValue(mockFlipTable);
 
-      service.transformLeague('Standard', items, currencyItems, cards);
+      service.transform('Standard', items, currencyItems, cards);
 
       expect(mockProfitService.buildFlipTable).toHaveBeenCalledWith(
         { items, currency: currencyItems },
@@ -67,7 +67,7 @@ describe('TransformService', () => {
 
       mockProfitService.buildFlipTable.mockReturnValue([]);
 
-      service.transformLeague('Standard', items, currencyItems, cards);
+      service.transform('Standard', items, currencyItems, cards);
 
       expect(mockProfitService.buildFlipTable).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -94,7 +94,7 @@ describe('TransformService', () => {
 
       mockProfitService.buildFlipTable.mockReturnValue([]);
 
-      const result = service.transformLeague('Standard', items, currencyItems, cards);
+      const result = service.transform('Standard', items, currencyItems, cards);
 
       expect(result.currency).toHaveLength(2);
       expect(result.currency[0]).toEqual({
@@ -114,7 +114,7 @@ describe('TransformService', () => {
 
       const mockFlipTable: FlipTableRowDto[] = [
         {
-          Card: {
+          card: {
             name: 'The Doctor',
             stack: 8,
             chaosPrice: 500,
@@ -140,7 +140,7 @@ describe('TransformService', () => {
 
       mockProfitService.buildFlipTable.mockReturnValue(mockFlipTable);
 
-      const result = service.transformLeague('Standard', items, currencyItems, cards);
+      const result = service.transform('Standard', items, currencyItems, cards);
 
       expect(result.flipTable).toEqual(mockFlipTable);
     });
@@ -157,7 +157,7 @@ describe('TransformService', () => {
 
       mockProfitService.buildFlipTable.mockReturnValue([]);
 
-      const result = service.transformLeague('Standard', items, currencyItems, cards);
+      const result = service.transform('Standard', items, currencyItems, cards);
 
       expect(result).toHaveProperty('flipTable');
       expect(result).toHaveProperty('currency');
@@ -172,7 +172,7 @@ describe('TransformService', () => {
 
       mockProfitService.buildFlipTable.mockReturnValue([]);
 
-      const result = service.transformLeague('Standard', items, currencyItems, cards);
+      const result = service.transform('Standard', items, currencyItems, cards);
 
       expect(result.flipTable).toEqual([]);
       expect(result.currency).toEqual([]);
