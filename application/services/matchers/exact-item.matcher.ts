@@ -1,7 +1,7 @@
 import { ICardMatcher } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { ItemCard } from '@domain/entities/card.entity';
 
 export class ExactItemMatcher implements ICardMatcher {
   private static readonly DIVINATION_CARD_CLASS = 6;
@@ -22,18 +22,18 @@ export class ExactItemMatcher implements ICardMatcher {
   // eslint-disable-next-line class-methods-use-this
   matchReward(
     leagueData: Array<ItemOverview | CurrencyItem>,
-    cardDetails: CardDetailsDto,
+    cardDetails: ItemCard,
   ): ItemOverview | null {
     const items = leagueData.filter(
       (item): item is ItemOverview => 'itemClass' in item,
     );
 
     const matches = items
-      .filter((item) => item.name === cardDetails.Reward
-        && item.itemClass === (cardDetails.iClass ?? 0))
-      .filter((item) => (item.corrupted ?? false) === (cardDetails.Corrupted ?? false))
-      .filter((item) => (item.links ?? 0) === (cardDetails.Links ?? 0))
-      .filter((item) => (item.gemLevel ?? 0) === (cardDetails.gemLevel ?? 0));
+      .filter((item) => item.name === cardDetails.reward
+        && item.itemClass === cardDetails.rewardSpec.iClass)
+      .filter((item) => (item.corrupted ?? false) === cardDetails.rewardSpec.corrupted)
+      .filter((item) => (item.links ?? 0) === cardDetails.rewardSpec.links)
+      .filter((item) => (item.gemLevel ?? 0) === cardDetails.rewardSpec.gemLevel);
 
     return matches.length === 1 ? matches[0] : null;
   }

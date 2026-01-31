@@ -1,7 +1,7 @@
 import { ExactCurrencyMatcher } from '../exact-currency.matcher';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { CurrencyCard } from '@domain/entities/card.entity';
 
 describe('ExactCurrencyMatcher', () => {
   let matcher: ExactCurrencyMatcher;
@@ -84,10 +84,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [currency];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Hoarder',
-        Reward: 'Exalted Orb',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'The Hoarder',
+        reward: 'Exalted Orb',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -103,10 +106,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [chaosOrb];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'Three Faces in the Dark',
-        Reward: 'Chaos Orb',
-        Amount: 3,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'Three Faces in the Dark',
+        reward: 'Chaos Orb',
+        rewardSpec: {
+          amount: 3,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -125,10 +131,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [divineOrb];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Apothecary',
-        Reward: 'Divine Orb',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'The Apothecary',
+        reward: 'Divine Orb',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -144,10 +153,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [otherCurrency];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'Test Card',
-        Reward: 'Exalted Orb',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'Test Card',
+        reward: 'Exalted Orb',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -165,10 +177,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [regularItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'Test Card',
-        Reward: 'Exalted Orb',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'Test Card',
+        reward: 'Exalted Orb',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -194,10 +209,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [regularItem, currency];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Hoarder',
-        Reward: 'Exalted Orb',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'The Hoarder',
+        reward: 'Exalted Orb',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -213,10 +231,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [currency];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'Three Faces in the Dark',
-        Reward: 'Chaos Orb',
-        Amount: 3,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'Three Faces in the Dark',
+        reward: 'Chaos Orb',
+        rewardSpec: {
+          amount: 3,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -235,10 +256,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [currency];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'House of Mirrors',
-        Reward: 'Mirror of Kalandra',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'House of Mirrors',
+        reward: 'Mirror of Kalandra',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -259,10 +283,13 @@ describe('ExactCurrencyMatcher', () => {
 
       mockLeagueData = [currency1, currency2];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Hoarder',
-        Reward: 'Exalted Orb',
-        Amount: 1,
+      const cardDetails: CurrencyCard = {
+        type: 'currency',
+        name: 'The Hoarder',
+        reward: 'Exalted Orb',
+        rewardSpec: {
+          amount: 1,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);

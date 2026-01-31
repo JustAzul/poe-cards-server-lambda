@@ -1,5 +1,5 @@
-import { CardEntity } from '@domain/entities/card.entity';
+import { Card } from '@domain/entities/card.entity';
 
 export interface ICardRepository {
-  getAllCards(): CardEntity[];
+  getAllCards(): Card[];
 }

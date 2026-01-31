@@ -1,7 +1,7 @@
 import { ICardMatcher } from '@application/interfaces/services.interface';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { CurrencyCard } from '@domain/entities/card.entity';
 
 export class ExactCurrencyMatcher implements ICardMatcher {
   private static readonly DIVINATION_CARD_CLASS = 6;
@@ -22,10 +22,11 @@ export class ExactCurrencyMatcher implements ICardMatcher {
   // eslint-disable-next-line class-methods-use-this
   matchReward(
     leagueData: Array<ItemOverview | CurrencyItem>,
-    cardDetails: CardDetailsDto,
+    cardDetails: CurrencyCard,
   ): CurrencyItem | null {
     const currency = leagueData.find(
-      (item): item is CurrencyItem => 'currencyTypeName' in item && item.currencyTypeName === cardDetails.Reward,
+      (item): item is CurrencyItem => 'currencyTypeName' in item
+        && item.currencyTypeName === cardDetails.reward,
     );
     return currency || null;
   }

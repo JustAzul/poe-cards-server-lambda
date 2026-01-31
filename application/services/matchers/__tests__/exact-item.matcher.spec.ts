@@ -1,7 +1,7 @@
 import { ExactItemMatcher } from '../exact-item.matcher';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { CardDetailsDto } from '@application/dtos/flip-table.dto';
+import { ItemCard } from '@domain/entities/card.entity';
 
 describe('ExactItemMatcher', () => {
   let matcher: ExactItemMatcher;
@@ -86,13 +86,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [targetItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Doctor',
-        Reward: 'Headhunter',
-        iClass: 2,
-        Corrupted: false,
-        Links: 0,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Doctor',
+        reward: 'Headhunter',
+        rewardSpec: {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -113,13 +116,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [corruptedItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Fiend',
-        Reward: 'Headhunter',
-        iClass: 2,
-        Corrupted: true,
-        Links: 0,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Fiend',
+        reward: 'Headhunter',
+        rewardSpec: {
+          iClass: 2,
+          corrupted: true,
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -140,13 +146,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [linkedItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Chains that Bind',
-        Reward: 'Six-Link Chest',
-        iClass: 1,
-        Corrupted: false,
-        Links: 6,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Chains that Bind',
+        reward: 'Six-Link Chest',
+        rewardSpec: {
+          iClass: 1,
+          corrupted: false,
+          links: 6,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -167,13 +176,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [gem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Wretched',
-        Reward: 'Awakened Added Fire Damage Support',
-        iClass: 4,
-        Corrupted: false,
-        Links: 0,
-        gemLevel: 5,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Wretched',
+        reward: 'Awakened Added Fire Damage Support',
+        rewardSpec: {
+          iClass: 4,
+          corrupted: false,
+          links: 0,
+          gemLevel: 5,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -194,13 +206,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [item];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Doctor',
-        Reward: 'Headhunter',
-        iClass: 2,
-        Corrupted: false,
-        Links: 0,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Doctor',
+        reward: 'Headhunter',
+        rewardSpec: {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -231,13 +246,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [item1, item2];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Doctor',
-        Reward: 'Headhunter',
-        iClass: 2,
-        Corrupted: false,
-        Links: 0,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Doctor',
+        reward: 'Headhunter',
+        rewardSpec: {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -258,13 +276,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [normalItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Fiend',
-        Reward: 'Headhunter',
-        iClass: 2,
-        Corrupted: true, // Looking for corrupted
-        Links: 0,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Fiend',
+        reward: 'Headhunter',
+        rewardSpec: {
+          iClass: 2,
+          corrupted: true, // Looking for corrupted
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -285,13 +306,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [fiveLinkItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Chains that Bind',
-        Reward: 'Chest Armor',
-        iClass: 1,
-        Corrupted: false,
-        Links: 6, // Looking for 6-link
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Chains that Bind',
+        reward: 'Chest Armor',
+        rewardSpec: {
+          iClass: 1,
+          corrupted: false,
+          links: 6, // Looking for 6-link
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -312,13 +336,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [lowLevelGem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'The Wretched',
-        Reward: 'Awakened Added Fire Damage Support',
-        iClass: 4,
-        Corrupted: false,
-        Links: 0,
-        gemLevel: 5, // Looking for level 5
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'The Wretched',
+        reward: 'Awakened Added Fire Damage Support',
+        rewardSpec: {
+          iClass: 4,
+          corrupted: false,
+          links: 0,
+          gemLevel: 5, // Looking for level 5
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -337,11 +364,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [item];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'Test Card',
-        Reward: 'Simple Item',
-        iClass: 2,
-        // Corrupted, Links, gemLevel are undefined
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'Test Card',
+        reward: 'Simple Item',
+        rewardSpec: {
+          iClass: 2,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
@@ -357,13 +389,16 @@ describe('ExactItemMatcher', () => {
 
       mockLeagueData = [currencyItem];
 
-      const cardDetails: CardDetailsDto = {
-        Name: 'Test Card',
-        Reward: 'Chaos Orb',
-        iClass: 5,
-        Corrupted: false,
-        Links: 0,
-        gemLevel: 0,
+      const cardDetails: ItemCard = {
+        type: 'item',
+        name: 'Test Card',
+        reward: 'Chaos Orb',
+        rewardSpec: {
+          iClass: 5,
+          corrupted: false,
+          links: 0,
+          gemLevel: 0,
+        },
       };
 
       const result = matcher.matchReward(mockLeagueData, cardDetails);
