@@ -4,7 +4,7 @@
 import { LeagueEntity } from '@domain/entities/league.entity';
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.entity';
+import { Card } from '@domain/entities/card.base.entity';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
