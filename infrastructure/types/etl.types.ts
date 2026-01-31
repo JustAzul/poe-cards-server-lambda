@@ -2,13 +2,13 @@
 
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
 
 /** Maps league names to their last update timestamp (ISO string) */
 export type UpdateTimestamps = Record<string, string>;
 
-/** Maps league names to their flip table results */
-export type FlipTableResults = Record<string, FlipTableRowDto[]>;
+/** Maps league names to their profit table results */
+export type ProfitTableResults = Record<string, ProfitTableRowDto[]>;
 
 /** Maps league names to their currency data */
 export type CurrencyResultsMap = Record<string, CurrencyItem[]>;
