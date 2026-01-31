@@ -1,7 +1,7 @@
 import { LeagueEntity } from '@domain/entities/league.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
 import {
-  CurrencyOverview,
   IDataStorageRepository,
 } from '@domain/repositories/interfaces/data-storage.repository.interface';
 
@@ -29,7 +29,7 @@ export class StorageService {
   async storeLeagueData(
     league: LeagueEntity,
     flipTable: FlipTableRowDto[],
-    currency: CurrencyOverview[],
+    currency: CurrencyItem[],
     timestamp: string,
   ): Promise<void> {
     // Get existing data in parallel
@@ -82,7 +82,7 @@ export class StorageService {
   /**
    * Retrieve currency data for all leagues
    */
-  async getCurrencyData(): Promise<Record<string, CurrencyOverview[]> | null> {
+  async getCurrencyData(): Promise<Record<string, CurrencyItem[]> | null> {
     return this.repository.getCurrencyData();
   }
 

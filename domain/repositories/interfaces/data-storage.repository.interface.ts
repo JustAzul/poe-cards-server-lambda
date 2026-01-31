@@ -1,14 +1,6 @@
 import { LeagueEntity } from '@domain/entities/league.entity';
+import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
-
-/**
- * Currency overview data structure
- */
-export interface CurrencyOverview {
-  name: string;
-  detailsId: string;
-  chaosEquivalent: number;
-}
 
 /**
  * Repository interface for in-memory data storage
@@ -38,12 +30,12 @@ export interface IDataStorageRepository {
   /**
    * Stores currency data for all leagues
    */
-  setCurrencyData(currency: Record<string, CurrencyOverview[]>): Promise<void>;
+  setCurrencyData(currency: Record<string, CurrencyItem[]>): Promise<void>;
 
   /**
    * Retrieves all stored currency data
    */
-  getCurrencyData(): Promise<Record<string, CurrencyOverview[]> | null>;
+  getCurrencyData(): Promise<Record<string, CurrencyItem[]> | null>;
 
   /**
    * Stores update timestamps for all leagues

@@ -3,7 +3,6 @@
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
-import { CurrencyOverview } from '@domain/repositories/interfaces/data-storage.repository.interface';
 
 /** Maps league names to their last update timestamp (ISO string) */
 export type UpdateTimestamps = Record<string, string>;
@@ -12,7 +11,7 @@ export type UpdateTimestamps = Record<string, string>;
 export type FlipTableResults = Record<string, FlipTableRowDto[]>;
 
 /** Maps league names to their currency data */
-export type CurrencyResultsMap = Record<string, CurrencyOverview[]>;
+export type CurrencyResultsMap = Record<string, CurrencyItem[]>;
 
 /** League data with metadata */
 export interface LeagueData {
