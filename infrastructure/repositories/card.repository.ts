@@ -1,4 +1,6 @@
-import { Card, ItemCard, CurrencyCard } from '@domain/entities/card.entity';
+import { Card } from '@domain/entities/card.base.entity';
+import { ItemCard } from '@domain/entities/item-card.entity';
+import { CurrencyCard } from '@domain/entities/currency-card.entity';
 import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
 
 /**
@@ -34,27 +36,10 @@ export class CardRepository implements ICardRepository {
 
   constructor() {
     // Map item cards from config data to domain entities
-    const itemCards: ItemCard[] = rawCardsData.map((raw) => ({
-      type: 'item' as const,
-      name: raw.Name,
-      reward: raw.Reward,
-      rewardSpec: {
-        iClass: raw.iClass,
-        corrupted: raw.Corrupted,
-        links: raw.Links,
-        gemLevel: raw.gemLevel,
-      },
-    }));
+    const itemCards: ItemCard[] = rawCardsData.map((raw) => ItemCard.fromConfig(raw));
 
     // Map currency cards from config data to domain entities
-    const currencyCards: CurrencyCard[] = rawCurrencyCardsData.map((raw) => ({
-      type: 'currency' as const,
-      name: raw.Name,
-      reward: raw.Reward,
-      rewardSpec: {
-        amount: raw.Amount,
-      },
-    }));
+    const currencyCards: CurrencyCard[] = rawCurrencyCardsData.map((raw) => CurrencyCard.fromConfig(raw));
 
     // Combine both types into single unified array
     this.cards = [...itemCards, ...currencyCards];
