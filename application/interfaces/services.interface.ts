@@ -1,7 +1,7 @@
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.entity';
-import { FlipTableRowDto } from '@infrastructure/dtos/flip-table.dto';
+import { Card } from '@domain/entities/card.base.entity';
+import { Arbitrage } from '@domain/models/arbitrage';
 
 /**
  * Separated league data structure
@@ -12,12 +12,12 @@ export interface LeagueData {
   currency: CurrencyItem[];
 }
 
-// Card matcher interface (Strategy Pattern)
-export interface ICardMatcher {
+// Card price resolver (Strategy Pattern)
+export interface ICardPriceResolver {
   /**
    * Find matching divination card in items
    */
-  matchCard(
+  findCardPrice(
     items: ItemOverview[],
     cardName: string
   ): ItemOverview | null;
@@ -26,22 +26,22 @@ export interface ICardMatcher {
    * Find matching reward in league data
    * Uses card type discriminator to determine matching strategy
    */
-  matchReward(
+  findRewardPrice(
     items: ItemOverview[],
     currency: CurrencyItem[],
     cardDetails: Card
   ): ItemOverview | CurrencyItem | null;
 }
 
-// Profit calculation service
-export interface IProfitCalculationService {
-  calculateCardProfit(
+// Arbitrage evaluator service
+export interface IArbitrageEvaluator {
+  evaluateCardArbitrage(
     leagueData: LeagueData,
     card: Card
-  ): FlipTableRowDto | null;
+  ): Arbitrage | null;
 
-  buildFlipTable(
+  findAllArbitrageOpportunities(
     leagueData: LeagueData,
     cards: Card[]
-  ): FlipTableRowDto[];
+  ): Arbitrage[];
 }
