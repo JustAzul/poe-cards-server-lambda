@@ -52,10 +52,22 @@ export class ExtractService {
 
     console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
 
-    for await (const { league, items, currency, timestamp } of this.leagueService.fetchBatchLeagueOverview(filteredLeagues)) {
+    // Using for-await loop is necessary here to handle async iteration of batch league data
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const {
+      league,
+      items,
+      currency,
+      timestamp,
+    } of this.leagueService.fetchBatchLeagueOverview(filteredLeagues)) {
       yield {
         league,
-        data: { items, currency, cards, timestamp },
+        data: {
+          items,
+          currency,
+          cards,
+          timestamp,
+        },
       };
     }
   }

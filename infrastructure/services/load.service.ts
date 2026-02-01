@@ -3,7 +3,7 @@
 // Domain entities
 import { LeagueEntity } from '@domain/entities/league.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /**
  * Service responsible for displaying processed data to console
