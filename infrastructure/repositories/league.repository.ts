@@ -1,5 +1,5 @@
-import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
-import { LeagueEntity } from '@domain/entities/league.entity';
+import { ILeagueRepository } from '@domain/repositories/league.repository';
+import { League } from '@domain/entities/league.entity';
 
 import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
 import { httpService as defaultHttpService } from '@infrastructure/services/http.service';
@@ -7,7 +7,7 @@ import { httpService as defaultHttpService } from '@infrastructure/services/http
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 export class LeagueRepository implements ILeagueRepository {
-  private cache: LeagueEntity[] | null = null;
+  private cache: League[] | null = null;
 
   private cacheTimestamp: number = 0;
 
@@ -15,7 +15,7 @@ export class LeagueRepository implements ILeagueRepository {
 
   constructor(private readonly httpService: IHttpService = defaultHttpService) {}
 
-  async getAllLeagues(): Promise<LeagueEntity[]> {
+  async getAllLeagues(): Promise<League[]> {
     if (this.cache && Date.now() - this.cacheTimestamp < this.CACHE_TTL_MS) {
       return this.cache;
     }

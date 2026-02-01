@@ -1,7 +1,5 @@
-import { Card } from '@domain/entities/card.base.entity';
-import { ItemCard } from '@domain/entities/item-card.entity';
-import { CurrencyCard } from '@domain/entities/currency-card.entity';
-import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
+import { DivinationCard } from '@domain/entities/card.entity';
+import { ICardRepository } from '@domain/repositories/card.repository';
 
 /**
  * Raw data structure from cards config file
@@ -24,7 +22,9 @@ interface RawCurrencyCardData {
   Amount: number;
 }
 
+// eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
 const rawCardsData = require('@config/cards') as RawCardData[];
+// eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
 const rawCurrencyCardsData = require('@config/currency-cards') as RawCurrencyCardData[];
 
 /**
@@ -32,22 +32,24 @@ const rawCurrencyCardsData = require('@config/currency-cards') as RawCurrencyCar
  * from config files and transforms them into domain entities
  */
 export class CardRepository implements ICardRepository {
-  private cards: Card[];
+  private cards: DivinationCard[];
 
   constructor() {
     // Map item cards from config data to domain entities
-    const itemCards: ItemCard[] = rawCardsData.map((raw) => ItemCard.fromConfig(raw));
+    const itemCards: DivinationCard[] = rawCardsData.map(
+      (raw) => DivinationCard.fromItemCardConfig(raw),
+    );
 
     // Map currency cards from config data to domain entities
-    const currencyCards: CurrencyCard[] = rawCurrencyCardsData.map(
-      (raw) => CurrencyCard.fromConfig(raw),
+    const currencyCards: DivinationCard[] = rawCurrencyCardsData.map(
+      (raw) => DivinationCard.fromCurrencyCardConfig(raw),
     );
 
     // Combine both types into single unified array
     this.cards = [...itemCards, ...currencyCards];
   }
 
-  getAllCards(): Card[] {
+  getAllCards(): DivinationCard[] {
     return this.cards;
   }
 }
