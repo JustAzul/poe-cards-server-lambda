@@ -2,7 +2,7 @@
 
 import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /** Maps league names to their last update timestamp (ISO string) */
 export type UpdateTimestamps = Record<string, string>;
