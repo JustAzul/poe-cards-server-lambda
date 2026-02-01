@@ -1,0 +1,54 @@
+import { DivinationCard } from '@domain/entities/card.entity';
+import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
+import { ProfitResult } from '@domain/value-objects/profit-result';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyRewardSpec } from '@domain/value-objects/reward-spec';
+
+/**
+ * Arbitrage Calculation Domain Service
+ * Encapsulates profit calculation business rules
+ * Computes profitability metrics for arbitrage opportunities
+ */
+export class ArbitrageCalculationService {
+  /**
+   * Calculate profit for a card arbitrage opportunity
+   * Computes profit value, set cost, reward value, and ROI
+   */
+  calculateProfit(card: DivinationCard, market: MarketSnapshot): ProfitResult {
+    const rewardChaosValue = this.calculateRewardValue(card, market.rewardPrice);
+    const stackSize = market.cardPrice.stackSize ?? 1;
+    const cardSetCost = market.cardPrice.chaosValue * stackSize;
+    const profit = rewardChaosValue - cardSetCost;
+    const roi = cardSetCost > 0 ? (profit / cardSetCost) * 100 : 0;
+
+    return ProfitResult.create(
+      Math.floor(profit),
+      Math.floor(cardSetCost),
+      Math.floor(rewardChaosValue),
+      roi,
+    );
+  }
+
+  /**
+   * Calculate reward value in chaos orbs
+   * Handles both currency rewards (with amounts) and item rewards
+   */
+  private calculateRewardValue(
+    card: DivinationCard,
+    rewardPrice: ItemOverview | CurrencyItem,
+  ): number {
+    // Type guard: check if it's currency (has currencyTypeName property)
+    if ('currencyTypeName' in rewardPrice) {
+      const spec = card.rewardSpec as CurrencyRewardSpec;
+      // Special case: Chaos Orb baseline value is 1
+      const chaosEquivalent = card.reward === 'Chaos Orb'
+        ? 1
+        : rewardPrice.chaosEquivalent;
+
+      return chaosEquivalent * spec.amount;
+    }
+
+    return rewardPrice.chaosValue;
+  }
+}
