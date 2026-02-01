@@ -1,6 +1,6 @@
+import { Arbitrage } from '@domain/models/arbitrage';
 import { ItemOverview } from './item-overview.entity';
 import { CurrencyItem } from './currency-item.entity';
-import { Arbitrage } from '@domain/models/arbitrage';
 import { Card } from './card.base.entity';
 
 /**
