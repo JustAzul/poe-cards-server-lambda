@@ -1,18 +1,19 @@
 /* eslint-disable no-console */
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { LeagueEntity } from '@domain/entities/league.entity';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { League } from '@domain/entities/league.entity';
 import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
 import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
 import { httpService as _httpService } from '@infrastructure/services/http.service';
 
+// eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
 const fetchList = require('@config/fetch-list');
 
 /**
  * Individual league data result yielded by generator
  */
 export interface LeagueDataYield {
-  league: LeagueEntity;
+  league: League;
   items: ItemOverview[];
   currency: CurrencyItem[];
   timestamp: string;
@@ -60,7 +61,7 @@ export class LeagueService implements ILeagueService {
    * @param leagues - Array of league entities to fetch data for
    * @yields Individual league data with timestamp for each league
    */
-  async* fetchBatchLeagueOverview(leagues: LeagueEntity[]): AsyncGenerator<LeagueDataYield> {
+  async* fetchBatchLeagueOverview(leagues: League[]): AsyncGenerator<LeagueDataYield> {
     // eslint-disable-next-line no-restricted-syntax
     for (const league of leagues) {
       // eslint-disable-next-line no-await-in-loop

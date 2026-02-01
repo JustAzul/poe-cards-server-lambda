@@ -1,9 +1,11 @@
-import { IArbitrageEvaluator } from '@application/interfaces/services.interface';
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.base.entity';
-import { ItemCard } from '@domain/entities/item-card.entity';
-import { Arbitrage } from '@domain/models/arbitrage';
+import { IArbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { DivinationCard } from '@domain/entities/card.entity';
+import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
+import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
+import { ProfitResult } from '@domain/value-objects/profit-result';
+import { TrustValidation } from '@domain/value-objects/trust-validation';
 import { TransformService } from '../transform.service';
 
 describe('TransformService', () => {
@@ -18,55 +20,62 @@ describe('TransformService', () => {
     service = new TransformService(mockArbitrageEvaluator);
   });
 
-  describe('transformLeague', () => {
+  describe('transform', () => {
     it('should pass separated items and currency as LeagueData', () => {
       const items: ItemOverview[] = [
-        {
+        ItemOverview.fromRaw({
           name: 'The Doctor',
           itemClass: 6,
           chaosValue: 500,
           count: 50,
-        },
+        }),
       ];
 
       const currencyItems: CurrencyItem[] = [
-        {
+        CurrencyItem.fromRaw({
           currencyTypeName: 'Exalted Orb',
           chaosEquivalent: 150,
-        },
+        }),
       ];
 
-      const cards: Card[] = [];
+      const cards: DivinationCard[] = [];
 
-      const mockFlipTable: Arbitrage[] = [];
-      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockFlipTable);
+      const mockResults: CardArbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(
+        mockResults,
+      );
 
       service.transform('Standard', items, currencyItems, cards);
 
-      expect(mockArbitrageEvaluator.findAllArbitrageOpportunities).toHaveBeenCalledWith(
-        { items, currency: currencyItems },
-        cards,
-      );
+      expect(
+        mockArbitrageEvaluator.findAllArbitrageOpportunities,
+      ).toHaveBeenCalledWith({ items, currency: currencyItems }, cards);
     });
 
     it('should pass cards parameter to arbitrage evaluator', () => {
       const items: ItemOverview[] = [];
       const currencyItems: CurrencyItem[] = [];
-      const cards: Card[] = [
-        new ItemCard('The Doctor', 'Headhunter', {
+      const cards: DivinationCard[] = [
+        DivinationCard.fromItemCardConfig({
+          Name: 'The Doctor',
+          Reward: 'Headhunter',
+          Corrupted: false,
           iClass: 2,
-          corrupted: false,
-          links: 0,
+          Links: 0,
           gemLevel: 0,
         }),
       ];
 
-      const mockDomainResults: Arbitrage[] = [];
-      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
+      const mockResults: CardArbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(
+        mockResults,
+      );
 
       service.transform('Standard', items, currencyItems, cards);
 
-      expect(mockArbitrageEvaluator.findAllArbitrageOpportunities).toHaveBeenCalledWith(
+      expect(
+        mockArbitrageEvaluator.findAllArbitrageOpportunities,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           items: expect.any(Array),
           currency: expect.any(Array),
@@ -78,56 +87,70 @@ describe('TransformService', () => {
     it('should return currency items without transformation', () => {
       const items: ItemOverview[] = [];
       const currencyItems: CurrencyItem[] = [
-        {
+        CurrencyItem.fromRaw({
           currencyTypeName: 'Chaos Orb',
           chaosEquivalent: 1,
-        },
-        {
+        }),
+        CurrencyItem.fromRaw({
           currencyTypeName: 'Divine Orb',
           chaosEquivalent: 200,
-        },
+        }),
       ];
-      const cards: Card[] = [];
+      const cards: DivinationCard[] = [];
 
-      const mockDomainResults: Arbitrage[] = [];
-      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
+      const mockResults: CardArbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(
+        mockResults,
+      );
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
       expect(result.currency).toHaveLength(2);
-      expect(result.currency[0]).toEqual({
-        currencyTypeName: 'Chaos Orb',
-        chaosEquivalent: 1,
-      });
-      expect(result.currency[1]).toEqual({
-        currencyTypeName: 'Divine Orb',
-        chaosEquivalent: 200,
-      });
+      expect(result.currency[0]).toBe(currencyItems[0]);
+      expect(result.currency[1]).toBe(currencyItems[1]);
     });
 
     it('should return profit table from arbitrage evaluator', () => {
-      const items: ItemOverview[] = [];
+      const cardPrice = ItemOverview.fromRaw({
+        name: 'The Doctor',
+        itemClass: 6,
+        chaosValue: 500,
+        count: 50,
+        stackSize: 8,
+        artFilename: 'doctor.png',
+        flavourText: 'You are the Disease',
+      });
+
+      const rewardPrice = ItemOverview.fromRaw({
+        name: 'Headhunter',
+        itemClass: 2,
+        chaosValue: 5000,
+        count: 20,
+      });
+
+      const items: ItemOverview[] = [cardPrice, rewardPrice];
       const currencyItems: CurrencyItem[] = [];
-      const cards: Card[] = [];
+      const cards: DivinationCard[] = [];
 
-      const mockDomainResults: Arbitrage[] = [
-        {
-          cardName: 'The Doctor',
-          cardStack: 8,
-          cardChaosPrice: 500,
-          cardArtFilename: '',
-          cardFlavourText: '',
-          rewardName: 'Headhunter',
-          rewardChaosPrice: 5000,
-          rewardClass: 2,
-          isCorrupted: false,
-          setChaosPrice: 4000,
-          chaosProfit: 1000,
-          isCurrency: false,
-        },
-      ];
+      const card = DivinationCard.fromItemCardConfig({
+        Name: 'The Doctor',
+        Reward: 'Headhunter',
+        Corrupted: false,
+        iClass: 2,
+        Links: 0,
+        gemLevel: 0,
+      });
 
-      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
+      const mockResult = CardArbitrage.create(
+        card,
+        MarketSnapshot.create(cardPrice, rewardPrice, 'test'),
+        ProfitResult.create(1000, 4000, 5000, 25),
+        TrustValidation.valid(),
+      );
+
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue([
+        mockResult,
+      ]);
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
@@ -145,15 +168,17 @@ describe('TransformService', () => {
     it('should return correct structure', () => {
       const items: ItemOverview[] = [];
       const currencyItems: CurrencyItem[] = [
-        {
+        CurrencyItem.fromRaw({
           currencyTypeName: 'Chaos Orb',
           chaosEquivalent: 1,
-        },
+        }),
       ];
-      const cards: Card[] = [];
+      const cards: DivinationCard[] = [];
 
-      const mockDomainResults: Arbitrage[] = [];
-      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
+      const mockResults: CardArbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(
+        mockResults,
+      );
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
@@ -166,10 +191,12 @@ describe('TransformService', () => {
     it('should handle empty arrays', () => {
       const items: ItemOverview[] = [];
       const currencyItems: CurrencyItem[] = [];
-      const cards: Card[] = [];
+      const cards: DivinationCard[] = [];
 
-      const mockDomainResults: Arbitrage[] = [];
-      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(mockDomainResults);
+      const mockResults: CardArbitrage[] = [];
+      mockArbitrageEvaluator.findAllArbitrageOpportunities.mockReturnValue(
+        mockResults,
+      );
 
       const result = service.transform('Standard', items, currencyItems, cards);
 
