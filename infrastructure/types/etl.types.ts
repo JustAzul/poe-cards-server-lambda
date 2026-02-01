@@ -1,7 +1,7 @@
 // ETL (Extract, Transform, Load) shared type definitions
 
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /** Maps league names to their last update timestamp (ISO string) */

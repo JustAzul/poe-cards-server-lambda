@@ -1,5 +1,5 @@
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
 
 // poe.ninja API - Item Overview Response
 export interface ItemOverviewApiResponse {
