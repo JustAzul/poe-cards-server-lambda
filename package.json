@@ -10,6 +10,7 @@
     "prestart": "npm run build",
     "start": "NODE_ENV=development node dist/index.js",
     "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
     "test:watch": "jest --watch"
   },
