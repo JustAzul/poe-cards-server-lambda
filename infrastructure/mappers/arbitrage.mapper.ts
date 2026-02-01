@@ -1,34 +1,37 @@
-import { Arbitrage } from '@domain/models/arbitrage';
+import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /**
- * Maps domain arbitrage opportunities to infrastructure DTOs
+ * Maps domain arbitrage aggregates to infrastructure DTOs
  * Enforces architectural boundary: domain models stay in domain layer
  */
 export class ArbitrageMapper {
-  static toDto(domainResult: Arbitrage): ProfitTableRowDto {
+  static toDto(arbitrage: CardArbitrage): ProfitTableRowDto {
+    const { card, market, profit } = arbitrage;
+    const { cardPrice, rewardPrice } = market;
+
     return {
       card: {
-        name: domainResult.cardName,
-        stack: domainResult.cardStack,
-        chaosPrice: domainResult.cardChaosPrice,
+        name: card.name,
+        stack: cardPrice.stackSize ?? 1,
+        chaosPrice: Math.floor(cardPrice.chaosValue),
         details: {
-          artFilename: domainResult.cardArtFilename,
-          cardName: domainResult.cardName,
-          cardStack: domainResult.cardStack,
-          rewardName: domainResult.rewardName,
-          rewardClass: domainResult.rewardClass,
-          isCorrupted: domainResult.isCorrupted,
-          flavour: domainResult.cardFlavourText,
+          artFilename: cardPrice.artFilename ?? '',
+          cardName: card.name,
+          cardStack: cardPrice.stackSize ?? 1,
+          rewardName: arbitrage.getRewardDisplayName(),
+          rewardClass: 'itemClass' in rewardPrice ? rewardPrice.itemClass : '00',
+          isCorrupted: 'corrupted' in rewardPrice ? (rewardPrice.corrupted ?? false) : false,
+          flavour: cardPrice.flavourText ?? '',
         },
       },
       reward: {
-        name: domainResult.rewardName,
-        chaosPrice: domainResult.rewardChaosPrice,
+        name: arbitrage.getRewardDisplayName(),
+        chaosPrice: profit.rewardChaosValue,
       },
-      setChaosPrice: domainResult.setChaosPrice,
-      chaosProfit: domainResult.chaosProfit,
-      isCurrency: domainResult.isCurrency,
+      setChaosPrice: profit.setChaosPrice,
+      chaosProfit: profit.chaosProfitValue,
+      isCurrency: card.isCurrencyCard(),
     };
   }
 }
