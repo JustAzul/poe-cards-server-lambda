@@ -4,7 +4,6 @@ import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { Card } from '@domain/entities/card.base.entity';
 import { ItemCard } from '@domain/entities/item-card.entity';
 import { Arbitrage } from '@domain/models/arbitrage';
-import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
 import { TransformService } from '../transform.service';
 
 describe('TransformService', () => {

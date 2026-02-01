@@ -5,7 +5,7 @@ import { ItemOverview } from '@domain/entities/item-overview.entity';
 import { CurrencyItem } from '@domain/entities/currency-item.entity';
 import { Card } from '@domain/entities/card.base.entity';
 import { Arbitrage } from '@domain/models/arbitrage';
-import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { ArbitrageMapper } from '@infrastructure/mappers/arbitrage.mapper';
 
 // Interfaces
