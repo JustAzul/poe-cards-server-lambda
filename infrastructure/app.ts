@@ -6,7 +6,7 @@ import { leagueRepository as _leagueRepository } from '@infrastructure/repositor
 import { cardRepository as _cardRepository } from '@infrastructure/repositories/card.repository';
 
 // Services
-import { arbitrageEvaluator as _arbitrageEvaluator } from '@application/services/profit-calculation.service';
+import { arbitrageEvaluator as _arbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
 import { leagueService as _leagueService } from '@infrastructure/services/league.service';
 import { ExtractService } from '@infrastructure/services/extract.service';
 import { TransformService } from '@infrastructure/services/transform.service';

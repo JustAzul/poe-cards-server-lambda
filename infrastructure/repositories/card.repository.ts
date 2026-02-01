@@ -39,7 +39,9 @@ export class CardRepository implements ICardRepository {
     const itemCards: ItemCard[] = rawCardsData.map((raw) => ItemCard.fromConfig(raw));
 
     // Map currency cards from config data to domain entities
-    const currencyCards: CurrencyCard[] = rawCurrencyCardsData.map((raw) => CurrencyCard.fromConfig(raw));
+    const currencyCards: CurrencyCard[] = rawCurrencyCardsData.map(
+      (raw) => CurrencyCard.fromConfig(raw),
+    );
 
     // Combine both types into single unified array
     this.cards = [...itemCards, ...currencyCards];
