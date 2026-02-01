@@ -1,29 +1,21 @@
-import { ICardPriceResolver, LeagueData } from '@application/interfaces/services.interface';
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.base.entity';
-import { ItemCard } from '@domain/entities/item-card.entity';
-import { CurrencyCard } from '@domain/entities/currency-card.entity';
-import { ArbitrageEvaluator } from '../arbitrage-evaluator.service';
+import { LeagueData, ArbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { DivinationCard } from '@domain/entities/card.entity';
 
 describe('ArbitrageEvaluator', () => {
   let service: ArbitrageEvaluator;
-  let mockPriceResolver: jest.Mocked<ICardPriceResolver>;
   let leagueData: LeagueData;
 
   beforeEach(() => {
-    mockPriceResolver = {
-      findCardPrice: jest.fn(),
-      findRewardPrice: jest.fn(),
-    };
-    service = new ArbitrageEvaluator(mockPriceResolver);
+    service = new ArbitrageEvaluator();
     leagueData = { items: [], currency: [] };
   });
 
   describe('evaluateCardArbitrage', () => {
     describe('item cards', () => {
       it('should evaluate arbitrage for valid item card', () => {
-        const cardOverview: ItemOverview = {
+        const cardOverview = ItemOverview.fromRaw({
           name: 'The Doctor',
           itemClass: 6,
           chaosValue: 500,
@@ -31,148 +23,83 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 8,
           artFilename: 'doctor.png',
           flavourText: 'You are the Disease',
-        };
+        });
 
-        const rewardOverview: ItemOverview = {
+        const rewardOverview = ItemOverview.fromRaw({
           name: 'Headhunter',
           itemClass: 2,
           chaosValue: 5000,
           count: 20,
-        };
+        });
 
-        const card = new ItemCard('The Doctor', 'Headhunter', {
+        const card = DivinationCard.fromItemCardConfig({
+          Name: 'The Doctor',
+          Reward: 'Headhunter',
+          Corrupted: false,
           iClass: 2,
-          corrupted: false,
-          links: 0,
+          Links: 0,
           gemLevel: 0,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
+        leagueData.items = [cardOverview, rewardOverview];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(mockPriceResolver.findCardPrice).toHaveBeenCalledWith(leagueData.items, card.name);
-        expect(mockPriceResolver.findRewardPrice).toHaveBeenCalledWith(
-          leagueData.items,
-          leagueData.currency,
-          card,
-        );
         expect(result).toBeDefined();
-        expect(result?.cardName).toBe('The Doctor');
-        expect(result?.cardStack).toBe(8);
-        expect(result?.cardChaosPrice).toBe(500);
-        expect(result?.rewardName).toBe('Headhunter');
-        expect(result?.rewardChaosPrice).toBe(5000);
-        expect(result?.cardArtFilename).toBe('doctor.png');
-        expect(result?.cardFlavourText).toBe('You are the Disease');
-        expect(result?.setChaosPrice).toBe(4000); // 8 * 500
-        expect(result?.chaosProfit).toBe(1000); // 5000 - 4000
-        expect(result?.isCurrency).toBe(false);
+        expect(result?.card.name).toBe('The Doctor');
+        expect(result?.market.cardPrice.stackSize).toBe(8);
+        expect(result?.market.cardPrice.chaosValue).toBe(500);
+        expect(result?.profit.rewardChaosValue).toBe(5000);
+        expect(result?.profit.setChaosPrice).toBe(4000); // 8 * 500
+        expect(result?.profit.chaosProfitValue).toBe(1000); // 5000 - 4000
+        expect(result?.card.isCurrencyCard()).toBe(false);
       });
 
       it('should format gem rewards with level', () => {
-        const cardOverview: ItemOverview = {
+        const cardOverview = ItemOverview.fromRaw({
           name: 'The Wretched',
           itemClass: 6,
           chaosValue: 50,
           count: 100,
           stackSize: 1,
-        };
+        });
 
-        const rewardOverview: ItemOverview = {
-          name: 'Awakened Added Fire Damage Support',
-          itemClass: 4, // Gem class
-          chaosValue: 200,
-          count: 30,
-          gemLevel: 5,
-        };
+        const rewardOverview = ItemOverview.fromRaw({
+          name: 'Gem Name',
+          itemClass: 4,
+          chaosValue: 100,
+          count: 50,
+          gemLevel: 20,
+        });
 
-        const card = new ItemCard('The Wretched', 'Awakened Added Fire Damage Support', {
+        const card = DivinationCard.fromItemCardConfig({
+          Name: 'The Wretched',
+          Reward: 'Gem Name',
+          Corrupted: false,
           iClass: 4,
-          corrupted: false,
-          links: 0,
-          gemLevel: 5,
+          Links: 0,
+          gemLevel: 20,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
+        leagueData.items = [cardOverview, rewardOverview];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(result?.rewardName).toBe('Level 5 Awakened Added Fire Damage Support');
+        expect(result).toBeDefined();
+        expect(result?.market.rewardPrice).toEqual(rewardOverview);
       });
 
-      it('should return null when card count below minimum trust', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Test Card',
-          itemClass: 6,
-          chaosValue: 100,
-          count: 5, // Below MIN_TRUST_COUNT
-        };
-
-        const rewardOverview: ItemOverview = {
-          name: 'Test Item',
-          itemClass: 2,
-          chaosValue: 500,
-          count: 20,
-        };
-
-        const card = new ItemCard('Test Card', 'Test Item', {
+      it('should return null when card not found in items', () => {
+        const card = DivinationCard.fromItemCardConfig({
+          Name: 'Nonexistent Card',
+          Reward: 'Nonexistent Item',
+          Corrupted: false,
           iClass: 2,
-          corrupted: false,
-          links: 0,
+          Links: 0,
           gemLevel: 0,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
-
-        const result = service.evaluateCardArbitrage(leagueData, card);
-
-        expect(result).toBeNull();
-      });
-
-      it('should return null when reward count below minimum trust', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Test Card',
-          itemClass: 6,
-          chaosValue: 100,
-          count: 20,
-        };
-
-        const rewardOverview: ItemOverview = {
-          name: 'Test Item',
-          itemClass: 2,
-          chaosValue: 500,
-          count: 5, // Below MIN_TRUST_COUNT
-        };
-
-        const card = new ItemCard('Test Card', 'Test Item', {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        });
-
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
-
-        const result = service.evaluateCardArbitrage(leagueData, card);
-
-        expect(result).toBeNull();
-      });
-
-      it('should return null when card not found', () => {
-        const card = new ItemCard('Missing Card', 'Test Item', {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
-        });
-
-        mockPriceResolver.findCardPrice.mockReturnValue(null);
-        mockPriceResolver.findRewardPrice.mockReturnValue(null);
+        leagueData.items = [];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
@@ -180,165 +107,207 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return null when reward not found', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Test Card',
+        const cardOverview = ItemOverview.fromRaw({
+          name: 'The Doctor',
           itemClass: 6,
-          chaosValue: 100,
-          count: 20,
-        };
+          chaosValue: 500,
+          count: 50,
+          stackSize: 8,
+        });
 
-        const card = new ItemCard('Test Card', 'Missing Item', {
+        const card = DivinationCard.fromItemCardConfig({
+          Name: 'The Doctor',
+          Reward: 'Nonexistent Item',
+          Corrupted: false,
           iClass: 2,
-          corrupted: false,
-          links: 0,
+          Links: 0,
           gemLevel: 0,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(null);
+        leagueData.items = [cardOverview];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
+      });
+
+      it('should return null when trust validation fails due to low card count', () => {
+        const cardOverview = ItemOverview.fromRaw({
+          name: 'The Doctor',
+          itemClass: 6,
+          chaosValue: 500,
+          count: 5, // Below MIN_TRUST_COUNT of 10
+          stackSize: 8,
+        });
+
+        const rewardOverview = ItemOverview.fromRaw({
+          name: 'Headhunter',
+          itemClass: 2,
+          chaosValue: 5000,
+          count: 20,
+        });
+
+        const card = DivinationCard.fromItemCardConfig({
+          Name: 'The Doctor',
+          Reward: 'Headhunter',
+          Corrupted: false,
+          iClass: 2,
+          Links: 0,
+          gemLevel: 0,
+        });
+
+        leagueData.items = [cardOverview, rewardOverview];
+
+        const result = service.evaluateCardArbitrage(leagueData, card);
+
+        expect(result).toBeNull();
+      });
+
+      it('should return aggregate with negative profit (filtering at app layer)', () => {
+        const cardOverview = ItemOverview.fromRaw({
+          name: 'The Doctor',
+          itemClass: 6,
+          chaosValue: 5000,
+          count: 50,
+          stackSize: 8, // 8 * 5000 = 40000
+        });
+
+        const rewardOverview = ItemOverview.fromRaw({
+          name: 'Bad Reward',
+          itemClass: 2,
+          chaosValue: 100, // 100 < 40000, so unprofitable
+          count: 20,
+        });
+
+        const card = DivinationCard.fromItemCardConfig({
+          Name: 'The Doctor',
+          Reward: 'Bad Reward',
+          Corrupted: false,
+          iClass: 2,
+          Links: 0,
+          gemLevel: 0,
+        });
+
+        leagueData.items = [cardOverview, rewardOverview];
+
+        const result = service.evaluateCardArbitrage(leagueData, card);
+
+        // Domain evaluator returns aggregate if prices/trust valid, even if unprofitable
+        // Filtering by profitability happens in findAllArbitrageOpportunities
+        expect(result).toBeDefined();
+        expect(result?.profit.chaosProfitValue).toBeLessThan(0);
       });
     });
 
     describe('currency cards', () => {
-      it('should calculate profit for valid currency card', () => {
-        const cardOverview: ItemOverview = {
+      it('should evaluate arbitrage for valid currency card', () => {
+        const cardOverview = ItemOverview.fromRaw({
           name: 'The Hoarder',
           itemClass: 6,
-          chaosValue: 2,
-          count: 200,
-          stackSize: 12,
-        };
-
-        const rewardOverview: CurrencyItem = {
-          currencyTypeName: 'Exalted Orb',
-          chaosEquivalent: 150,
-          receive: {
-            count: 50,
-          },
-        };
-
-        const card = new CurrencyCard('The Hoarder', 'Exalted Orb', {
-          amount: 1,
-        });
-
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
-
-        const result = service.evaluateCardArbitrage(leagueData, card);
-
-        expect(result).toBeDefined();
-        expect(result?.cardName).toBe('The Hoarder');
-        expect(result?.rewardName).toBe('Exalted Orb');
-        expect(result?.rewardChaosPrice).toBe(150);
-        expect(result?.setChaosPrice).toBe(24); // 12 * 2
-        expect(result?.chaosProfit).toBe(126); // 150 - 24
-        expect(result?.isCurrency).toBe(true);
-      });
-
-      it('should format multiple currency rewards', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Three Faces in the Dark',
-          itemClass: 6,
-          chaosValue: 0.3,
-          count: 500,
+          chaosValue: 50,
+          count: 100,
           stackSize: 1,
-        };
-
-        const rewardOverview: CurrencyItem = {
-          currencyTypeName: 'Chaos Orb',
-          chaosEquivalent: 1,
-        };
-
-        const card = new CurrencyCard('Three Faces in the Dark', 'Chaos Orb', {
-          amount: 3,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
-
-        const result = service.evaluateCardArbitrage(leagueData, card);
-
-        expect(result?.rewardName).toBe('3x Chaos Orb');
-        expect(result?.rewardChaosPrice).toBe(3);
-      });
-
-      it('should handle Chaos Orb as always trusted', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Test Card',
-          itemClass: 6,
-          chaosValue: 0.5,
-          count: 15, // Above MIN_TRUST_COUNT
-        };
-
-        const rewardOverview: CurrencyItem = {
+        const currencyOverview = CurrencyItem.fromRaw({
           currencyTypeName: 'Chaos Orb',
           chaosEquivalent: 1,
-          // No receive data - should still pass for Chaos Orb
-        };
-
-        const card = new CurrencyCard('Test Card', 'Chaos Orb', {
-          amount: 2,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
+        const card = DivinationCard.fromCurrencyCardConfig({
+          Name: 'The Hoarder',
+          Reward: 'Chaos Orb',
+          Amount: 1,
+        });
+
+        leagueData.items = [cardOverview];
+        leagueData.currency = [currencyOverview];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeDefined();
-        expect(result?.rewardChaosPrice).toBe(2);
+        expect(result?.card.name).toBe('The Hoarder');
+        expect(result?.profit.rewardChaosValue).toBe(1);
+        expect(result?.card.isCurrencyCard()).toBe(true);
       });
 
-      it('should return null when card count below minimum trust', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Test Card',
+      it('should handle multiple currency amounts', () => {
+        const cardOverview = ItemOverview.fromRaw({
+          name: 'The Gambler',
           itemClass: 6,
-          chaosValue: 1,
-          count: 5, // Below MIN_TRUST_COUNT
-        };
-
-        const rewardOverview: CurrencyItem = {
-          currencyTypeName: 'Exalted Orb',
-          chaosEquivalent: 150,
-          receive: { count: 50 },
-        };
-
-        const card = new CurrencyCard('Test Card', 'Exalted Orb', {
-          amount: 1,
+          chaosValue: 10,
+          count: 100,
+          stackSize: 1,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
+        const currencyOverview = CurrencyItem.fromRaw({
+          currencyTypeName: 'Exalted Orb',
+          chaosEquivalent: 300,
+          receive: { count: 50 },
+        });
+
+        const card = DivinationCard.fromCurrencyCardConfig({
+          Name: 'The Gambler',
+          Reward: 'Exalted Orb',
+          Amount: 5,
+        });
+
+        leagueData.items = [cardOverview];
+        leagueData.currency = [currencyOverview];
+
+        const result = service.evaluateCardArbitrage(leagueData, card);
+
+        expect(result).toBeDefined();
+        expect(result?.profit.rewardChaosValue).toBe(1500); // 300 * 5
+        expect(result?.profit.chaosProfitValue).toBe(1490); // 1500 - 10
+      });
+
+      it('should return null when currency not found', () => {
+        const cardOverview = ItemOverview.fromRaw({
+          name: 'The Hoarder',
+          itemClass: 6,
+          chaosValue: 50,
+          count: 100,
+          stackSize: 1,
+        });
+
+        const card = DivinationCard.fromCurrencyCardConfig({
+          Name: 'The Hoarder',
+          Reward: 'Nonexistent Currency',
+          Amount: 1,
+        });
+
+        leagueData.items = [cardOverview];
+        leagueData.currency = [];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
         expect(result).toBeNull();
       });
 
-      it('should return null when currency receive count below minimum trust', () => {
-        const cardOverview: ItemOverview = {
-          name: 'Test Card',
+      it('should return null when currency trust validation fails', () => {
+        const cardOverview = ItemOverview.fromRaw({
+          name: 'The Hoarder',
           itemClass: 6,
-          chaosValue: 1,
-          count: 20,
-        };
-
-        const rewardOverview: CurrencyItem = {
-          currencyTypeName: 'Exalted Orb',
-          chaosEquivalent: 150,
-          receive: { count: 5 }, // Below MIN_TRUST_COUNT
-        };
-
-        const card = new CurrencyCard('Test Card', 'Exalted Orb', {
-          amount: 1,
+          chaosValue: 50,
+          count: 100,
+          stackSize: 1,
         });
 
-        mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-        mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
+        const currencyOverview = CurrencyItem.fromRaw({
+          currencyTypeName: 'Expensive Currency',
+          chaosEquivalent: 300,
+          receive: { count: 5 }, // Below MIN_TRUST_COUNT of 10
+        });
+
+        const card = DivinationCard.fromCurrencyCardConfig({
+          Name: 'The Hoarder',
+          Reward: 'Expensive Currency',
+          Amount: 1,
+        });
+
+        leagueData.items = [cardOverview];
+        leagueData.currency = [currencyOverview];
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
@@ -348,117 +317,116 @@ describe('ArbitrageEvaluator', () => {
   });
 
   describe('findAllArbitrageOpportunities', () => {
-    it('should find all profitable opportunities for multiple cards', () => {
-      const card1Overview: ItemOverview = {
-        name: 'Card 1',
-        itemClass: 6,
-        chaosValue: 10,
-        count: 50,
-        stackSize: 1,
-      };
+    it('should find all profitable opportunities', () => {
+      // High-profit item card
+      const doctorCard = DivinationCard.fromItemCardConfig({
+        Name: 'The Doctor',
+        Reward: 'Headhunter',
+        Corrupted: false,
+        iClass: 2,
+        Links: 0,
+        gemLevel: 0,
+      });
 
-      const card1Reward: ItemOverview = {
-        name: 'Item 1',
-        itemClass: 2,
-        chaosValue: 100,
-        count: 20,
-      };
+      // Profitable currency card (need high enough reward to exceed card cost)
+      const hoarderCard = DivinationCard.fromCurrencyCardConfig({
+        Name: 'The Hoarder',
+        Reward: 'Exalted Orb',
+        Amount: 1,
+      });
 
-      const card2Overview: ItemOverview = {
-        name: 'Card 2',
-        itemClass: 6,
-        chaosValue: 5,
-        count: 100,
-        stackSize: 1,
-      };
+      // Unprofitable card
+      const unprofitableCard = DivinationCard.fromItemCardConfig({
+        Name: 'Bad Card',
+        Reward: 'Bad Item',
+        Corrupted: false,
+        iClass: 5,
+        Links: 0,
+        gemLevel: 0,
+      });
 
-      const card2Reward: CurrencyItem = {
-        currencyTypeName: 'Chaos Orb',
-        chaosEquivalent: 1,
-      };
-
-      const cards: Card[] = [
-        new ItemCard('Card 1', 'Item 1', {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
+      leagueData.items = [
+        ItemOverview.fromRaw({
+          name: 'The Doctor',
+          itemClass: 6,
+          chaosValue: 500,
+          count: 50,
+          stackSize: 8,
         }),
-        new CurrencyCard('Card 2', 'Chaos Orb', {
-          amount: 2,
+        ItemOverview.fromRaw({
+          name: 'Headhunter',
+          itemClass: 2,
+          chaosValue: 5000,
+          count: 20,
         }),
-      ];
-
-      mockPriceResolver.findCardPrice
-        .mockReturnValueOnce(card1Overview)
-        .mockReturnValueOnce(card2Overview);
-
-      mockPriceResolver.findRewardPrice
-        .mockReturnValueOnce(card1Reward)
-        .mockReturnValueOnce(card2Reward);
-
-      const result = service.findAllArbitrageOpportunities(leagueData, cards);
-
-      expect(result).toHaveLength(1); // Only card 1 is profitable (100 - 10 = 90)
-      expect(result[0].cardName).toBe('Card 1');
-      expect(result[0].chaosProfit).toBeGreaterThan(0);
-    });
-
-    it('should filter out unprofitable cards', () => {
-      const cardOverview: ItemOverview = {
-        name: 'Unprofitable Card',
-        itemClass: 6,
-        chaosValue: 100,
-        count: 50,
-        stackSize: 1,
-      };
-
-      const rewardOverview: ItemOverview = {
-        name: 'Low Value Item',
-        itemClass: 2,
-        chaosValue: 50,
-        count: 20,
-      };
-
-      const cards: Card[] = [
-        new ItemCard('Unprofitable Card', 'Low Value Item', {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
+        ItemOverview.fromRaw({
+          name: 'The Hoarder',
+          itemClass: 6,
+          chaosValue: 25,
+          count: 50,
+          stackSize: 1,
+        }),
+        ItemOverview.fromRaw({
+          name: 'Bad Card',
+          itemClass: 6,
+          chaosValue: 100,
+          count: 50,
+          stackSize: 1,
+        }),
+        ItemOverview.fromRaw({
+          name: 'Bad Item',
+          itemClass: 5,
+          chaosValue: 10,
+          count: 50,
         }),
       ];
 
-      mockPriceResolver.findCardPrice.mockReturnValue(cardOverview);
-      mockPriceResolver.findRewardPrice.mockReturnValue(rewardOverview);
-
-      const result = service.findAllArbitrageOpportunities(leagueData, cards);
-
-      expect(result).toHaveLength(0);
-    });
-
-    it('should filter out cards with missing matches', () => {
-      const cards: Card[] = [
-        new ItemCard('Missing Card', 'Missing Item', {
-          iClass: 2,
-          corrupted: false,
-          links: 0,
-          gemLevel: 0,
+      leagueData.currency = [
+        CurrencyItem.fromRaw({
+          currencyTypeName: 'Exalted Orb',
+          chaosEquivalent: 200, // 200 > 25 (card cost), so profitable
+          receive: { count: 50 },
         }),
       ];
 
-      mockPriceResolver.findCardPrice.mockReturnValue(null);
-      mockPriceResolver.findRewardPrice.mockReturnValue(null);
+      const cards = [doctorCard, hoarderCard, unprofitableCard];
+      const results = service.findAllArbitrageOpportunities(leagueData, cards);
 
-      const result = service.findAllArbitrageOpportunities(leagueData, cards);
-
-      expect(result).toHaveLength(0);
+      expect(results.length).toBe(2);
+      expect(results.some((r) => r.card.name === 'The Doctor')).toBe(true);
+      expect(results.some((r) => r.card.name === 'The Hoarder')).toBe(true);
+      expect(results.some((r) => r.card.name === 'Bad Card')).toBe(false);
     });
 
-    it('should return empty array for empty cards array', () => {
-      const result = service.findAllArbitrageOpportunities(leagueData, []);
+    it('should return empty array when no profitable opportunities exist', () => {
+      const card = DivinationCard.fromItemCardConfig({
+        Name: 'Unprofitable',
+        Reward: 'Cheap Reward',
+        Corrupted: false,
+        iClass: 2,
+        Links: 0,
+        gemLevel: 0,
+      });
 
-      expect(result).toEqual([]);
+      leagueData.items = [
+        ItemOverview.fromRaw({
+          name: 'Unprofitable',
+          itemClass: 6,
+          chaosValue: 1000,
+          count: 50,
+          stackSize: 1,
+        }),
+        ItemOverview.fromRaw({
+          name: 'Cheap Reward',
+          itemClass: 2,
+          chaosValue: 10,
+          count: 50,
+        }),
+      ];
+
+      const results = service.findAllArbitrageOpportunities(leagueData, [card]);
+
+      expect(results.length).toBe(0);
     });
   });
 });

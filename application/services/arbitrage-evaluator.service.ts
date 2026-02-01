@@ -1,57 +1,69 @@
-import {
-  IArbitrageEvaluator,
-  ICardPriceResolver,
-  LeagueData,
-} from '@application/interfaces/services.interface';
-import { Card } from '@domain/entities/card.base.entity';
-import { Arbitrage } from '@domain/models/arbitrage';
+import { DivinationCard } from '@domain/entities/card.entity';
+import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
+import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
+import { RewardMatcherService } from '@domain/services/reward-matcher.service';
+import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
+import { TrustValidationService } from '@domain/services/trust-validation.service';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
 
-// Default instance with concrete dependencies
-import { CardPriceResolver } from '@application/services/matchers/card-price-resolver';
+/**
+ * League Data - Separated structure for items and currency
+ * Items and currency kept in distinct arrays for type safety
+ */
+export interface LeagueData {
+  items: ItemOverview[];
+  currency: CurrencyItem[];
+}
 
+/**
+ * Application Service Interface
+ * Defines contracts for arbitrage evaluation
+ */
+export interface IArbitrageEvaluator {
+  evaluateCardArbitrage(leagueData: LeagueData, card: DivinationCard): CardArbitrage | null;
+  findAllArbitrageOpportunities(leagueData: LeagueData, cards: DivinationCard[]): CardArbitrage[];
+}
+
+/**
+ * Application Service - Orchestrates domain services
+ * Thin layer that delegates to domain services
+ * Returns domain aggregates directly (no transformation)
+ */
 export class ArbitrageEvaluator implements IArbitrageEvaluator {
-  private readonly MIN_TRUST_COUNT = 10;
+  private readonly domainService: ArbitrageEvaluatorService;
 
-  constructor(
-    private readonly cardPriceResolver: ICardPriceResolver,
-  ) {}
-
-  /**
-   * Evaluate arbitrage opportunity for a single card using domain metadata
-   */
-  evaluateCardArbitrage(
-    leagueData: LeagueData,
-    card: Card,
-  ): Arbitrage | null {
-    const cardOverview = this.cardPriceResolver.findCardPrice(leagueData.items, card.name);
-    const rewardOverview = this.cardPriceResolver.findRewardPrice(
-      leagueData.items,
-      leagueData.currency,
-      card,
-    );
-
-    if (!cardOverview || !rewardOverview) return null;
-    if (!card.validateTrust(cardOverview, rewardOverview, this.MIN_TRUST_COUNT)) return null;
-
-    return card.calculateProfit(cardOverview, rewardOverview);
+  constructor() {
+    const rewardMatcher = new RewardMatcherService();
+    const calculator = new ArbitrageCalculationService();
+    const trustValidator = new TrustValidationService();
+    this.domainService = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator);
   }
 
   /**
-   * Find all profitable arbitrage opportunities for cards
+   * Evaluate single card for arbitrage opportunity
    */
-  findAllArbitrageOpportunities(
-    leagueData: LeagueData,
-    cards: Card[],
-  ): Arbitrage[] {
-    return cards
-      .map((card) => this.evaluateCardArbitrage(leagueData, card))
-      .filter((result): result is Arbitrage => result !== null && result.chaosProfit > 0);
+  evaluateCardArbitrage(leagueData: LeagueData, card: DivinationCard): CardArbitrage | null {
+    return this.domainService.evaluate(
+      card,
+      leagueData.items,
+      leagueData.currency,
+      'unknown', // TODO: pass league ID from leagueData
+    );
+  }
+
+  /**
+   * Find all actionable arbitrage opportunities from cards
+   */
+  findAllArbitrageOpportunities(leagueData: LeagueData, cards: DivinationCard[]): CardArbitrage[] {
+    return this.domainService.findAllOpportunities(
+      cards,
+      leagueData.items,
+      leagueData.currency,
+      'unknown', // TODO: pass league ID from leagueData
+    );
   }
 }
 
-// Singleton instance
-const cardPriceResolver = new CardPriceResolver();
-
-export const arbitrageEvaluator = new ArbitrageEvaluator(
-  cardPriceResolver,
-);
+// Singleton instance for convenient application-wide access
+export const arbitrageEvaluator = new ArbitrageEvaluator();
