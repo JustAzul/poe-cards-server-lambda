@@ -1,5 +1,5 @@
 import { Arbitrage } from '@domain/models/arbitrage';
-import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table.dto';
+import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /**
  * Maps domain arbitrage opportunities to infrastructure DTOs
