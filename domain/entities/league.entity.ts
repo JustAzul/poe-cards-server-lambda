@@ -1,4 +1,4 @@
-export interface LeagueEntity {
+export interface League {
   name: string;
   ladder: string;
   delveEvent: boolean;
