@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
 import {
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,

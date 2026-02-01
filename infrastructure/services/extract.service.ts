@@ -1,25 +1,25 @@
 /* eslint-disable no-console */
 
 // Domain entities
-import { LeagueEntity } from '@domain/entities/league.entity';
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.base.entity';
+import { League } from '@domain/entities/league.entity';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { DivinationCard } from '@domain/entities/card.entity';
 
 // Interfaces
-import { ILeagueRepository } from '@domain/repositories/interfaces/league.repository.interface';
-import { ICardRepository } from '@domain/repositories/interfaces/card.repository.interface';
+import { ILeagueRepository } from '@domain/repositories/league.repository';
+import { ICardRepository } from '@domain/repositories/card.repository';
 import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
 
 export interface LeagueExtractionData {
   items: ItemOverview[];
   currency: CurrencyItem[];
-  cards: Card[];
+  cards: DivinationCard[];
   timestamp: string;
 }
 
 export interface LeagueExtractionYield {
-  league: LeagueEntity;
+  league: League;
   data: LeagueExtractionData;
 }
 
@@ -72,7 +72,7 @@ export class ExtractService {
     }
   }
 
-  private static selectLeagues(leagues: LeagueEntity[]): LeagueEntity[] {
+  private static selectLeagues(leagues: League[]): League[] {
     return leagues
       .filter(({ name }) => !name.includes('SSF') && !name.includes('Solo Self-Found')) // remove Solo Self Found leagues
       .filter(({ realm }) => realm === 'pc')

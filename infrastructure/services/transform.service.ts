@@ -1,15 +1,15 @@
 /* eslint-disable no-console */
 
 // Domain entities and types
-import { ItemOverview } from '@domain/entities/item-overview.entity';
-import { CurrencyItem } from '@domain/entities/currency-item.entity';
-import { Card } from '@domain/entities/card.base.entity';
-import { Arbitrage } from '@domain/models/arbitrage';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { DivinationCard } from '@domain/entities/card.entity';
+import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { ArbitrageMapper } from '@infrastructure/mappers/arbitrage.mapper';
 
 // Interfaces
-import { IArbitrageEvaluator } from '@application/interfaces/services.interface';
+import { IArbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
 
 /**
  * Result of transforming a single league
@@ -41,14 +41,14 @@ export class TransformService {
     leagueName: string,
     items: ItemOverview[],
     currencyItems: CurrencyItem[],
-    cards: Card[],
+    cards: DivinationCard[],
   ): SingleLeagueTransformResult {
     console.log(`Transforming data for league: ${leagueName}`);
 
     const leagueData = { items, currency: currencyItems };
 
-    // Application layer returns domain models
-    const domainResults: Arbitrage[] = this.arbitrageEvaluator.findAllArbitrageOpportunities(
+    // Application layer returns domain aggregates
+    const domainResults: CardArbitrage[] = this.arbitrageEvaluator.findAllArbitrageOpportunities(
       leagueData,
       cards,
     );
