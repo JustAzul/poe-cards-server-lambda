@@ -72,7 +72,7 @@ export class HttpService implements IHttpService {
     };
 
     const response = await this.poeNinjaClient.get<ItemOverviewApiResponse>(url, searchParams);
-    return response.lines;
+    return (response.lines as unknown as Record<string, unknown>[]).map((line) => ItemOverview.fromRaw(line));
   }
 
   async fetchCurrencyOverview(league: string): Promise<CurrencyItem[]> {
@@ -83,7 +83,7 @@ export class HttpService implements IHttpService {
     };
 
     const response = await this.poeNinjaClient.get<CurrencyOverviewApiResponse>(url, searchParams);
-    return response.lines;
+    return (response.lines as unknown as Record<string, unknown>[]).map((line) => CurrencyItem.fromRaw(line));
   }
 }
 
