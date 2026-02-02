@@ -56,11 +56,4 @@ export class DivinationCard {
   isCurrencyCard(): boolean {
     return this.rewardSpec.type === RewardType.CURRENCY;
   }
-
-  /**
-   * Type guard: Check if this is an item card
-   */
-  isItemCard(): boolean {
-    return this.rewardSpec.type === RewardType.ITEM;
-  }
 }
