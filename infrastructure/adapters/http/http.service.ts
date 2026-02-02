@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
+import { IHttpService } from '@infrastructure/adapters/http/interfaces/http.service.interface';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import {
@@ -7,7 +7,7 @@ import {
   CurrencyOverviewApiResponse,
 } from '@infrastructure/types/poe-ninja.types';
 import { LeagueApiResponse } from '@infrastructure/types/poe-api.types';
-import { HttpClient } from '@infrastructure/http/http-client';
+import { HttpClient } from '@infrastructure/adapters/http/http-client';
 
 /**
  * HTTP Service that coordinates API requests to different domains

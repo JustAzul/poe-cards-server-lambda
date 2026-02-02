@@ -2,8 +2,8 @@
 /* eslint-disable no-console */
 
 // Repositories
-import { leagueRepository as _leagueRepository } from '@infrastructure/repositories/league.repository';
-import { cardRepository as _cardRepository } from '@infrastructure/repositories/card.repository';
+import { leagueRepository as _leagueRepository } from '@infrastructure/adapters/persistence/league.repository';
+import { cardRepository as _cardRepository } from '@infrastructure/adapters/persistence/card.repository';
 
 // Services
 import { arbitrageEvaluator as _arbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';

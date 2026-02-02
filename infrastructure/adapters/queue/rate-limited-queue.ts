@@ -1,5 +1,5 @@
 import { sleep } from '@shared/utils';
-import { FIFOQueue } from '@infrastructure/queue/fifo-queue';
+import { FIFOQueue } from '@infrastructure/adapters/queue/fifo-queue';
 
 /**
  * Rate-limited queue for processing tasks sequentially with rate limiting

@@ -1,8 +1,8 @@
 import { ILeagueRepository } from '@domain/repositories/league.repository';
 import { League } from '@domain/entities/league.entity';
 
-import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
-import { httpService as defaultHttpService } from '@infrastructure/services/http.service';
+import { IHttpService } from '@infrastructure/adapters/http/interfaces/http.service.interface';
+import { httpService as defaultHttpService } from '@infrastructure/adapters/http/http.service';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
