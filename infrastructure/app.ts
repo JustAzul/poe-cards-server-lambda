@@ -6,32 +6,32 @@ import { leagueRepository as _leagueRepository } from '@infrastructure/adapters/
 import { cardRepository as _cardRepository } from '@infrastructure/adapters/persistence/card.repository';
 
 // Services
-import { arbitrageEvaluator as _arbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
-import { leagueService as _leagueService } from '@infrastructure/services/league.service';
-import { ExtractService } from '@infrastructure/services/extract.service';
-import { TransformService } from '@infrastructure/services/transform.service';
-import { LoadService } from '@infrastructure/services/load.service';
+import { arbitrageEvaluator as _arbitrageEvaluator } from '@application/use-case/arbitrage-evaluator.use-case';
+import { leagueAdapter as _leagueAdapter } from '@infrastructure/adapters/league.adapter';
+import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
+import { TransformAdapter } from '@infrastructure/adapters/etl/transform.adapter';
+import { LoadAdapter } from '@infrastructure/adapters/etl/load.adapter';
 
 export class App {
   constructor(
-    private readonly extractService: ExtractService,
-    private readonly transformService: TransformService,
-    private readonly loadService: LoadService,
+    private readonly extractAdapter: ExtractAdapter,
+    private readonly transformAdapter: TransformAdapter,
+    private readonly loadAdapter: LoadAdapter,
   ) {}
 
   async execute(): Promise<void> {
     console.log('Starting ETL pipeline with incremental processing...');
 
     // eslint-disable-next-line no-restricted-syntax
-    for await (const { league, data } of this.extractService.extract()) {
-      const { profitTable, currency: currencyData } = this.transformService.transform(
+    for await (const { league, data } of this.extractAdapter.extract()) {
+      const { profitTable, currency: currencyData } = this.transformAdapter.transform(
         league.name,
         data.items,
         data.currency,
         data.cards,
       );
 
-      await this.loadService.load(league, profitTable, currencyData, data.timestamp);
+      await this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
       console.log(`Successfully processed league: ${league.name}`);
     }
 
@@ -39,20 +39,20 @@ export class App {
   }
 }
 
-const _extractService = new ExtractService(
+const _extractAdapter = new ExtractAdapter(
   _leagueRepository,
   _cardRepository,
-  _leagueService,
+  _leagueAdapter,
 );
 
-const _transformService = new TransformService(
+const _transformAdapter = new TransformAdapter(
   _arbitrageEvaluator,
 );
 
-const _loadService = new LoadService();
+const _loadAdapter = new LoadAdapter();
 
 export const app = new App(
-  _extractService,
-  _transformService,
-  _loadService,
+  _extractAdapter,
+  _transformAdapter,
+  _loadAdapter,
 );
