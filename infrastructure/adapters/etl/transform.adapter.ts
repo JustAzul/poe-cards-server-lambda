@@ -46,7 +46,7 @@ export class TransformAdapter {
   ): SingleLeagueTransformResult {
     console.log(`Transforming data for league: ${leagueName}`);
 
-    const leagueData = { items, currency: currencyItems };
+    const leagueData = { league: leagueName, items, currency: currencyItems };
 
     // Application layer returns domain aggregates
     const domainResults: CardArbitrage[] = this.arbitrageEvaluator.findAllArbitrageOpportunities(

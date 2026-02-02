@@ -12,6 +12,7 @@ import { CurrencyItem } from '@domain/value-objects/currency-item';
  * Items and currency kept in distinct arrays for type safety
  */
 export interface LeagueData {
+  league: string;
   items: ItemOverview[];
   currency: CurrencyItem[];
 }
@@ -48,7 +49,7 @@ export class ArbitrageEvaluator implements IArbitrageEvaluator {
       card,
       leagueData.items,
       leagueData.currency,
-      'unknown', // TODO: pass league ID from leagueData
+      leagueData.league,
     );
   }
 
@@ -60,7 +61,7 @@ export class ArbitrageEvaluator implements IArbitrageEvaluator {
       cards,
       leagueData.items,
       leagueData.currency,
-      'unknown', // TODO: pass league ID from leagueData
+      leagueData.league,
     );
   }
 }
