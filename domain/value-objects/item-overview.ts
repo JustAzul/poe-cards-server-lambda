@@ -59,31 +59,10 @@ export class ItemOverview {
   }
 
   /**
-   * Check if this is a gem item (itemClass 4)
-   */
-  isGem(): boolean {
-    return this.itemClass === 4;
-  }
-
-  /**
-   * Check if this is a divination card (itemClass 6)
-   */
-  isDivinationCard(): boolean {
-    return this.itemClass === 6;
-  }
-
-  /**
    * Get effective stack size (defaults to 1)
    */
   getStackSize(): number {
     return this.stackSize ?? 1;
-  }
-
-  /**
-   * Get total cost for the full stack
-   */
-  getTotalStackCost(): number {
-    return this.chaosValue * this.getStackSize();
   }
 
   /**
