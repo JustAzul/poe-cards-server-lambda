@@ -1,14 +1,14 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>'],
+  roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleNameMapper: {
-    '^@application/(.*)$': '<rootDir>/application/$1',
-    '^@domain/(.*)$': '<rootDir>/domain/$1',
-    '^@infrastructure/(.*)$': '<rootDir>/infrastructure/$1',
-    '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@config/(.*)$': '<rootDir>/config/$1',
+    '^@application/(.*)$': '<rootDir>/src/application/$1',
+    '^@domain/(.*)$': '<rootDir>/src/domain/$1',
+    '^@infrastructure/(.*)$': '<rootDir>/src/infrastructure/$1',
+    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@config/(.*)$': '<rootDir>/src/config/$1',
   },
 };
