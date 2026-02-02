@@ -1,8 +1,7 @@
 import { ILeagueRepository } from '@domain/repositories/league.repository';
 import { League } from '@domain/entities/league.entity';
 
-import { IHttpService } from '@infrastructure/adapters/http/interfaces/http.service.interface';
-import { httpService as defaultHttpService } from '@infrastructure/adapters/http/http.service';
+import { IHttpService, httpService as _httpService } from '@infrastructure/adapters/http/http.service';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
@@ -13,7 +12,7 @@ export class LeagueRepository implements ILeagueRepository {
 
   private readonly CACHE_TTL_MS = FIVE_MINUTES_MS;
 
-  constructor(private readonly httpService: IHttpService = defaultHttpService) {}
+  constructor(private readonly httpService: IHttpService = _httpService) {}
 
   async getAllLeagues(): Promise<League[]> {
     if (this.cache && Date.now() - this.cacheTimestamp < this.CACHE_TTL_MS) {
