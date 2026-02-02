@@ -2,9 +2,9 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { League } from '@domain/entities/league.entity';
-import { IHttpService } from '@infrastructure/services/interfaces/http.service.interface';
+import { IHttpService } from '@infrastructure/adapters/http/interfaces/http.service.interface';
 import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
-import { httpService as _httpService } from '@infrastructure/services/http.service';
+import { httpService as _httpService } from '@infrastructure/adapters/http/http.service';
 
 // eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
 const fetchList = require('@config/fetch-list');
