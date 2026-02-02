@@ -1,4 +1,4 @@
-import { LeagueData, ArbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
+import { LeagueData, ArbitrageEvaluator } from '@application/use-case/arbitrage-evaluator.use-case';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
