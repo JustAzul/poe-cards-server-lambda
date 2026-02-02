@@ -2,9 +2,7 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { League } from '@domain/entities/league.entity';
-import { IHttpService } from '@infrastructure/adapters/http/interfaces/http.service.interface';
-import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
-import { httpService as _httpService } from '@infrastructure/adapters/http/http.service';
+import { IHttpService, httpService as _httpService } from '@infrastructure/adapters/http/http.service';
 
 // eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
 const fetchList = require('@config/fetch-list');
@@ -19,7 +17,20 @@ export interface LeagueDataYield {
   timestamp: string;
 }
 
-export class LeagueService implements ILeagueService {
+/**
+ * League Data Adapter Interface
+ * Defines contract for adapting HTTP service to fetch league data
+ */
+export interface ILeagueAdapter {
+  fetchBatchLeagueOverview(leagues: League[]): AsyncGenerator<LeagueDataYield>;
+}
+
+/**
+ * ETL League Data Adapter
+ * Adapts the HTTP service for fetching league overview data
+ * Coordinates batch fetching with rate limiting
+ */
+export class LeagueAdapter implements ILeagueAdapter {
   constructor(private readonly httpService: IHttpService) {}
 
   /**
@@ -78,4 +89,4 @@ export class LeagueService implements ILeagueService {
   }
 }
 
-export const leagueService = new LeagueService(_httpService);
+export const leagueAdapter = new LeagueAdapter(_httpService);
