@@ -27,16 +27,6 @@ export class TrustValidation {
   }
 
   /**
-   * Get human-readable validation message
-   */
-  getMessage(): string {
-    if (this.isValid) {
-      return 'Price data is trusted';
-    }
-    return this.reason ?? 'Price data is not trusted';
-  }
-
-  /**
    * Convert to plain object for serialization
    */
   toPlain(): Record<string, unknown> {
