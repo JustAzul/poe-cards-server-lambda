@@ -32,5 +32,4 @@ export class MarketSnapshot {
   ): MarketSnapshot {
     return new MarketSnapshot({ cardPrice, rewardPrice, leagueId });
   }
-
 }
