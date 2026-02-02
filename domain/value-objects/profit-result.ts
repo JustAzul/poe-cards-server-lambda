@@ -48,22 +48,6 @@ export class ProfitResult {
   }
 
   /**
-   * Get profit tier for categorization
-   */
-  getProfitTier(): 'low' | 'medium' | 'high' {
-    if (this.chaosProfitValue < 10) return 'low';
-    if (this.chaosProfitValue < 50) return 'medium';
-    return 'high';
-  }
-
-  /**
-   * Get ROI percentage formatted as string
-   */
-  getRoiPercentage(): string {
-    return `${this.roi.toFixed(2)}%`;
-  }
-
-  /**
    * Convert to plain object for serialization
    */
   toPlain(): Record<string, unknown> {
