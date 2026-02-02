@@ -9,7 +9,7 @@ import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { ArbitrageMapper } from '@infrastructure/mappers/arbitrage.mapper';
 
 // Interfaces
-import { IArbitrageEvaluator } from '@application/services/arbitrage-evaluator.service';
+import { IArbitrageEvaluator } from '@application/use-case/arbitrage-evaluator.use-case';
 
 /**
  * Result of transforming a single league
@@ -20,10 +20,11 @@ export interface SingleLeagueTransformResult {
 }
 
 /**
- * Service responsible for transforming raw league data
+ * ETL Pipeline Transform Adapter
+ * Responsible for transforming raw league data
  * Processes raw data into structured arbitrage opportunities and currency results
  */
-export class TransformService {
+export class TransformAdapter {
   constructor(
     private readonly arbitrageEvaluator: IArbitrageEvaluator,
   ) {}

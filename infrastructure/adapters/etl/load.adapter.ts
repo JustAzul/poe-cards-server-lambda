@@ -6,9 +6,10 @@ import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /**
- * Service responsible for displaying processed data to console
+ * ETL Pipeline Load Adapter
+ * Responsible for displaying processed data to console
  */
-export class LoadService {
+export class LoadAdapter {
   constructor() {}
 
   /**

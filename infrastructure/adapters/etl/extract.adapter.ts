@@ -9,7 +9,7 @@ import { DivinationCard } from '@domain/entities/card.entity';
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/league.repository';
 import { ICardRepository } from '@domain/repositories/card.repository';
-import { ILeagueService } from '@infrastructure/services/interfaces/league.service.interface';
+import { ILeagueAdapter } from '@infrastructure/adapters/league.adapter';
 
 export interface LeagueExtractionData {
   items: ItemOverview[];
@@ -24,14 +24,15 @@ export interface LeagueExtractionYield {
 }
 
 /**
- * Service responsible for extracting raw league data from API
+ * ETL Pipeline Extract Adapter
+ * Responsible for extracting raw league data from API
  * Handles league filtering and rate-limited data fetching
  */
-export class ExtractService {
+export class ExtractAdapter {
   constructor(
     private readonly leagueRepository: ILeagueRepository,
     private readonly cardRepository: ICardRepository,
-    private readonly leagueService: ILeagueService,
+    private readonly leagueAdapter: ILeagueAdapter,
   ) {}
 
   /**
@@ -39,7 +40,7 @@ export class ExtractService {
    * Generator function that yields data for each league as it's extracted
    *
    * Fetches all leagues and cards, applies filtering criteria, and delegates
-   * to leagueService for batch processing with API rate limiting
+   * to leagueAdapter for batch processing with API rate limiting
    *
    * @yields Individual league extraction result for each league with cards
    */
@@ -47,7 +48,7 @@ export class ExtractService {
     console.log('Fetching Leagues..');
 
     const leagues = await this.leagueRepository.getAllLeagues();
-    const filteredLeagues = ExtractService.selectLeagues(leagues);
+    const filteredLeagues = ExtractAdapter.selectLeagues(leagues);
     const cards = this.cardRepository.getAllCards();
 
     console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
@@ -59,7 +60,7 @@ export class ExtractService {
       items,
       currency,
       timestamp,
-    } of this.leagueService.fetchBatchLeagueOverview(filteredLeagues)) {
+    } of this.leagueAdapter.fetchBatchLeagueOverview(filteredLeagues)) {
       yield {
         league,
         data: {
