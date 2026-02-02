@@ -74,9 +74,16 @@ export class ExtractAdapter {
   }
 
   private static selectLeagues(leagues: League[]): League[] {
-    return leagues
+    let filtered = leagues
       .filter(({ name }) => !name.includes('SSF') && !name.includes('Solo Self-Found')) // remove Solo Self Found leagues
       .filter(({ realm }) => realm === 'pc')
       .filter(({ name }) => name !== 'Hardcore'); // remove Standard(Hardcore) league
+
+    // In development mode, only process Standard league for faster iteration
+    if (process.env.NODE_ENV === 'development') {
+      filtered = filtered.filter(({ name }) => name === 'Standard');
+    }
+
+    return filtered;
   }
 }
