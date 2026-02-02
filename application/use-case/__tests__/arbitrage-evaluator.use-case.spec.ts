@@ -9,7 +9,7 @@ describe('ArbitrageEvaluator', () => {
 
   beforeEach(() => {
     service = new ArbitrageEvaluator();
-    leagueData = { items: [], currency: [] };
+    leagueData = { league: 'Standard', items: [], currency: [] };
   });
 
   describe('evaluateCardArbitrage', () => {
