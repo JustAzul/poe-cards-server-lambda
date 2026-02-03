@@ -3,33 +3,23 @@ import { League } from '@domain/entities/league.entity';
 
 import { IHttpService, httpService as _httpService } from '@infrastructure/adapters/http/http.service';
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
 export class LeagueRepository implements ILeagueRepository {
-  private cache: League[] | null = null;
-
-  private cacheTimestamp: number = 0;
-
-  private readonly CACHE_TTL_MS = FIVE_MINUTES_MS;
-
   constructor(private readonly httpService: IHttpService = _httpService) {}
 
   async getAllLeagues(): Promise<League[]> {
-    if (this.cache && Date.now() - this.cacheTimestamp < this.CACHE_TTL_MS) {
-      return this.cache;
-    }
-
     const leagues = await this.httpService.fetchLeagues();
 
-    const mappedLeagues = leagues.map((league) => ({
-      name: league.name,
-      ladder: league.url,
-      delveEvent: league.delveEvent,
-      realm: league.realm,
-    }));
-
-    this.cache = mappedLeagues;
-    this.cacheTimestamp = Date.now();
+    const mappedLeagues = leagues.map(
+      (league) => new League(
+        league.name,
+        league.url,
+        league.delveEvent,
+        league.realm,
+        league.startAt ? new Date(league.startAt) : null,
+        league.endAt ? new Date(league.endAt) : null,
+        league.rules.map((rule) => rule.id),
+      ),
+    );
 
     return mappedLeagues;
   }
