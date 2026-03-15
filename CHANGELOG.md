@@ -135,6 +135,15 @@ All notable changes to this project will be documented in this file.
 - Removed `await` on synchronous `loadAdapter.load()` call in `App.execute()`
 - Deleted misleading `ItemOverview.getStackSize()` method
 
+### Performance
+
+#### O(1) Market Index Lookups
+- `RewardMatcherService.buildIndex()` pre-builds `MarketIndex` with three `Map` structures: `cardsByName`, `itemsByName`, `currencyByName`
+- `findCardPrice()` and `findRewardPrice()` now accept `MarketIndex` for O(1) lookups (previously O(n) linear scan per card)
+- `ArbitrageEvaluatorService.findAllOpportunities()` builds index once, reuses for all card evaluations — overall complexity reduced from O(n×m) to O(n+m)
+- `evaluate()` signature changed to accept `MarketIndex` instead of raw `items`/`currency` arrays
+- Port methods (`evaluateCardArbitrage`, `findAllArbitrageOpportunities`) build index per call for API compatibility
+
 ### Test Coverage
 - **ArbitrageCalculationService**: 13 tests — profit math, fractional values, stackSize null, ROI edge cases, currency/item reward handling
 - **TrustValidationService**: 11 tests — threshold validation, Chaos Orb always-trusted, missing counts, combined card+reward checks
