@@ -1,5 +1,6 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
+import { ILeagueApi, IMarketDataApi } from '@domain/ports/http-service.port';
 import {
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,
@@ -7,37 +8,11 @@ import {
 import { LeagueApiResponse } from '@infrastructure/types/poe-api.types';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 
-export interface IHttpService {
-  /**
-   * Fetch leagues from Path of Exile API
-   * @returns Promise<LeagueApiResponse[]> - Array of league responses from API
-   * @throws Error if API call fails after retries
-   */
-  fetchLeagues(): Promise<LeagueApiResponse[]>;
-
-  /**
-   * Fetch item overview from poe.ninja API
-   * @param league - League name (e.g., "Standard", "Affliction")
-   * @param type - Item type (e.g., "DivinationCard", "UniqueArmour")
-   * @returns Promise<ItemOverview[]> - Array of item pricing data
-   * @throws Error if API call fails after retries
-   */
-  fetchItemOverview(league: string, type: string): Promise<ItemOverview[]>;
-
-  /**
-   * Fetch currency overview from poe.ninja API
-   * @param league - League name
-   * @returns Promise<CurrencyItem[]> - Array of currency pricing data
-   * @throws Error if API call fails after retries
-   */
-  fetchCurrencyOverview(league: string): Promise<CurrencyItem[]>;
-}
-
 /**
  * HTTP Service that coordinates API requests to different domains
  * Uses separate HttpClient instances to manage rate limiting independently
  */
-export class HttpService implements IHttpService {
+export class HttpService implements ILeagueApi, IMarketDataApi {
   private readonly poeApiClient: HttpClient;
 
   private readonly poeNinjaClient: HttpClient;
@@ -46,8 +21,8 @@ export class HttpService implements IHttpService {
     poeApiClient?: HttpClient,
     poeNinjaClient?: HttpClient,
   ) {
-    this.poeApiClient = poeApiClient || new HttpClient({ throttleDelayMs: 2000 });
-    this.poeNinjaClient = poeNinjaClient || new HttpClient({ throttleDelayMs: 2000 });
+    this.poeApiClient = poeApiClient ?? new HttpClient({ throttleDelayMs: 2000 });
+    this.poeNinjaClient = poeNinjaClient ?? new HttpClient({ throttleDelayMs: 2000 });
   }
 
   async fetchLeagues(): Promise<LeagueApiResponse[]> {
