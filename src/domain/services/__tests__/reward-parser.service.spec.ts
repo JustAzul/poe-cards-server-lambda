@@ -276,7 +276,7 @@ describe('RewardParserService', () => {
 
   describe('skip scenarios', () => {
     it('should skip cards with no explicitModifiers', () => {
-      const result = parser.parseLine({ name: 'Empty Card', explicitModifiers: null });
+      const result = parser.parseLine({ name: 'Empty Card', explicitModifiers: undefined });
 
       expect(result.card).toBeNull();
       expect(result.skipped).toBe(true);
