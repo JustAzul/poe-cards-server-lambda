@@ -2,14 +2,27 @@ import { DivinationCard } from '@domain/entities/card.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemRewardSpec } from '@domain/value-objects/reward-spec';
+import { ItemClass } from '@domain/value-objects/item-class.enum';
 
 /**
  * Reward Matcher Domain Service
  * Encapsulates business logic for matching card rewards to market data
  * Handles both currency and item reward matching strategies
  */
+export type AmbiguousMatchCallback = (
+  cardName: string,
+  rewardName: string,
+  matchCount: number,
+) => void;
+
 export class RewardMatcherService {
-  private static readonly DIVINATION_CARD_CLASS = 6;
+  private static readonly DIVINATION_CARD_CLASS = ItemClass.DIVINATION_CARD;
+
+  private readonly onAmbiguousMatch?: AmbiguousMatchCallback;
+
+  constructor(onAmbiguousMatch?: AmbiguousMatchCallback) {
+    this.onAmbiguousMatch = onAmbiguousMatch;
+  }
 
   /**
    * Find card price in market items by name and divination card class
@@ -60,6 +73,10 @@ export class RewardMatcherService {
         && (item.links ?? 0) === spec.links
         && (item.gemLevel ?? 0) === spec.gemLevel,
     );
+
+    if (matches.length > 1) {
+      this.onAmbiguousMatch?.(card.name, card.reward, matches.length);
+    }
 
     return matches.length === 1 ? matches[0] : null;
   }
