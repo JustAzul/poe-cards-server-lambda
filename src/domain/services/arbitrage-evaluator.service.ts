@@ -50,8 +50,9 @@ export class ArbitrageEvaluatorService {
 
     if (!trust.isValid) return null;
 
-    // Calculate profit
+    // Calculate profit (null if stackSize is missing)
     const profit = this.calculator.calculateProfit(card, market);
+    if (!profit) return null;
 
     // Create and return aggregate
     return CardArbitrage.create(card, market, profit, trust);
