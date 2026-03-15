@@ -12,13 +12,19 @@ export interface ExplicitModifier {
 
 export interface DivinationCardLine {
   name: string;
-  explicitModifiers?: ExplicitModifier[] | null;
+  explicitModifiers?: ExplicitModifier[];
 }
 
 export type SkipCallback = (
   cardName: string,
   reason: string,
   rawText: string,
+) => void;
+
+export type CompleteCallback = (
+  parsed: number,
+  total: number,
+  skipped: number,
 ) => void;
 
 interface ParseResult {
@@ -55,9 +61,11 @@ const GEM_NAME_SUFFIXES: Record<string, string> = {
 
 export class RewardParserService {
   private readonly onSkip?: SkipCallback;
+  private readonly onComplete?: CompleteCallback;
 
-  constructor(onSkip?: SkipCallback) {
+  constructor(onSkip?: SkipCallback, onComplete?: CompleteCallback) {
     this.onSkip = onSkip;
+    this.onComplete = onComplete;
   }
 
   parseAll(lines: DivinationCardLine[]): DivinationCard[] {
@@ -74,10 +82,7 @@ export class RewardParserService {
       }
     }
 
-    console.log(
-      `[RewardParser] Parsed ${cards.length}/${lines.length}`
-      + ` divination cards (${skippedCount} skipped)`,
-    );
+    this.onComplete?.(cards.length, lines.length, skippedCount);
 
     return cards;
   }

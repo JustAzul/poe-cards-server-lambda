@@ -25,6 +25,12 @@ const rewardParser = new RewardParserService(
       + (rawText ? ` | raw: ${rawText.substring(0, 80)}` : ''),
     );
   },
+  (parsed, total, skipped) => {
+    console.log(
+      `[RewardParser] Parsed ${parsed}/${total}`
+      + ` divination cards (${skipped} skipped)`,
+    );
+  },
 );
 const rewardMatcher = new RewardMatcherService(
   (cardName, rewardName, matchCount) => {

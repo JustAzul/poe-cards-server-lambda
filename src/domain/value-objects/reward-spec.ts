@@ -3,6 +3,8 @@
  * Enables type-safe handling of different reward categories
  */
 
+import { ItemClass } from '@domain/value-objects/item-class.enum';
+
 export enum RewardType {
   CURRENCY = 'CURRENCY',
   ITEM = 'ITEM'
@@ -15,7 +17,7 @@ export interface CurrencyRewardSpec {
 
 export interface ItemRewardSpec {
   type: RewardType.ITEM;
-  itemClass: number;
+  itemClass: ItemClass;
   corrupted: boolean;
   links: number;
   gemLevel: number;
@@ -37,7 +39,7 @@ export function createCurrencyRewardSpec(amount: number): CurrencyRewardSpec {
  * Factory function to create item reward spec
  */
 export function createItemRewardSpec(
-  itemClass: number,
+  itemClass: ItemClass,
   corrupted: boolean,
   links: number,
   gemLevel: number,
