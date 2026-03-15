@@ -21,8 +21,7 @@ const leagueAdapter = new LeagueAdapter(httpService);
 const rewardParser = new RewardParserService(
   (cardName, reason, rawText) => {
     console.warn(
-      `[RewardParser] Skipped "${cardName}": ${reason}`
-      + (rawText ? ` | raw: ${rawText.substring(0, 80)}` : ''),
+      `[RewardParser] Skipped "${cardName}": ${reason}${rawText ? ` | raw: ${rawText.substring(0, 80)}` : ''}`,
     );
   },
   (parsed, total, skipped) => {

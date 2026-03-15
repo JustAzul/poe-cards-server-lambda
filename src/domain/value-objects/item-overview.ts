@@ -19,9 +19,9 @@ export class ItemOverview {
 
   readonly stackSize?: number;
 
-  // TODO: artFilename and flavourText are API-presentation fields that belong in PoeNinjaItemDto.
-  // They remain here because ArbitrageMapper (infrastructure) reads them via MarketSnapshot.cardPrice.
-  // Moving them requires carrying DTOs alongside VOs through the extraction pipeline.
+  // TODO: artFilename and flavourText are API-presentation fields
+  // that belong in PoeNinjaItemDto. They remain here because
+  // ArbitrageMapper reads them via MarketSnapshot.cardPrice.
   readonly artFilename?: string;
 
   readonly flavourText?: string;
