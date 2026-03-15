@@ -70,9 +70,20 @@ All notable changes to this project will be documented in this file.
 - `setCost` was already computed from fractional value — now display is consistent
 
 #### Error Handling
-- ETL pipeline: per-league try-catch — one league failure no longer crashes the entire pipeline
-- Lambda handler: returns 500 with error message instead of throwing
+- ETL pipeline: per-league try-catch in both extraction and transform/load — one league failure no longer crashes the entire pipeline
+- `fetchBatchLeagueOverview()` catches per-league HTTP errors, logs and continues to next league
+- `App.execute()` returns `{ processed, failed }` counts instead of void
+- Lambda handler: returns 500 (all failed), 207 (partial failure), 200 (success) with counts in body
 - Dev mode: replaced `process.nextTick(async () => ...)` (silent rejection) with `main().catch(console.error)`
+
+#### Missing stackSize Validation
+- `calculateProfit()` returns `null` when `stackSize` is missing from poe.ninja data (8/454 cards affected)
+- Prevents 7-15x inflated profit from defaulting to `stackSize: 1`
+
+#### HTTP Client Resilience
+- Added 30s request timeout (`requestTimeoutMs` in `HttpConfig`) — prevents stuck connections from hanging until Lambda timeout
+- 429 rate-limit responses: reads `Retry-After` header (defaults to 60s) instead of short exponential backoff
+- Non-retryable 4xx errors (400, 401, 403, 404) throw immediately instead of wasting retry attempts
 
 #### Ambiguous Match Visibility
 - `RewardMatcherService` accepts optional `AmbiguousMatchCallback`
