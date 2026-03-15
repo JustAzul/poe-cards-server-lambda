@@ -1,33 +1,33 @@
 export class League {
-  name: string;
+  readonly name: string;
 
-  ladder: string;
+  readonly ladder: string;
 
-  delveEvent: boolean;
+  readonly delveEvent: boolean;
 
-  realm: string;
+  readonly realm: string;
 
-  startAt: Date | null;
+  readonly startAt: Date | null;
 
-  endAt: Date | null;
+  readonly endAt: Date | null;
 
-  ruleIds: string[];
+  readonly ruleIds: string[];
 
-  constructor(
-    name: string,
-    ladder: string,
-    delveEvent: boolean,
-    realm: string,
-    startAt: Date | null,
-    endAt: Date | null,
-    ruleIds: string[],
-  ) {
-    this.name = name;
-    this.ladder = ladder;
-    this.delveEvent = delveEvent;
-    this.realm = realm;
-    this.startAt = startAt;
-    this.endAt = endAt;
-    this.ruleIds = ruleIds;
+  constructor(data: {
+    name: string;
+    ladder: string;
+    delveEvent: boolean;
+    realm: string;
+    startAt: Date | null;
+    endAt: Date | null;
+    ruleIds: string[];
+  }) {
+    this.name = data.name;
+    this.ladder = data.ladder;
+    this.delveEvent = data.delveEvent;
+    this.realm = data.realm;
+    this.startAt = data.startAt;
+    this.endAt = data.endAt;
+    this.ruleIds = data.ruleIds;
   }
 }
