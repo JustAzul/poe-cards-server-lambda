@@ -2,6 +2,8 @@ import { LeagueData, ArbitrageEvaluator } from '@application/use-case/arbitrage-
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
+import { createItemRewardSpec, createCurrencyRewardSpec } from '@domain/value-objects/reward-spec';
+import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { RewardMatcherService } from '@domain/services/reward-matcher.service';
 import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
 import { TrustValidationService } from '@domain/services/trust-validation.service';
@@ -26,7 +28,7 @@ describe('ArbitrageEvaluator', () => {
       it('should evaluate arbitrage for valid item card', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Doctor',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
           count: 50,
           stackSize: 8,
@@ -36,19 +38,16 @@ describe('ArbitrageEvaluator', () => {
 
         const rewardOverview = ItemOverview.fromRaw({
           name: 'Headhunter',
-          itemClass: 2,
+          itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
           count: 20,
         });
 
-        const card = DivinationCard.fromItemCardConfig({
-          Name: 'The Doctor',
-          Reward: 'Headhunter',
-          Corrupted: false,
-          iClass: 2,
-          Links: 0,
-          gemLevel: 0,
-        });
+        const card = new DivinationCard(
+          'The Doctor',
+          'Headhunter',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
 
         leagueData.items = [cardOverview, rewardOverview];
 
@@ -67,7 +66,7 @@ describe('ArbitrageEvaluator', () => {
       it('should format gem rewards with level', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Wretched',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
           count: 100,
           stackSize: 1,
@@ -75,20 +74,17 @@ describe('ArbitrageEvaluator', () => {
 
         const rewardOverview = ItemOverview.fromRaw({
           name: 'Gem Name',
-          itemClass: 4,
+          itemClass: ItemClass.SKILL_GEM,
           chaosValue: 100,
           count: 50,
           gemLevel: 20,
         });
 
-        const card = DivinationCard.fromItemCardConfig({
-          Name: 'The Wretched',
-          Reward: 'Gem Name',
-          Corrupted: false,
-          iClass: 4,
-          Links: 0,
-          gemLevel: 20,
-        });
+        const card = new DivinationCard(
+          'The Wretched',
+          'Gem Name',
+          createItemRewardSpec(ItemClass.SKILL_GEM, false, 0, 20),
+        );
 
         leagueData.items = [cardOverview, rewardOverview];
 
@@ -99,14 +95,11 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return null when card not found in items', () => {
-        const card = DivinationCard.fromItemCardConfig({
-          Name: 'Nonexistent Card',
-          Reward: 'Nonexistent Item',
-          Corrupted: false,
-          iClass: 2,
-          Links: 0,
-          gemLevel: 0,
-        });
+        const card = new DivinationCard(
+          'Nonexistent Card',
+          'Nonexistent Item',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
 
         leagueData.items = [];
 
@@ -118,20 +111,17 @@ describe('ArbitrageEvaluator', () => {
       it('should return null when reward not found', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Doctor',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
           count: 50,
           stackSize: 8,
         });
 
-        const card = DivinationCard.fromItemCardConfig({
-          Name: 'The Doctor',
-          Reward: 'Nonexistent Item',
-          Corrupted: false,
-          iClass: 2,
-          Links: 0,
-          gemLevel: 0,
-        });
+        const card = new DivinationCard(
+          'The Doctor',
+          'Nonexistent Item',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
 
         leagueData.items = [cardOverview];
 
@@ -143,7 +133,7 @@ describe('ArbitrageEvaluator', () => {
       it('should return null when trust validation fails due to low card count', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Doctor',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
           count: 5, // Below MIN_TRUST_COUNT of 10
           stackSize: 8,
@@ -151,19 +141,16 @@ describe('ArbitrageEvaluator', () => {
 
         const rewardOverview = ItemOverview.fromRaw({
           name: 'Headhunter',
-          itemClass: 2,
+          itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
           count: 20,
         });
 
-        const card = DivinationCard.fromItemCardConfig({
-          Name: 'The Doctor',
-          Reward: 'Headhunter',
-          Corrupted: false,
-          iClass: 2,
-          Links: 0,
-          gemLevel: 0,
-        });
+        const card = new DivinationCard(
+          'The Doctor',
+          'Headhunter',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
 
         leagueData.items = [cardOverview, rewardOverview];
 
@@ -175,7 +162,7 @@ describe('ArbitrageEvaluator', () => {
       it('should return aggregate with negative profit (filtering at app layer)', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Doctor',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 5000,
           count: 50,
           stackSize: 8, // 8 * 5000 = 40000
@@ -183,19 +170,16 @@ describe('ArbitrageEvaluator', () => {
 
         const rewardOverview = ItemOverview.fromRaw({
           name: 'Bad Reward',
-          itemClass: 2,
+          itemClass: ItemClass.UNIQUE,
           chaosValue: 100, // 100 < 40000, so unprofitable
           count: 20,
         });
 
-        const card = DivinationCard.fromItemCardConfig({
-          Name: 'The Doctor',
-          Reward: 'Bad Reward',
-          Corrupted: false,
-          iClass: 2,
-          Links: 0,
-          gemLevel: 0,
-        });
+        const card = new DivinationCard(
+          'The Doctor',
+          'Bad Reward',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
 
         leagueData.items = [cardOverview, rewardOverview];
 
@@ -212,7 +196,7 @@ describe('ArbitrageEvaluator', () => {
       it('should evaluate arbitrage for valid currency card', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Hoarder',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
           count: 100,
           stackSize: 1,
@@ -223,11 +207,11 @@ describe('ArbitrageEvaluator', () => {
           chaosEquivalent: 1,
         });
 
-        const card = DivinationCard.fromCurrencyCardConfig({
-          Name: 'The Hoarder',
-          Reward: 'Chaos Orb',
-          Amount: 1,
-        });
+        const card = new DivinationCard(
+          'The Hoarder',
+          'Chaos Orb',
+          createCurrencyRewardSpec(1),
+        );
 
         leagueData.items = [cardOverview];
         leagueData.currency = [currencyOverview];
@@ -243,7 +227,7 @@ describe('ArbitrageEvaluator', () => {
       it('should handle multiple currency amounts', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Gambler',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 10,
           count: 100,
           stackSize: 1,
@@ -255,11 +239,11 @@ describe('ArbitrageEvaluator', () => {
           receive: { count: 50 },
         });
 
-        const card = DivinationCard.fromCurrencyCardConfig({
-          Name: 'The Gambler',
-          Reward: 'Exalted Orb',
-          Amount: 5,
-        });
+        const card = new DivinationCard(
+          'The Gambler',
+          'Exalted Orb',
+          createCurrencyRewardSpec(5),
+        );
 
         leagueData.items = [cardOverview];
         leagueData.currency = [currencyOverview];
@@ -274,17 +258,17 @@ describe('ArbitrageEvaluator', () => {
       it('should return null when currency not found', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Hoarder',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
           count: 100,
           stackSize: 1,
         });
 
-        const card = DivinationCard.fromCurrencyCardConfig({
-          Name: 'The Hoarder',
-          Reward: 'Nonexistent Currency',
-          Amount: 1,
-        });
+        const card = new DivinationCard(
+          'The Hoarder',
+          'Nonexistent Currency',
+          createCurrencyRewardSpec(1),
+        );
 
         leagueData.items = [cardOverview];
         leagueData.currency = [];
@@ -297,7 +281,7 @@ describe('ArbitrageEvaluator', () => {
       it('should return null when currency trust validation fails', () => {
         const cardOverview = ItemOverview.fromRaw({
           name: 'The Hoarder',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
           count: 100,
           stackSize: 1,
@@ -309,11 +293,11 @@ describe('ArbitrageEvaluator', () => {
           receive: { count: 5 }, // Below MIN_TRUST_COUNT of 10
         });
 
-        const card = DivinationCard.fromCurrencyCardConfig({
-          Name: 'The Hoarder',
-          Reward: 'Expensive Currency',
-          Amount: 1,
-        });
+        const card = new DivinationCard(
+          'The Hoarder',
+          'Expensive Currency',
+          createCurrencyRewardSpec(1),
+        );
 
         leagueData.items = [cardOverview];
         leagueData.currency = [currencyOverview];
@@ -328,63 +312,57 @@ describe('ArbitrageEvaluator', () => {
   describe('findAllArbitrageOpportunities', () => {
     it('should find all profitable opportunities', () => {
       // High-profit item card
-      const doctorCard = DivinationCard.fromItemCardConfig({
-        Name: 'The Doctor',
-        Reward: 'Headhunter',
-        Corrupted: false,
-        iClass: 2,
-        Links: 0,
-        gemLevel: 0,
-      });
+      const doctorCard = new DivinationCard(
+        'The Doctor',
+        'Headhunter',
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+      );
 
       // Profitable currency card (need high enough reward to exceed card cost)
-      const hoarderCard = DivinationCard.fromCurrencyCardConfig({
-        Name: 'The Hoarder',
-        Reward: 'Exalted Orb',
-        Amount: 1,
-      });
+      const hoarderCard = new DivinationCard(
+        'The Hoarder',
+        'Exalted Orb',
+        createCurrencyRewardSpec(1),
+      );
 
       // Unprofitable card
-      const unprofitableCard = DivinationCard.fromItemCardConfig({
-        Name: 'Bad Card',
-        Reward: 'Bad Item',
-        Corrupted: false,
-        iClass: 5,
-        Links: 0,
-        gemLevel: 0,
-      });
+      const unprofitableCard = new DivinationCard(
+        'Bad Card',
+        'Bad Item',
+        createItemRewardSpec(ItemClass.SKILL_GEM, false, 0, 0),
+      );
 
       leagueData.items = [
         ItemOverview.fromRaw({
           name: 'The Doctor',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
           count: 50,
           stackSize: 8,
         }),
         ItemOverview.fromRaw({
           name: 'Headhunter',
-          itemClass: 2,
+          itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
           count: 20,
         }),
         ItemOverview.fromRaw({
           name: 'The Hoarder',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 25,
           count: 50,
           stackSize: 1,
         }),
         ItemOverview.fromRaw({
           name: 'Bad Card',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 100,
           count: 50,
           stackSize: 1,
         }),
         ItemOverview.fromRaw({
           name: 'Bad Item',
-          itemClass: 5,
+          itemClass: ItemClass.SKILL_GEM,
           chaosValue: 10,
           count: 50,
         }),
@@ -408,26 +386,23 @@ describe('ArbitrageEvaluator', () => {
     });
 
     it('should return empty array when no profitable opportunities exist', () => {
-      const card = DivinationCard.fromItemCardConfig({
-        Name: 'Unprofitable',
-        Reward: 'Cheap Reward',
-        Corrupted: false,
-        iClass: 2,
-        Links: 0,
-        gemLevel: 0,
-      });
+      const card = new DivinationCard(
+        'Unprofitable',
+        'Cheap Reward',
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+      );
 
       leagueData.items = [
         ItemOverview.fromRaw({
           name: 'Unprofitable',
-          itemClass: 6,
+          itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 1000,
           count: 50,
           stackSize: 1,
         }),
         ItemOverview.fromRaw({
           name: 'Cheap Reward',
-          itemClass: 2,
+          itemClass: ItemClass.UNIQUE,
           chaosValue: 10,
           count: 50,
         }),
