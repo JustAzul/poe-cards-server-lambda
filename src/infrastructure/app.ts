@@ -23,7 +23,7 @@ export class App {
           data.cards,
         );
 
-        await this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
+        this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
         processedCount += 1;
         console.log(`Successfully processed league: ${league.name}`);
       } catch (error) {
