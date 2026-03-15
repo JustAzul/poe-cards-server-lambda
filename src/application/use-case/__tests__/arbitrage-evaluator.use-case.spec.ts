@@ -2,13 +2,22 @@ import { LeagueData, ArbitrageEvaluator } from '@application/use-case/arbitrage-
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
+import { RewardMatcherService } from '@domain/services/reward-matcher.service';
+import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
+import { TrustValidationService } from '@domain/services/trust-validation.service';
+import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
 
 describe('ArbitrageEvaluator', () => {
   let service: ArbitrageEvaluator;
   let leagueData: LeagueData;
 
   beforeEach(() => {
-    service = new ArbitrageEvaluator();
+    // eslint-disable-next-line no-empty-function
+    const rewardMatcher = new RewardMatcherService(() => {});
+    const calculator = new ArbitrageCalculationService();
+    const trustValidator = new TrustValidationService();
+    const domainService = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator);
+    service = new ArbitrageEvaluator(domainService);
     leagueData = { league: 'Standard', items: [], currency: [] };
   });
 

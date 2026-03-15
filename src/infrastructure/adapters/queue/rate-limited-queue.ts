@@ -68,5 +68,3 @@ export class RateLimitedQueue<T> extends FIFOQueue<T> {
     this.lastExecutionTime = Date.now();
   }
 }
-
-export const rateLimitedQueue = new RateLimitedQueue();

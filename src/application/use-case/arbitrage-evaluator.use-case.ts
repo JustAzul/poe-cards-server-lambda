@@ -1,9 +1,6 @@
 import { DivinationCard } from '@domain/entities/card.entity';
 import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
 import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
-import { RewardMatcherService } from '@domain/services/reward-matcher.service';
-import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
-import { TrustValidationService } from '@domain/services/trust-validation.service';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 
@@ -32,14 +29,9 @@ export interface IArbitrageEvaluator {
  * Returns domain aggregates directly (no transformation)
  */
 export class ArbitrageEvaluator implements IArbitrageEvaluator {
-  private readonly domainService: ArbitrageEvaluatorService;
-
-  constructor() {
-    const rewardMatcher = new RewardMatcherService();
-    const calculator = new ArbitrageCalculationService();
-    const trustValidator = new TrustValidationService();
-    this.domainService = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator);
-  }
+  constructor(
+    private readonly domainService: ArbitrageEvaluatorService,
+  ) {}
 
   /**
    * Evaluate single card for arbitrage opportunity
@@ -65,6 +57,3 @@ export class ArbitrageEvaluator implements IArbitrageEvaluator {
     );
   }
 }
-
-// Singleton instance for convenient application-wide access
-export const arbitrageEvaluator = new ArbitrageEvaluator();

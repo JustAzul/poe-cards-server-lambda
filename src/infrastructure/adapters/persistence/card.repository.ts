@@ -1,31 +1,7 @@
 import { DivinationCard } from '@domain/entities/card.entity';
 import { ICardRepository } from '@domain/repositories/card.repository';
-
-/**
- * Raw data structure from cards config file
- */
-interface RawCardData {
-  Name: string;
-  Reward: string;
-  Corrupted: boolean;
-  iClass: number;
-  Links: number;
-  gemLevel: number;
-}
-
-/**
- * Raw data structure from currency-cards config file
- */
-interface RawCurrencyCardData {
-  Name: string;
-  Reward: string;
-  Amount: number;
-}
-
-// eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
-const rawCardsData = require('@config/cards') as RawCardData[];
-// eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
-const rawCurrencyCardsData = require('@config/currency-cards') as RawCurrencyCardData[];
+import { cards as rawCardsData } from '@config/cards';
+import { currencyCards as rawCurrencyCardsData } from '@config/currency-cards';
 
 /**
  * Unified card repository that loads both item and currency cards
@@ -53,5 +29,3 @@ export class CardRepository implements ICardRepository {
     return this.cards;
   }
 }
-
-export const cardRepository = new CardRepository();

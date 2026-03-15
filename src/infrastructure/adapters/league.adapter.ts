@@ -1,11 +1,9 @@
-/* eslint-disable no-console */
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { League } from '@domain/entities/league.entity';
-import { IHttpService, httpService as _httpService } from '@infrastructure/adapters/http/http.service';
+import { IHttpService } from '@infrastructure/adapters/http/http.service';
 
-// eslint-disable-next-line global-require,@typescript-eslint/no-require-imports
-const fetchList = require('@config/fetch-list');
+import { fetchList } from '@config/fetch-list';
 
 /**
  * Individual league data result yielded by generator
@@ -73,7 +71,6 @@ export class LeagueAdapter implements ILeagueAdapter {
    * @yields Individual league data with timestamp for each league
    */
   async* fetchBatchLeagueOverview(leagues: League[]): AsyncGenerator<LeagueDataYield> {
-    // eslint-disable-next-line no-restricted-syntax
     for (const league of leagues) {
       // eslint-disable-next-line no-await-in-loop
       const { items, currency } = await this.fetchLeagueOverview(league.name);
@@ -88,5 +85,3 @@ export class LeagueAdapter implements ILeagueAdapter {
     }
   }
 }
-
-export const leagueAdapter = new LeagueAdapter(_httpService);

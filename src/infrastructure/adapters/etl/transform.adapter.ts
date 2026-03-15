@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 // Domain entities and types
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
