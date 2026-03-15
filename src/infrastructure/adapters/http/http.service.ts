@@ -1,6 +1,6 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
-import { ILeagueApi, IMarketDataApi } from '@domain/ports/http-service.port';
+import { ILeagueApi, IMarketDataApi, RawLeagueData } from '@domain/ports/http-service.port';
 import {
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,
@@ -25,13 +25,14 @@ export class HttpService implements ILeagueApi, IMarketDataApi {
     this.poeNinjaClient = poeNinjaClient ?? new HttpClient({ throttleDelayMs: 2000 });
   }
 
-  async fetchLeagues(): Promise<LeagueApiResponse[]> {
+  async fetchLeagues(): Promise<RawLeagueData[]> {
     const url = 'https://api.pathofexile.com/leagues';
     const searchParams = {
       type: 'main',
       compact: 0,
     };
 
+    // API returns LeagueApiResponse[] which is a superset of RawLeagueData
     return this.poeApiClient.get<LeagueApiResponse[]>(url, searchParams);
   }
 
