@@ -42,12 +42,12 @@ describe('RewardMatcherService', () => {
 
   describe('findCardPrice', () => {
     it('should find card by name and divination card class', () => {
-      const items = [
+      const index = service.buildIndex([
         makeItem({ name: 'The Doctor', itemClass: ItemClass.DIVINATION_CARD, chaosValue: 1000 }),
         makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
-      ];
+      ], []);
 
-      const result = service.findCardPrice(items, 'The Doctor');
+      const result = service.findCardPrice(index, 'The Doctor');
 
       expect(result).not.toBeNull();
       expect(result!.name).toBe('The Doctor');
@@ -55,31 +55,31 @@ describe('RewardMatcherService', () => {
     });
 
     it('should return null for non-existent card', () => {
-      const items = [
+      const index = service.buildIndex([
         makeItem({ name: 'The Doctor', itemClass: ItemClass.DIVINATION_CARD }),
-      ];
+      ], []);
 
-      const result = service.findCardPrice(items, 'NonExistent');
+      const result = service.findCardPrice(index, 'NonExistent');
 
       expect(result).toBeNull();
     });
 
     it('should ignore non-divination items with same name', () => {
-      const items = [
+      const index = service.buildIndex([
         makeItem({ name: 'The Doctor', itemClass: ItemClass.UNIQUE }),
-      ];
+      ], []);
 
-      const result = service.findCardPrice(items, 'The Doctor');
+      const result = service.findCardPrice(index, 'The Doctor');
 
       expect(result).toBeNull();
     });
 
     it('should return first match', () => {
-      const items = [
+      const index = service.buildIndex([
         makeItem({ name: 'The Doctor', itemClass: ItemClass.DIVINATION_CARD, chaosValue: 1000 }),
-      ];
+      ], []);
 
-      const result = service.findCardPrice(items, 'The Doctor');
+      const result = service.findCardPrice(index, 'The Doctor');
 
       expect(result).not.toBeNull();
       expect(result!.chaosValue).toBe(1000);
@@ -90,12 +90,12 @@ describe('RewardMatcherService', () => {
     describe('currency cards', () => {
       it('should match currency item by currencyTypeName', () => {
         const card = new DivinationCard('Abandoned Wealth', 'Exalted Orb', createCurrencyRewardSpec(3));
-        const currency = [
+        const index = service.buildIndex([], [
           makeCurrency('Divine Orb'),
           makeCurrency('Exalted Orb', 50),
-        ];
+        ]);
 
-        const result = service.findRewardPrice([], currency, card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).not.toBeNull();
         expect(result).toBeInstanceOf(CurrencyItem);
@@ -104,9 +104,9 @@ describe('RewardMatcherService', () => {
 
       it('should return null when currency is not found', () => {
         const card = new DivinationCard('Test Card', 'Mirror of Kalandra', createCurrencyRewardSpec(1));
-        const currency = [makeCurrency('Divine Orb')];
+        const index = service.buildIndex([], [makeCurrency('Divine Orb')]);
 
-        const result = service.findRewardPrice([], currency, card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -119,11 +119,11 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).not.toBeNull();
         expect(result!).toBeInstanceOf(ItemOverview);
@@ -136,11 +136,11 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({ name: 'Mageblood', itemClass: ItemClass.UNIQUE }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -151,11 +151,11 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.SKILL_GEM }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -166,11 +166,11 @@ describe('RewardMatcherService', () => {
           'Mageblood',
           createItemRewardSpec(ItemClass.UNIQUE, true, 0, 0),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({ name: 'Mageblood', itemClass: ItemClass.UNIQUE, corrupted: false }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -181,11 +181,11 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 6, 0),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE, links: 0 }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -196,13 +196,13 @@ describe('RewardMatcherService', () => {
           'Empower Support',
           createItemRewardSpec(ItemClass.SKILL_GEM, true, 0, 4),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({
             name: 'Empower Support', itemClass: ItemClass.SKILL_GEM, corrupted: true, gemLevel: 3,
           }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -219,12 +219,12 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        const items = [
+        const index = serviceWithCallback.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
-        ];
+        ], []);
 
-        const result = serviceWithCallback.findRewardPrice(items, [], card);
+        const result = serviceWithCallback.findRewardPrice(index, card);
 
         expect(result).toBeNull();
         expect(ambiguousCalls).toHaveLength(1);
@@ -241,12 +241,12 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        const items = [
+        const index = service.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
       });
@@ -257,16 +257,15 @@ describe('RewardMatcherService', () => {
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        // Item without corrupted, links, or gemLevel set (all undefined → defaults)
-        const items = [
+        const index = service.buildIndex([
           new ItemOverview({
             name: 'Headhunter',
             itemClass: ItemClass.UNIQUE,
             chaosValue: 8000,
           }),
-        ];
+        ], []);
 
-        const result = service.findRewardPrice(items, [], card);
+        const result = service.findRewardPrice(index, card);
 
         expect(result).not.toBeNull();
         expect((result as ItemOverview).name).toBe('Headhunter');
