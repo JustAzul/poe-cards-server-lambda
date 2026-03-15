@@ -12,7 +12,7 @@ export interface ExplicitModifier {
 
 export interface DivinationCardLine {
   name: string;
-  explicitModifiers: ExplicitModifier[] | null;
+  explicitModifiers?: ExplicitModifier[] | null;
 }
 
 export type SkipCallback = (
