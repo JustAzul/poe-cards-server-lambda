@@ -1,13 +1,13 @@
 import { ILeagueRepository } from '@domain/repositories/league.repository';
 import { League } from '@domain/entities/league.entity';
 
-import { IHttpService } from '@infrastructure/adapters/http/http.service';
+import { ILeagueApi } from '@domain/ports/http-service.port';
 
 export class LeagueRepository implements ILeagueRepository {
-  constructor(private readonly httpService: IHttpService) {}
+  constructor(private readonly leagueApi: ILeagueApi) {}
 
   async getAllLeagues(): Promise<League[]> {
-    const leagues = await this.httpService.fetchLeagues();
+    const leagues = await this.leagueApi.fetchLeagues();
 
     const mappedLeagues = leagues.map(
       (league) => new League({

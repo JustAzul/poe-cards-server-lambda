@@ -1,7 +1,8 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { League } from '@domain/entities/league.entity';
-import { IHttpService } from '@infrastructure/adapters/http/http.service';
+import { IMarketDataApi } from '@domain/ports/http-service.port';
+import { ILeagueAdapter, LeagueDataYield } from '@domain/ports/league-adapter.port';
 
 const ITEM_TYPES_TO_FETCH = [
   'DivinationCard',
@@ -15,30 +16,12 @@ const ITEM_TYPES_TO_FETCH = [
 ];
 
 /**
- * Individual league data result yielded by generator
- */
-export interface LeagueDataYield {
-  league: League;
-  items: ItemOverview[];
-  currency: CurrencyItem[];
-  timestamp: string;
-}
-
-/**
- * League Data Adapter Interface
- * Defines contract for adapting HTTP service to fetch league data
- */
-export interface ILeagueAdapter {
-  fetchBatchLeagueOverview(leagues: League[]): AsyncGenerator<LeagueDataYield>;
-}
-
-/**
  * ETL League Data Adapter
  * Adapts the HTTP service for fetching league overview data
  * Coordinates batch fetching with rate limiting
  */
 export class LeagueAdapter implements ILeagueAdapter {
-  constructor(private readonly httpService: IHttpService) {}
+  constructor(private readonly marketDataApi: IMarketDataApi) {}
 
   /**
    * Fetch complete league overview (items + currency)
@@ -52,7 +35,7 @@ export class LeagueAdapter implements ILeagueAdapter {
     console.log(`Requesting league '${leagueName}' Overview..`);
 
     const [currency, items] = await Promise.all([
-      this.httpService.fetchCurrencyOverview(leagueName),
+      this.marketDataApi.fetchCurrencyOverview(leagueName),
       this.fetchItemsOverview(leagueName),
     ]);
 
@@ -62,7 +45,7 @@ export class LeagueAdapter implements ILeagueAdapter {
   private async fetchItemsOverview(leagueName: string): Promise<ItemOverview[]> {
     const itemArrays = await Promise.all(
       ITEM_TYPES_TO_FETCH.map(async (type) => {
-        const items = await this.httpService.fetchItemOverview(leagueName, type);
+        const items = await this.marketDataApi.fetchItemOverview(leagueName, type);
         console.log(`Found ${items.length} ${leagueName} ${type}'s!`);
         return items;
       }),

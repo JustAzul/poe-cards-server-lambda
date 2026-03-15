@@ -8,7 +8,7 @@ import { RewardParserService } from '@domain/services/reward-parser.service';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/league.repository';
-import { ILeagueAdapter } from '@infrastructure/adapters/league.adapter';
+import { ILeagueAdapter } from '@domain/ports/league-adapter.port';
 
 export interface LeagueExtractionData {
   items: ItemOverview[];

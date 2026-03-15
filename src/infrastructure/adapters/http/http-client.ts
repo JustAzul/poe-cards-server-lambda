@@ -65,7 +65,7 @@ export class HttpClient {
       const { maxRetries, retryDelayMs, exponentialBackoff } = this.config;
 
       if (attempt >= maxRetries) {
-        throw new Error(`${operationName} failed: ${(error as Error).message}`);
+        throw new Error(`${operationName} failed: ${error instanceof Error ? error.message : String(error)}`);
       }
 
       const delayMs = exponentialBackoff
