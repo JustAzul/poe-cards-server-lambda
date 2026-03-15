@@ -3,7 +3,16 @@ import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { League } from '@domain/entities/league.entity';
 import { IHttpService } from '@infrastructure/adapters/http/http.service';
 
-import { fetchList } from '@config/fetch-list';
+const ITEM_TYPES_TO_FETCH = [
+  'DivinationCard',
+  'UniqueArmour',
+  'UniqueAccessory',
+  'UniqueWeapon',
+  'UniqueMap',
+  'SkillGem',
+  'UniqueFlask',
+  'UniqueJewel',
+];
 
 /**
  * Individual league data result yielded by generator
@@ -52,7 +61,7 @@ export class LeagueAdapter implements ILeagueAdapter {
 
   private async fetchItemsOverview(leagueName: string): Promise<ItemOverview[]> {
     const itemArrays = await Promise.all(
-      fetchList.map(async (type: string) => {
+      ITEM_TYPES_TO_FETCH.map(async (type) => {
         const items = await this.httpService.fetchItemOverview(leagueName, type);
         console.log(`Found ${items.length} ${leagueName} ${type}'s!`);
         return items;
