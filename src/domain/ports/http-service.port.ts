@@ -1,6 +1,19 @@
-import { LeagueApiResponse } from '@infrastructure/types/poe-api.types';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
+
+/**
+ * Domain-level representation of raw league data from the API.
+ * Contains only the fields the domain needs to construct League entities.
+ */
+export interface RawLeagueData {
+  name: string;
+  url: string;
+  delveEvent: boolean;
+  realm: string;
+  startAt: string | null;
+  endAt: string | null;
+  rules: Array<{ id: string }>;
+}
 
 /**
  * Port for fetching league listings from the Path of Exile API
@@ -8,10 +21,10 @@ import { CurrencyItem } from '@domain/value-objects/currency-item';
 export interface ILeagueApi {
   /**
    * Fetch leagues from Path of Exile API
-   * @returns Promise<LeagueApiResponse[]> - Array of league responses from API
+   * @returns Promise<RawLeagueData[]> - Array of league data from API
    * @throws Error if API call fails after retries
    */
-  fetchLeagues(): Promise<LeagueApiResponse[]>;
+  fetchLeagues(): Promise<RawLeagueData[]>;
 }
 
 /**

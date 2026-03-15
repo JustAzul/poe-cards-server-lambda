@@ -10,6 +10,8 @@ const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKi
  * Uses RateLimitedQueue for sequential request processing with rate limiting
  */
 export class HttpClient {
+  // Queue is typed as <unknown> because HttpClient serves multiple response types.
+  // Each get<T>() call casts the result; type safety is enforced by the axios generic.
   private queue: RateLimitedQueue<unknown>;
 
   private readonly config: Required<HttpConfig>;
