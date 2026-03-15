@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import {
@@ -72,7 +71,7 @@ export class HttpService implements IHttpService {
     };
 
     const response = await this.poeNinjaClient.get<ItemOverviewApiResponse>(url, searchParams);
-    return (response.lines as unknown as Record<string, unknown>[]).map((line) => ItemOverview.fromRaw(line));
+    return response.lines.map((line) => new ItemOverview(line));
   }
 
   async fetchCurrencyOverview(league: string): Promise<CurrencyItem[]> {
@@ -83,8 +82,6 @@ export class HttpService implements IHttpService {
     };
 
     const response = await this.poeNinjaClient.get<CurrencyOverviewApiResponse>(url, searchParams);
-    return (response.lines as unknown as Record<string, unknown>[]).map((line) => CurrencyItem.fromRaw(line));
+    return response.lines.map((line) => new CurrencyItem(line));
   }
 }
-
-export const httpService = new HttpService();
