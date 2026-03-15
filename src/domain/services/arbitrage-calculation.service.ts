@@ -38,8 +38,8 @@ export class ArbitrageCalculationService {
     card: DivinationCard,
     rewardPrice: ItemOverview | CurrencyItem,
   ): number {
-    // Type guard: check if it's currency (has currencyTypeName property)
-    if ('currencyTypeName' in rewardPrice) {
+    // Currency reward: calculate value with amount multiplier
+    if (rewardPrice instanceof CurrencyItem) {
       const spec = card.rewardSpec as CurrencyRewardSpec;
       // Special case: Chaos Orb baseline value is 1
       const chaosEquivalent = card.reward === 'Chaos Orb'
