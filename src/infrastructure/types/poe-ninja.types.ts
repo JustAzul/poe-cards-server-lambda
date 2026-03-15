@@ -28,6 +28,7 @@ export interface PoeNinjaItemLine {
   artFilename?: string;
   flavourText?: string;
   detailsId?: string;
+  explicitModifiers?: Array<{ text: string; optional: boolean }>;
 }
 
 // poe.ninja API - Raw currency line from Currency Overview endpoint

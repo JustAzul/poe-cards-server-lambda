@@ -25,6 +25,8 @@ export class ItemOverview {
 
   readonly detailsId?: string;
 
+  readonly explicitModifiers?: Array<{ text: string; optional: boolean }>;
+
   constructor(data: {
     name: string;
     itemClass: number;
@@ -37,6 +39,7 @@ export class ItemOverview {
     artFilename?: string;
     flavourText?: string;
     detailsId?: string;
+    explicitModifiers?: Array<{ text: string; optional: boolean }>;
   }) {
     this.name = data.name;
     this.itemClass = data.itemClass;
@@ -49,6 +52,7 @@ export class ItemOverview {
     this.artFilename = data.artFilename;
     this.flavourText = data.flavourText;
     this.detailsId = data.detailsId;
+    this.explicitModifiers = data.explicitModifiers;
   }
 
   /**
