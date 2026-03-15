@@ -8,8 +8,6 @@ import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
  * Responsible for displaying processed data to console
  */
 export class LoadAdapter {
-  constructor() {}
-
   /**
    * Display a single league's data to console
    *

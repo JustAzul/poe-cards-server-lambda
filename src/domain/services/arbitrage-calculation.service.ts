@@ -41,12 +41,7 @@ export class ArbitrageCalculationService {
     // Currency reward: calculate value with amount multiplier
     if (rewardPrice instanceof CurrencyItem) {
       const spec = card.rewardSpec as CurrencyRewardSpec;
-      // Special case: Chaos Orb baseline value is 1
-      const chaosEquivalent = card.reward === 'Chaos Orb'
-        ? 1
-        : rewardPrice.chaosEquivalent;
-
-      return chaosEquivalent * spec.amount;
+      return rewardPrice.chaosEquivalent * spec.amount;
     }
 
     return rewardPrice.chaosValue;
