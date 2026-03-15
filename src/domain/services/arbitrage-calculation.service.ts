@@ -3,8 +3,6 @@ import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
 import { ProfitResult } from '@domain/value-objects/profit-result';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemOverview } from '@domain/value-objects/item-overview';
-import { CurrencyRewardSpec } from '@domain/value-objects/reward-spec';
-
 /**
  * Arbitrage Calculation Domain Service
  * Encapsulates profit calculation business rules
@@ -40,8 +38,8 @@ export class ArbitrageCalculationService {
   ): number {
     // Currency reward: calculate value with amount multiplier
     if (rewardPrice instanceof CurrencyItem) {
-      const spec = card.rewardSpec as CurrencyRewardSpec;
-      return rewardPrice.chaosEquivalent * spec.amount;
+      if (!card.isCurrencyCard()) throw new Error('Expected currency card');
+      return rewardPrice.chaosEquivalent * card.rewardSpec.amount;
     }
 
     return rewardPrice.chaosValue;

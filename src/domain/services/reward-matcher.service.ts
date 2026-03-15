@@ -1,7 +1,7 @@
 import { DivinationCard } from '@domain/entities/card.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
-import { ItemRewardSpec } from '@domain/value-objects/reward-spec';
+import { RewardType } from '@domain/value-objects/reward-spec';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 
 /**
@@ -64,14 +64,15 @@ export class RewardMatcherService {
    * Returns matching item if exactly one match found, null otherwise
    */
   private matchItem(items: ItemOverview[], card: DivinationCard): ItemOverview | null {
-    const spec = card.rewardSpec as ItemRewardSpec;
+    if (card.rewardSpec.type !== RewardType.ITEM) return null;
+    const { rewardSpec } = card;
 
     const matches = items.filter(
       (item) => item.name === card.reward
-        && item.itemClass === spec.itemClass
-        && (item.corrupted ?? false) === spec.corrupted
-        && (item.links ?? 0) === spec.links
-        && (item.gemLevel ?? 0) === spec.gemLevel,
+        && item.itemClass === rewardSpec.itemClass
+        && (item.corrupted ?? false) === rewardSpec.corrupted
+        && (item.links ?? 0) === rewardSpec.links
+        && (item.gemLevel ?? 0) === rewardSpec.gemLevel,
     );
 
     if (matches.length > 1) {

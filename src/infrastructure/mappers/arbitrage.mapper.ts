@@ -1,7 +1,7 @@
 import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { ItemOverview } from '@domain/value-objects/item-overview';
-import { CurrencyRewardSpec, RewardType } from '@domain/value-objects/reward-spec';
+import { RewardType } from '@domain/value-objects/reward-spec';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /**
@@ -50,9 +50,8 @@ export class ArbitrageMapper {
     const { card, market } = arbitrage;
 
     if (card.rewardSpec.type === RewardType.CURRENCY) {
-      const spec = card.rewardSpec as CurrencyRewardSpec;
-      return spec.amount > 1
-        ? `${spec.amount}x ${card.reward}`
+      return card.rewardSpec.amount > 1
+        ? `${card.rewardSpec.amount}x ${card.reward}`
         : card.reward;
     }
 
