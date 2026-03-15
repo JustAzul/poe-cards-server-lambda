@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 // Domain entities
 import { League } from '@domain/entities/league.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
@@ -53,8 +51,6 @@ export class ExtractAdapter {
 
     console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
 
-    // Using for-await loop is necessary here to handle async iteration of batch league data
-    // eslint-disable-next-line no-restricted-syntax
     for await (const {
       league,
       items,

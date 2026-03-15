@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 // Domain entities
 import { League } from '@domain/entities/league.entity';
 import { CurrencyItem } from '@domain/value-objects/currency-item';

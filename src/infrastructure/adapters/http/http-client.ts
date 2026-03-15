@@ -78,5 +78,3 @@ export class HttpClient {
     }
   }
 }
-
-export default new HttpClient();

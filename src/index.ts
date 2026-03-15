@@ -1,5 +1,4 @@
-// Use-cases
-import { app } from '@infrastructure/app';
+import { app } from '@infrastructure/composition-root';
 
 /** AWS Lambda response structure */
 interface LambdaResponse {
@@ -15,19 +14,18 @@ async function main(): Promise<void> {
 }
 
 if (process.env.NODE_ENV === 'development') {
-  process.nextTick(async (): Promise<void> => {
-    await main();
-  });
+  main().catch(console.error);
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export const handler = async (): Promise<LambdaResponse> => {
-  await main();
-
-  const response: LambdaResponse = {
-    statusCode: 200,
-    body: JSON.stringify('Job done.'),
-  };
-
-  return response;
+  try {
+    await main();
+    return { statusCode: 200, body: JSON.stringify('Job done.') };
+  } catch (error) {
+    console.error('Lambda execution failed:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+    };
+  }
 };
