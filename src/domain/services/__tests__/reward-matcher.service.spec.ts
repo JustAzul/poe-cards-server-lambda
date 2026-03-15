@@ -197,7 +197,9 @@ describe('RewardMatcherService', () => {
           createItemRewardSpec(ItemClass.SKILL_GEM, true, 0, 4),
         );
         const items = [
-          makeItem({ name: 'Empower Support', itemClass: ItemClass.SKILL_GEM, corrupted: true, gemLevel: 3 }),
+          makeItem({
+            name: 'Empower Support', itemClass: ItemClass.SKILL_GEM, corrupted: true, gemLevel: 3,
+          }),
         ];
 
         const result = service.findRewardPrice(items, [], card);
