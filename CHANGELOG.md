@@ -64,10 +64,10 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-#### Rounding Inconsistency
-- `ArbitrageMapper.toDto()` no longer floors `cardPrice.chaosValue`
-- DTO displays fractional card price (e.g., 2.75 instead of 2)
-- `setCost` was already computed from fractional value — now display is consistent
+#### Profit Calculation Accuracy
+- Removed all `Math.floor()` from `ArbitrageCalculationService` — profit, setCost, rewardValue stored as raw fractional values
+- ROI now consistent with displayed profit/cost (previously calculated from un-floored values but displayed alongside floored ones)
+- Deleted misleading `getStackSize()` method (defaulted to 1, masking missing data)
 
 #### Error Handling
 - ETL pipeline: per-league try-catch in both extraction and transform/load — one league failure no longer crashes the entire pipeline
@@ -85,10 +85,14 @@ All notable changes to this project will be documented in this file.
 - 429 rate-limit responses: reads `Retry-After` header (defaults to 60s) instead of short exponential backoff
 - Non-retryable 4xx errors (400, 401, 403, 404) throw immediately instead of wasting retry attempts
 
-#### Ambiguous Match Visibility
+#### Evaluation Observability
 - `RewardMatcherService` accepts optional `AmbiguousMatchCallback`
 - Logs warning when reward matches multiple items (e.g., "The Poet's Pen" has 2 variants)
-- Domain-pure: callback injected from composition root, no `console` in domain layer
+- `ArbitrageEvaluatorService` accepts optional `EvalSkipCallback` — reports why each card was skipped (card not found, reward not found, trust failed, missing stackSize)
+- Domain-pure: all callbacks injected from composition root, no `console` in domain layer
+
+#### poe.ninja API URLs
+- Updated `HttpService` endpoints from old `/api/data/` prefix to `/poe1/api/economy/stash/current/` (old URLs 301 redirect, wasting a round trip per request)
 
 ### Data Cleanup
 
@@ -117,10 +121,26 @@ All notable changes to this project will be documented in this file.
 - League eligibility rules moved from `ExtractAdapter.selectLeagues()` to `League.isEligible()` entity method
 - 6 unit tests added for `League.isEligible()` (SSF, Ruthless, console, Hardcore, not-started)
 
+#### Application Layer Elimination
+- Deleted `ArbitrageEvaluator` use case (pure pass-through to domain service)
+- `ArbitrageEvaluatorService` now implements `IArbitrageEvaluator` directly
+- `TransformAdapter` wired to domain service — removed indirection layer
+- Deleted `src/application/` directory, removed stale `@application/*` path alias from `tsconfig.json` and `jest.config.js`
+- Migrated 17 use case tests to `src/domain/services/__tests__/arbitrage-evaluator.service.spec.ts`
+
 #### Dead Code Removal
 - Deleted `fromItemCardConfig()` and `fromCurrencyCardConfig()` factory methods (remnants of hardcoded config)
 - Deleted `src/infrastructure/types/etl.types.ts` (unused, duplicate `LeagueData` name)
 - Removed unnecessary `async` from `LoadAdapter.load()` (no await)
+- Removed `await` on synchronous `loadAdapter.load()` call in `App.execute()`
+- Deleted misleading `ItemOverview.getStackSize()` method
+
+### Test Coverage
+- **ArbitrageCalculationService**: 13 tests — profit math, fractional values, stackSize null, ROI edge cases, currency/item reward handling
+- **TrustValidationService**: 11 tests — threshold validation, Chaos Orb always-trusted, missing counts, combined card+reward checks
+- **RewardMatcherService**: 15 tests — card price lookup, currency/item matching, all filter criteria, ambiguous match callback
+- **ArbitrageEvaluatorService**: 17 tests — migrated from use case layer, full evaluation pipeline coverage
+- **Total**: 118 tests across 8 suites (up from 79 tests / 5 suites)
 
 #### Consistency
 - Fixed `||` to `??` in `HttpService` constructor
