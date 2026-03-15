@@ -61,6 +61,7 @@ const GEM_NAME_SUFFIXES: Record<string, string> = {
 
 export class RewardParserService {
   private readonly onSkip?: SkipCallback;
+
   private readonly onComplete?: CompleteCallback;
 
   constructor(onSkip?: SkipCallback, onComplete?: CompleteCallback) {
