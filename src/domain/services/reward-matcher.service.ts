@@ -15,6 +15,16 @@ export type AmbiguousMatchCallback = (
   matchCount: number,
 ) => void;
 
+/**
+ * Pre-built index for O(1) market data lookups
+ * Built once per league, used for all card evaluations
+ */
+export interface MarketIndex {
+  cardsByName: Map<string, ItemOverview>;
+  itemsByName: Map<string, ItemOverview[]>;
+  currencyByName: Map<string, CurrencyItem>;
+}
+
 export class RewardMatcherService {
   private static readonly DIVINATION_CARD_CLASS = ItemClass.DIVINATION_CARD;
 
@@ -25,15 +35,38 @@ export class RewardMatcherService {
   }
 
   /**
-   * Find card price in market items by name and divination card class
+   * Build a market index for O(1) lookups during batch evaluation
    */
-  findCardPrice(items: ItemOverview[], cardName: string): ItemOverview | null {
-    return (
-      items.find(
-        (item) => item.name === cardName
-          && item.itemClass === RewardMatcherService.DIVINATION_CARD_CLASS,
-      ) ?? null
-    );
+  buildIndex(items: ItemOverview[], currency: CurrencyItem[]): MarketIndex {
+    const cardsByName = new Map<string, ItemOverview>();
+    const itemsByName = new Map<string, ItemOverview[]>();
+
+    for (const item of items) {
+      if (item.itemClass === RewardMatcherService.DIVINATION_CARD_CLASS) {
+        cardsByName.set(item.name, item);
+      }
+
+      const existing = itemsByName.get(item.name);
+      if (existing) {
+        existing.push(item);
+      } else {
+        itemsByName.set(item.name, [item]);
+      }
+    }
+
+    const currencyByName = new Map<string, CurrencyItem>();
+    for (const c of currency) {
+      currencyByName.set(c.currencyTypeName, c);
+    }
+
+    return { cardsByName, itemsByName, currencyByName };
+  }
+
+  /**
+   * Find card price in market index by name
+   */
+  findCardPrice(index: MarketIndex, cardName: string): ItemOverview | null {
+    return index.cardsByName.get(cardName) ?? null;
   }
 
   /**
@@ -41,35 +74,29 @@ export class RewardMatcherService {
    * Routes to currency matching or item matching based on card type
    */
   findRewardPrice(
-    items: ItemOverview[],
-    currency: CurrencyItem[],
+    index: MarketIndex,
     card: DivinationCard,
   ): ItemOverview | CurrencyItem | null {
     if (card.isCurrencyCard()) {
-      return this.matchCurrency(currency, card.reward);
+      return index.currencyByName.get(card.reward) ?? null;
     }
 
-    return this.matchItem(items, card);
-  }
-
-  /**
-   * Match currency reward by currency type name
-   */
-  private matchCurrency(currency: CurrencyItem[], rewardName: string): CurrencyItem | null {
-    return currency.find((c) => c.currencyTypeName === rewardName) ?? null;
+    return this.matchItem(index, card);
   }
 
   /**
    * Match item reward by name and specifications (itemClass, corruption, links, gem level)
    * Returns matching item if exactly one match found, null otherwise
    */
-  private matchItem(items: ItemOverview[], card: DivinationCard): ItemOverview | null {
+  private matchItem(index: MarketIndex, card: DivinationCard): ItemOverview | null {
     if (card.rewardSpec.type !== RewardType.ITEM) return null;
     const { rewardSpec } = card;
 
-    const matches = items.filter(
-      (item) => item.name === card.reward
-        && item.itemClass === rewardSpec.itemClass
+    const candidates = index.itemsByName.get(card.reward);
+    if (!candidates) return null;
+
+    const matches = candidates.filter(
+      (item) => item.itemClass === rewardSpec.itemClass
         && (item.corrupted ?? false) === rewardSpec.corrupted
         && (item.links ?? 0) === rewardSpec.links
         && (item.gemLevel ?? 0) === rewardSpec.gemLevel,
