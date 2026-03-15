@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { sleep } from '@shared/utils';
 import { HttpConfig } from '@infrastructure/types/http-config.types';
 import { RateLimitedQueue } from '@infrastructure/adapters/queue/rate-limited-queue';
@@ -27,6 +27,7 @@ export class HttpClient {
       maxRetries: 3,
       retryDelayMs: 2000,
       exponentialBackoff: true,
+      requestTimeoutMs: 30000,
     };
     this.config = { ...defaults, ...config };
     this.queue = new RateLimitedQueue(this.config.throttleDelayMs);
@@ -46,6 +47,7 @@ export class HttpClient {
         () => axios.get<T>(url, {
           params: searchParams,
           headers: this.headers,
+          timeout: this.config.requestTimeoutMs,
         }),
         `GET ${url}`,
       );
@@ -66,8 +68,23 @@ export class HttpClient {
     } catch (error) {
       const { maxRetries, retryDelayMs, exponentialBackoff } = this.config;
 
+      // Don't retry non-retryable 4xx errors (except 429)
+      if (error instanceof AxiosError && error.response) {
+        const { status } = error.response;
+        if (status >= 400 && status < 500 && status !== 429) {
+          throw new Error(`${operationName} failed with status ${status}: ${error.message}`);
+        }
+      }
+
       if (attempt >= maxRetries) {
         throw new Error(`${operationName} failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+
+      // Rate-limited: respect Retry-After header or default to 60s
+      if (error instanceof AxiosError && error.response?.status === 429) {
+        const retryAfter = parseInt(error.response.headers['retry-after'] ?? '60', 10);
+        await sleep(retryAfter * 1000);
+        return this.retryableRequest(requestFn, operationName, attempt + 1);
       }
 
       const delayMs = exponentialBackoff

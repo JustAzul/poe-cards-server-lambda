@@ -13,9 +13,11 @@ export class ArbitrageCalculationService {
    * Calculate profit for a card arbitrage opportunity
    * Computes profit value, set cost, reward value, and ROI
    */
-  calculateProfit(card: DivinationCard, market: MarketSnapshot): ProfitResult {
+  calculateProfit(card: DivinationCard, market: MarketSnapshot): ProfitResult | null {
+    if (market.cardPrice.stackSize == null) return null;
+
     const rewardChaosValue = this.calculateRewardValue(card, market.rewardPrice);
-    const stackSize = market.cardPrice.stackSize ?? 1;
+    const { stackSize } = market.cardPrice;
     const cardSetCost = market.cardPrice.chaosValue * stackSize;
     const profit = rewardChaosValue - cardSetCost;
     const roi = cardSetCost > 0 ? (profit / cardSetCost) * 100 : 0;
