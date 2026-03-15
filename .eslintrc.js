@@ -44,6 +44,24 @@ module.exports = {
         'import/prefer-default-export': 'off',
         // Allow class methods that don't use 'this'
         'class-methods-use-this': 'off',
+        // Console logging is the correct approach for Lambda/CloudWatch
+        'no-console': 'off',
+        // for...of and for-await-of are standard modern JS
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'ForInStatement',
+            message: 'for..in loops iterate over the entire prototype chain. Use Object.{keys,values,entries} instead.',
+          },
+          {
+            selector: 'LabeledStatement',
+            message: 'Labels are a form of GOTO; don\'t use them.',
+          },
+          {
+            selector: 'WithStatement',
+            message: '`with` is disallowed in strict mode.',
+          },
+        ],
       },
     },
   ],
