@@ -2,10 +2,10 @@ import { RewardMatcherService } from '@domain/services/reward-matcher.service';
 import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
 import { TrustValidationService } from '@domain/services/trust-validation.service';
 import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
+import { RewardParserService } from '@domain/services/reward-parser.service';
 import { ArbitrageEvaluator } from '@application/use-case/arbitrage-evaluator.use-case';
 import { HttpService } from '@infrastructure/adapters/http/http.service';
 import { LeagueRepository } from '@infrastructure/adapters/persistence/league.repository';
-import { CardRepository } from '@infrastructure/adapters/persistence/card.repository';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
 import { TransformAdapter } from '@infrastructure/adapters/etl/transform.adapter';
@@ -15,10 +15,17 @@ import { App } from '@infrastructure/app';
 // Infrastructure
 const httpService = new HttpService();
 const leagueRepository = new LeagueRepository(httpService);
-const cardRepository = new CardRepository();
 const leagueAdapter = new LeagueAdapter(httpService);
 
 // Domain services
+const rewardParser = new RewardParserService(
+  (cardName, reason, rawText) => {
+    console.warn(
+      `[RewardParser] Skipped "${cardName}": ${reason}`
+      + (rawText ? ` | raw: ${rawText.substring(0, 80)}` : ''),
+    );
+  },
+);
 const rewardMatcher = new RewardMatcherService(
   (cardName, rewardName, matchCount) => {
     console.warn(
@@ -35,7 +42,7 @@ const evaluatorService = new ArbitrageEvaluatorService(rewardMatcher, calculator
 const arbitrageEvaluator = new ArbitrageEvaluator(evaluatorService);
 
 // ETL adapters
-const extractAdapter = new ExtractAdapter(leagueRepository, cardRepository, leagueAdapter);
+const extractAdapter = new ExtractAdapter(leagueRepository, rewardParser, leagueAdapter);
 const transformAdapter = new TransformAdapter(arbitrageEvaluator);
 const loadAdapter = new LoadAdapter();
 

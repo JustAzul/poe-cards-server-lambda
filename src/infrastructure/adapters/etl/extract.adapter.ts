@@ -3,10 +3,11 @@ import { League } from '@domain/entities/league.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
+import { ItemClass } from '@domain/value-objects/item-class.enum';
+import { RewardParserService } from '@domain/services/reward-parser.service';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/league.repository';
-import { ICardRepository } from '@domain/repositories/card.repository';
 import { ILeagueAdapter } from '@infrastructure/adapters/league.adapter';
 
 export interface LeagueExtractionData {
@@ -29,7 +30,7 @@ export interface LeagueExtractionYield {
 export class ExtractAdapter {
   constructor(
     private readonly leagueRepository: ILeagueRepository,
-    private readonly cardRepository: ICardRepository,
+    private readonly rewardParser: RewardParserService,
     private readonly leagueAdapter: ILeagueAdapter,
   ) {}
 
@@ -37,8 +38,9 @@ export class ExtractAdapter {
    * Extract raw league data with filtering and rate limiting
    * Generator function that yields data for each league as it's extracted
    *
-   * Fetches all leagues and cards, applies filtering criteria, and delegates
-   * to leagueAdapter for batch processing with API rate limiting
+   * Fetches all leagues, applies filtering criteria, and delegates
+   * to leagueAdapter for batch processing with API rate limiting.
+   * Cards are dynamically parsed from DivinationCard market data per-league.
    *
    * @yields Individual league extraction result for each league with cards
    */
@@ -47,7 +49,6 @@ export class ExtractAdapter {
 
     const leagues = await this.leagueRepository.getAllLeagues();
     const filteredLeagues = ExtractAdapter.selectLeagues(leagues);
-    const cards = this.cardRepository.getAllCards();
 
     console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
 
@@ -57,6 +58,11 @@ export class ExtractAdapter {
       currency,
       timestamp,
     } of this.leagueAdapter.fetchBatchLeagueOverview(filteredLeagues)) {
+      const divinationItems = items.filter(
+        (item) => item.itemClass === ItemClass.DIVINATION_CARD,
+      );
+      const cards = this.rewardParser.parseAll(divinationItems);
+
       yield {
         league,
         data: {
