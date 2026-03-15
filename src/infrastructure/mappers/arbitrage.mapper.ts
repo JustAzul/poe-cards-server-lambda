@@ -1,4 +1,7 @@
 import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
+import { ItemClass } from '@domain/value-objects/item-class.enum';
+import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyRewardSpec, RewardType } from '@domain/value-objects/reward-spec';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 
 /**
@@ -10,28 +13,54 @@ export class ArbitrageMapper {
     const { card, market, profit } = arbitrage;
     const { cardPrice, rewardPrice } = market;
 
+    const rewardDisplayName = ArbitrageMapper.getRewardDisplayName(arbitrage);
+
     return {
       card: {
         name: card.name,
         stack: cardPrice.stackSize ?? 1,
-        chaosPrice: Math.floor(cardPrice.chaosValue),
+        chaosPrice: cardPrice.chaosValue,
         details: {
           artFilename: cardPrice.artFilename ?? '',
           cardName: card.name,
           cardStack: cardPrice.stackSize ?? 1,
-          rewardName: arbitrage.getRewardDisplayName(),
-          rewardClass: 'itemClass' in rewardPrice ? rewardPrice.itemClass : '00',
-          isCorrupted: 'corrupted' in rewardPrice ? (rewardPrice.corrupted ?? false) : false,
+          rewardName: rewardDisplayName,
+          rewardClass: rewardPrice instanceof ItemOverview ? rewardPrice.itemClass : '00',
+          isCorrupted: rewardPrice instanceof ItemOverview
+            ? (rewardPrice.corrupted ?? false)
+            : false,
           flavour: cardPrice.flavourText ?? '',
         },
       },
       reward: {
-        name: arbitrage.getRewardDisplayName(),
+        name: rewardDisplayName,
         chaosPrice: profit.rewardChaosValue,
       },
       setChaosPrice: profit.setChaosPrice,
       chaosProfit: profit.chaosProfitValue,
       isCurrency: card.isCurrencyCard(),
     };
+  }
+
+  /**
+   * Get formatted reward display name for presentation
+   * Handles special formatting for multiple currency amounts and gem levels
+   */
+  private static getRewardDisplayName(arbitrage: CardArbitrage): string {
+    const { card, market } = arbitrage;
+
+    if (card.rewardSpec.type === RewardType.CURRENCY) {
+      const spec = card.rewardSpec as CurrencyRewardSpec;
+      return spec.amount > 1
+        ? `${spec.amount}x ${card.reward}`
+        : card.reward;
+    }
+
+    const { rewardPrice } = market;
+    if (rewardPrice instanceof ItemOverview && rewardPrice.itemClass === ItemClass.SKILL_GEM) {
+      return `Level ${rewardPrice.gemLevel ?? 0} ${rewardPrice.name}`;
+    }
+
+    return card.reward;
   }
 }
