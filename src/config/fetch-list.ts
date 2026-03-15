@@ -1,9 +1,9 @@
-module.exports = [
+export const fetchList = [
   'DivinationCard',
   'UniqueArmour',
   'UniqueAccessory',
   'UniqueWeapon',
-  //'Prophecy',
+  // 'Prophecy',
   'UniqueMap',
   'SkillGem',
   'UniqueFlask',
