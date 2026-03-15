@@ -3,9 +3,9 @@ import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
 import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
-import { RewardMatcherService } from './reward-matcher.service';
-import { ArbitrageCalculationService } from './arbitrage-calculation.service';
-import { TrustValidationService } from './trust-validation.service';
+import { RewardMatcherService } from '@domain/services/reward-matcher.service';
+import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
+import { TrustValidationService } from '@domain/services/trust-validation.service';
 
 /**
  * Arbitrage Evaluator Domain Service

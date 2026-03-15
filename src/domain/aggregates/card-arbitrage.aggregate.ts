@@ -9,6 +9,7 @@ import { TrustValidation } from '@domain/value-objects/trust-validation';
  * Enforces consistency boundaries and domain rules
  * Aggregate = (Card entity + MarketSnapshot + ProfitResult + TrustValidation)
  */
+// Note: fields are public readonly for mapper access. Consider mediating access if aggregate grows.
 export class CardArbitrage {
   readonly card: DivinationCard;
 

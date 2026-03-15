@@ -47,6 +47,7 @@ export class ProfitResult {
     return this.chaosProfitValue > 0;
   }
 
+  // TODO: reshape for Supabase schema when LoadAdapter is implemented
   /**
    * Convert to plain object for serialization
    */
