@@ -30,4 +30,14 @@ export class League {
     this.endAt = data.endAt;
     this.ruleIds = data.ruleIds;
   }
+
+  /** Whether this league is eligible for arbitrage analysis */
+  isEligible(): boolean {
+    if (this.startAt === null) return false;
+    if (this.ruleIds.includes('NoParties')) return false; // Solo Self Found
+    if (this.ruleIds.includes('HardMode')) return false; // Ruthless
+    if (this.realm !== 'pc') return false; // Console leagues
+    if (this.name === 'Hardcore') return false;
+    return true;
+  }
 }

@@ -16,12 +16,12 @@ export class LoadAdapter {
    * @param currency - Currency data for this league
    * @param timestamp - Update timestamp for this league
    */
-  async load(
+  load(
     league: League,
     profitTable: ProfitTableRowDto[],
     currency: CurrencyItem[],
     timestamp: string,
-  ): Promise<void> {
+  ): void {
     console.log(`Loading data for league: ${league.name}`);
     console.log(`Timestamp: ${timestamp}`);
     console.log(`Profit table entries: ${profitTable.length}`);

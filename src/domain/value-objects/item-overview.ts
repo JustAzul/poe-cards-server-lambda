@@ -76,6 +76,7 @@ export class ItemOverview {
     return this.count ?? 0;
   }
 
+  // TODO: reshape for Supabase schema when LoadAdapter is implemented
   /**
    * Convert to plain object for serialization
    */

@@ -44,6 +44,7 @@ export class CurrencyItem {
     return this.receive?.count ?? 0;
   }
 
+  // TODO: reshape for Supabase schema when LoadAdapter is implemented
   /**
    * Convert to plain object for serialization
    */

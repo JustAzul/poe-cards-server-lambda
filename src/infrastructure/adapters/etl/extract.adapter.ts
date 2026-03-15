@@ -76,13 +76,6 @@ export class ExtractAdapter {
   }
 
   private static selectLeagues(leagues: League[]): League[] {
-    const filtered = leagues
-      .filter(({ startAt }) => startAt !== null) // only include leagues that have started
-      .filter(({ ruleIds }) => !ruleIds.includes('NoParties')) // remove Solo Self Found leagues
-      .filter(({ ruleIds }) => !ruleIds.includes('HardMode')) // remove Ruthless variants
-      .filter(({ realm }) => realm === 'pc')
-      .filter(({ name }) => name !== 'Hardcore'); // remove Standard(Hardcore) league
-
-    return filtered;
+    return leagues.filter((league) => league.isEligible());
   }
 }
