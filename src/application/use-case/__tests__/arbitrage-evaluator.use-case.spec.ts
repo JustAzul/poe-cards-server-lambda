@@ -26,7 +26,7 @@ describe('ArbitrageEvaluator', () => {
   describe('evaluateCardArbitrage', () => {
     describe('item cards', () => {
       it('should evaluate arbitrage for valid item card', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
@@ -36,7 +36,7 @@ describe('ArbitrageEvaluator', () => {
           flavourText: 'You are the Disease',
         });
 
-        const rewardOverview = ItemOverview.fromRaw({
+        const rewardOverview = new ItemOverview({
           name: 'Headhunter',
           itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
@@ -64,7 +64,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should format gem rewards with level', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Wretched',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
@@ -72,7 +72,7 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 1,
         });
 
-        const rewardOverview = ItemOverview.fromRaw({
+        const rewardOverview = new ItemOverview({
           name: 'Gem Name',
           itemClass: ItemClass.SKILL_GEM,
           chaosValue: 100,
@@ -109,7 +109,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return null when reward not found', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
@@ -131,7 +131,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return null when trust validation fails due to low card count', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
@@ -139,7 +139,7 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 8,
         });
 
-        const rewardOverview = ItemOverview.fromRaw({
+        const rewardOverview = new ItemOverview({
           name: 'Headhunter',
           itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
@@ -160,7 +160,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return aggregate with negative profit (filtering at app layer)', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 5000,
@@ -168,7 +168,7 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 8, // 8 * 5000 = 40000
         });
 
-        const rewardOverview = ItemOverview.fromRaw({
+        const rewardOverview = new ItemOverview({
           name: 'Bad Reward',
           itemClass: ItemClass.UNIQUE,
           chaosValue: 100, // 100 < 40000, so unprofitable
@@ -194,7 +194,7 @@ describe('ArbitrageEvaluator', () => {
 
     describe('currency cards', () => {
       it('should evaluate arbitrage for valid currency card', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Hoarder',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
@@ -202,7 +202,7 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 1,
         });
 
-        const currencyOverview = CurrencyItem.fromRaw({
+        const currencyOverview = new CurrencyItem({
           currencyTypeName: 'Chaos Orb',
           chaosEquivalent: 1,
         });
@@ -225,7 +225,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should handle multiple currency amounts', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Gambler',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 10,
@@ -233,7 +233,7 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 1,
         });
 
-        const currencyOverview = CurrencyItem.fromRaw({
+        const currencyOverview = new CurrencyItem({
           currencyTypeName: 'Exalted Orb',
           chaosEquivalent: 300,
           receive: { count: 50 },
@@ -256,7 +256,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return null when currency not found', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Hoarder',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
@@ -279,7 +279,7 @@ describe('ArbitrageEvaluator', () => {
       });
 
       it('should return null when currency trust validation fails', () => {
-        const cardOverview = ItemOverview.fromRaw({
+        const cardOverview = new ItemOverview({
           name: 'The Hoarder',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 50,
@@ -287,7 +287,7 @@ describe('ArbitrageEvaluator', () => {
           stackSize: 1,
         });
 
-        const currencyOverview = CurrencyItem.fromRaw({
+        const currencyOverview = new CurrencyItem({
           currencyTypeName: 'Expensive Currency',
           chaosEquivalent: 300,
           receive: { count: 5 }, // Below MIN_TRUST_COUNT of 10
@@ -333,34 +333,34 @@ describe('ArbitrageEvaluator', () => {
       );
 
       leagueData.items = [
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
           count: 50,
           stackSize: 8,
         }),
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'Headhunter',
           itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
           count: 20,
         }),
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'The Hoarder',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 25,
           count: 50,
           stackSize: 1,
         }),
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'Bad Card',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 100,
           count: 50,
           stackSize: 1,
         }),
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'Bad Item',
           itemClass: ItemClass.SKILL_GEM,
           chaosValue: 10,
@@ -369,7 +369,7 @@ describe('ArbitrageEvaluator', () => {
       ];
 
       leagueData.currency = [
-        CurrencyItem.fromRaw({
+        new CurrencyItem({
           currencyTypeName: 'Exalted Orb',
           chaosEquivalent: 200, // 200 > 25 (card cost), so profitable
           receive: { count: 50 },
@@ -393,14 +393,14 @@ describe('ArbitrageEvaluator', () => {
       );
 
       leagueData.items = [
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'Unprofitable',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 1000,
           count: 50,
           stackSize: 1,
         }),
-        ItemOverview.fromRaw({
+        new ItemOverview({
           name: 'Cheap Reward',
           itemClass: ItemClass.UNIQUE,
           chaosValue: 10,
