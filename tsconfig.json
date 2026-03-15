@@ -19,7 +19,6 @@
     "baseUrl": "./src",
     "paths": {
       "@domain/*": ["domain/*"],
-      "@config/*": ["config/*"],
       "@infrastructure/*": ["infrastructure/*"],
       "@application/*": ["application/*"],
       "@shared/*": ["shared/*"]
