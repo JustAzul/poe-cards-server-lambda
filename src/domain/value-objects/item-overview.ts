@@ -55,13 +55,6 @@ export class ItemOverview {
   }
 
   /**
-   * Get effective stack size (defaults to 1)
-   */
-  getStackSize(): number {
-    return this.stackSize ?? 1;
-  }
-
-  /**
    * Get item count for trust validation (defaults to 0)
    */
   getCount(): number {

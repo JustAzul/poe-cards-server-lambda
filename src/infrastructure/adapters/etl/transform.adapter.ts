@@ -7,7 +7,7 @@ import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { ArbitrageMapper } from '@infrastructure/mappers/arbitrage.mapper';
 
 // Interfaces
-import { IArbitrageEvaluator } from '@application/use-case/arbitrage-evaluator.use-case';
+import { IArbitrageEvaluator } from '@domain/services/arbitrage-evaluator.service';
 
 /**
  * Result of transforming a single league

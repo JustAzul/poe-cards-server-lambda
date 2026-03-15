@@ -39,7 +39,7 @@ export class HttpService implements ILeagueApi, IMarketDataApi {
   async fetchItemOverview(league: string, type: string): Promise<ItemOverview[]> {
     console.log(`Requesting league '${league}' ${type}'s..`);
 
-    const url = 'https://poe.ninja/api/data/itemoverview';
+    const url = 'https://poe.ninja/poe1/api/economy/stash/current/item/overview';
     const searchParams = {
       league,
       type,
@@ -51,7 +51,7 @@ export class HttpService implements ILeagueApi, IMarketDataApi {
   }
 
   async fetchCurrencyOverview(league: string): Promise<CurrencyItem[]> {
-    const url = 'https://poe.ninja/api/data/currencyoverview';
+    const url = 'https://poe.ninja/poe1/api/economy/stash/current/currency/overview';
     const searchParams = {
       league,
       type: 'Currency',

@@ -7,19 +7,41 @@ import { RewardMatcherService } from '@domain/services/reward-matcher.service';
 import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
 import { TrustValidationService } from '@domain/services/trust-validation.service';
 
+export type EvalSkipCallback = (cardName: string, reason: string) => void;
+
+/**
+ * League Data - Separated structure for items and currency
+ * Items and currency kept in distinct arrays for type safety
+ */
+export interface LeagueData {
+  league: string;
+  items: ItemOverview[];
+  currency: CurrencyItem[];
+}
+
+/**
+ * Arbitrage Evaluator Port
+ * Defines contracts for arbitrage evaluation consumers
+ */
+export interface IArbitrageEvaluator {
+  evaluateCardArbitrage(leagueData: LeagueData, card: DivinationCard): CardArbitrage | null;
+  findAllArbitrageOpportunities(leagueData: LeagueData, cards: DivinationCard[]): CardArbitrage[];
+}
+
 /**
  * Arbitrage Evaluator Domain Service
  * Orchestrates domain services to evaluate arbitrage opportunities
  * Coordinates reward matching, profit calculation, and trust validation
  * Returns complete CardArbitrage aggregates
  */
-export class ArbitrageEvaluatorService {
+export class ArbitrageEvaluatorService implements IArbitrageEvaluator {
   private readonly MIN_TRUST_COUNT = 10;
 
   constructor(
     private readonly rewardMatcher: RewardMatcherService,
     private readonly calculator: ArbitrageCalculationService,
     private readonly trustValidator: TrustValidationService,
+    private readonly onSkip?: EvalSkipCallback,
   ) {}
 
   /**
@@ -36,7 +58,15 @@ export class ArbitrageEvaluatorService {
     const cardPrice = this.rewardMatcher.findCardPrice(items, card.name);
     const rewardPrice = this.rewardMatcher.findRewardPrice(items, currency, card);
 
-    if (!cardPrice || !rewardPrice) return null;
+    if (!cardPrice) {
+      this.onSkip?.(card.name, 'card not found in market data');
+      return null;
+    }
+
+    if (!rewardPrice) {
+      this.onSkip?.(card.name, 'reward not found in market data');
+      return null;
+    }
 
     // Create market snapshot
     const market = MarketSnapshot.create(cardPrice, rewardPrice, leagueId);
@@ -48,11 +78,17 @@ export class ArbitrageEvaluatorService {
       this.MIN_TRUST_COUNT,
     );
 
-    if (!trust.isValid) return null;
+    if (!trust.isValid) {
+      this.onSkip?.(card.name, trust.reason ?? 'trust validation failed');
+      return null;
+    }
 
     // Calculate profit (null if stackSize is missing)
     const profit = this.calculator.calculateProfit(card, market);
-    if (!profit) return null;
+    if (!profit) {
+      this.onSkip?.(card.name, 'missing stackSize');
+      return null;
+    }
 
     // Create and return aggregate
     return CardArbitrage.create(card, market, profit, trust);
@@ -71,5 +107,23 @@ export class ArbitrageEvaluatorService {
     return cards
       .map((card) => this.evaluate(card, items, currency, leagueId))
       .filter((arb): arb is CardArbitrage => arb !== null && arb.isActionable());
+  }
+
+  /**
+   * Evaluate single card for arbitrage opportunity (IArbitrageEvaluator port)
+   */
+  evaluateCardArbitrage(leagueData: LeagueData, card: DivinationCard): CardArbitrage | null {
+    return this.evaluate(card, leagueData.items, leagueData.currency, leagueData.league);
+  }
+
+  /**
+   * Find all actionable arbitrage opportunities (IArbitrageEvaluator port)
+   */
+  findAllArbitrageOpportunities(
+    leagueData: LeagueData,
+    cards: DivinationCard[],
+  ): CardArbitrage[] {
+    const { items, currency, league } = leagueData;
+    return this.findAllOpportunities(cards, items, currency, league);
   }
 }
