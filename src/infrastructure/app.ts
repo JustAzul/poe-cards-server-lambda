@@ -9,7 +9,7 @@ export class App {
     private readonly loadAdapter: LoadAdapter,
   ) {}
 
-  async execute(): Promise<void> {
+  async execute(): Promise<{ processed: number; failed: number }> {
     console.log('Starting ETL pipeline with incremental processing...');
     let processedCount = 0;
     let errorCount = 0;
@@ -33,5 +33,6 @@ export class App {
     }
 
     console.log(`ETL pipeline completed: ${processedCount} succeeded, ${errorCount} failed`);
+    return { processed: processedCount, failed: errorCount };
   }
 }

@@ -9,8 +9,8 @@ interface LambdaResponse {
 /**
  * Main orchestration function
  */
-async function main(): Promise<void> {
-  await app.execute();
+async function main(): Promise<{ processed: number; failed: number }> {
+  return app.execute();
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -19,8 +19,20 @@ if (process.env.NODE_ENV === 'development') {
 
 export const handler = async (): Promise<LambdaResponse> => {
   try {
-    await main();
-    return { statusCode: 200, body: JSON.stringify('Job done.') };
+    const result = await main();
+
+    if (result.processed === 0 && result.failed > 0) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: 'All leagues failed', ...result }),
+      };
+    }
+
+    const statusCode = result.failed > 0 ? 207 : 200;
+    return {
+      statusCode,
+      body: JSON.stringify({ message: 'Job done.', ...result }),
+    };
   } catch (error) {
     console.error('Lambda execution failed:', error);
     return {

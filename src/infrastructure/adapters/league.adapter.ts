@@ -64,16 +64,24 @@ export class LeagueAdapter implements ILeagueAdapter {
    */
   async* fetchBatchLeagueOverview(leagues: League[]): AsyncGenerator<LeagueDataYield> {
     for (const league of leagues) {
-      // eslint-disable-next-line no-await-in-loop
-      const { items, currency } = await this.fetchLeagueOverview(league.name);
-      const timestamp = new Date().toISOString();
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const { items, currency } = await this.fetchLeagueOverview(league.name);
+        const timestamp = new Date().toISOString();
 
-      yield {
-        league,
-        items,
-        currency,
-        timestamp,
-      };
+        yield {
+          league,
+          items,
+          currency,
+          timestamp,
+        };
+      } catch (error) {
+        console.error(
+          `Failed to fetch league ${league.name}:`,
+          error instanceof Error ? error.message : error,
+        );
+        // Skip this league, continue to next
+      }
     }
   }
 }
