@@ -3,7 +3,6 @@ import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculat
 import { TrustValidationService } from '@domain/services/trust-validation.service';
 import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
 import { RewardParserService } from '@domain/services/reward-parser.service';
-import { ArbitrageEvaluator } from '@application/use-case/arbitrage-evaluator.use-case';
 import { HttpService } from '@infrastructure/adapters/http/http.service';
 import { LeagueRepository } from '@infrastructure/adapters/persistence/league.repository';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
@@ -41,14 +40,18 @@ const rewardMatcher = new RewardMatcherService(
 );
 const calculator = new ArbitrageCalculationService();
 const trustValidator = new TrustValidationService();
-const evaluatorService = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator);
-
-// Application
-const arbitrageEvaluator = new ArbitrageEvaluator(evaluatorService);
+const evaluatorService = new ArbitrageEvaluatorService(
+  rewardMatcher,
+  calculator,
+  trustValidator,
+  (cardName, reason) => {
+    console.warn(`[ArbitrageEvaluator] Skipped "${cardName}": ${reason}`);
+  },
+);
 
 // ETL adapters
 const extractAdapter = new ExtractAdapter(leagueRepository, rewardParser, leagueAdapter);
-const transformAdapter = new TransformAdapter(arbitrageEvaluator);
+const transformAdapter = new TransformAdapter(evaluatorService);
 const loadAdapter = new LoadAdapter();
 
 // App

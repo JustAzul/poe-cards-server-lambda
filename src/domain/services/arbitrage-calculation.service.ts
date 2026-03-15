@@ -22,12 +22,7 @@ export class ArbitrageCalculationService {
     const profit = rewardChaosValue - cardSetCost;
     const roi = cardSetCost > 0 ? (profit / cardSetCost) * 100 : 0;
 
-    return ProfitResult.create(
-      Math.floor(profit),
-      Math.floor(cardSetCost),
-      Math.floor(rewardChaosValue),
-      roi,
-    );
+    return ProfitResult.create(profit, cardSetCost, rewardChaosValue, roi);
   }
 
   /**
