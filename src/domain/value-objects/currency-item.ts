@@ -24,13 +24,6 @@ export class CurrencyItem {
   }
 
   /**
-   * Create CurrencyItem from plain object (e.g., from API)
-   */
-  static fromRaw(data: Record<string, unknown>): CurrencyItem {
-    return new CurrencyItem(data as ConstructorParameters<typeof CurrencyItem>[0]);
-  }
-
-  /**
    * Check if this is Chaos Orb (baseline currency)
    */
   isChaosOrb(): boolean {

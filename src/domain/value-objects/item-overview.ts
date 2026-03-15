@@ -19,11 +19,12 @@ export class ItemOverview {
 
   readonly stackSize?: number;
 
+  // TODO: artFilename and flavourText are API-presentation fields that belong in PoeNinjaItemDto.
+  // They remain here because ArbitrageMapper (infrastructure) reads them via MarketSnapshot.cardPrice.
+  // Moving them requires carrying DTOs alongside VOs through the extraction pipeline.
   readonly artFilename?: string;
 
   readonly flavourText?: string;
-
-  readonly detailsId?: string;
 
   readonly explicitModifiers?: Array<{ text: string; optional: boolean }>;
 
@@ -38,7 +39,6 @@ export class ItemOverview {
     stackSize?: number;
     artFilename?: string;
     flavourText?: string;
-    detailsId?: string;
     explicitModifiers?: Array<{ text: string; optional: boolean }>;
   }) {
     this.name = data.name;
@@ -51,15 +51,7 @@ export class ItemOverview {
     this.stackSize = data.stackSize;
     this.artFilename = data.artFilename;
     this.flavourText = data.flavourText;
-    this.detailsId = data.detailsId;
     this.explicitModifiers = data.explicitModifiers;
-  }
-
-  /**
-   * Create ItemOverview from plain object (e.g., from API)
-   */
-  static fromRaw(data: Record<string, unknown>): ItemOverview {
-    return new ItemOverview(data as ConstructorParameters<typeof ItemOverview>[0]);
   }
 
   /**
@@ -92,7 +84,6 @@ export class ItemOverview {
       ...(this.stackSize !== undefined && { stackSize: this.stackSize }),
       ...(this.artFilename && { artFilename: this.artFilename }),
       ...(this.flavourText && { flavourText: this.flavourText }),
-      ...(this.detailsId && { detailsId: this.detailsId }),
     };
   }
 }
