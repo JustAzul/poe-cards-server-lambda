@@ -36,16 +36,4 @@ export class CurrencyItem {
   getReceiveCount(): number {
     return this.receive?.count ?? 0;
   }
-
-  // TODO: reshape for Supabase schema when LoadAdapter is implemented
-  /**
-   * Convert to plain object for serialization
-   */
-  toPlain(): Record<string, unknown> {
-    return {
-      currencyTypeName: this.currencyTypeName,
-      chaosEquivalent: this.chaosEquivalent,
-      ...(this.receive && { receive: this.receive }),
-    };
-  }
 }

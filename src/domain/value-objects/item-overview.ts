@@ -19,9 +19,11 @@ export class ItemOverview {
 
   readonly stackSize?: number;
 
-  // TODO: artFilename and flavourText are API-presentation fields
-  // that belong in PoeNinjaItemDto. They remain here because
-  // ArbitrageMapper reads them via MarketSnapshot.cardPrice.
+  // Infrastructure-facing fields: artFilename and flavourText are poe.ninja presentation
+  // data read by ArbitrageMapper for the output DTO. explicitModifiers is read by
+  // RewardParserService for card reward parsing. These will be extracted to PoeNinjaItemDto
+  // when the Supabase LoadAdapter is implemented and the mapper no longer needs to reach
+  // into the domain VO for presentation data.
   readonly artFilename?: string;
 
   readonly flavourText?: string;
@@ -59,24 +61,5 @@ export class ItemOverview {
    */
   getCount(): number {
     return this.count ?? 0;
-  }
-
-  // TODO: reshape for Supabase schema when LoadAdapter is implemented
-  /**
-   * Convert to plain object for serialization
-   */
-  toPlain(): Record<string, unknown> {
-    return {
-      name: this.name,
-      itemClass: this.itemClass,
-      chaosValue: this.chaosValue,
-      ...(this.corrupted !== undefined && { corrupted: this.corrupted }),
-      ...(this.links !== undefined && { links: this.links }),
-      ...(this.gemLevel !== undefined && { gemLevel: this.gemLevel }),
-      ...(this.count !== undefined && { count: this.count }),
-      ...(this.stackSize !== undefined && { stackSize: this.stackSize }),
-      ...(this.artFilename && { artFilename: this.artFilename }),
-      ...(this.flavourText && { flavourText: this.flavourText }),
-    };
   }
 }
