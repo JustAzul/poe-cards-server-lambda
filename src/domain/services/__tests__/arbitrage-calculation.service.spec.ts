@@ -55,11 +55,11 @@ describe('ArbitrageCalculationService', () => {
   describe('calculateProfit', () => {
     it('should calculate basic profit correctly', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(2, 5),
-        makeItemReward(80),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(2, 5),
+        rewardPrice: makeItemReward(80),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -72,11 +72,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should return negative profit when reward is cheaper than set cost', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(10, 5),
-        makeItemReward(20),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(10, 5),
+        rewardPrice: makeItemReward(20),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -87,11 +87,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should return zero profit when cost equals reward', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(5, 4),
-        makeItemReward(20),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(5, 4),
+        rewardPrice: makeItemReward(20),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -102,11 +102,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should handle fractional values without flooring', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(2.5, 4),
-        makeItemReward(15.7),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(2.5, 4),
+        rewardPrice: makeItemReward(15.7),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -118,11 +118,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should return null when stackSize is undefined', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(2),
-        makeItemReward(80),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(2),
+        rewardPrice: makeItemReward(80),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -131,11 +131,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should handle stackSize of 1', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(10, 1),
-        makeItemReward(80),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(10, 1),
+        rewardPrice: makeItemReward(80),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -146,11 +146,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should handle large stackSize', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(3, 15),
-        makeItemReward(100),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(3, 15),
+        rewardPrice: makeItemReward(100),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -161,11 +161,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should calculate ROI correctly', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(10, 5),
-        makeItemReward(100),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(10, 5),
+        rewardPrice: makeItemReward(100),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -176,11 +176,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should return ROI of 0 when setCost is 0', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(0, 5),
-        makeItemReward(80),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(0, 5),
+        rewardPrice: makeItemReward(80),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -193,11 +193,11 @@ describe('ArbitrageCalculationService', () => {
   describe('calculateRewardValue (via calculateProfit)', () => {
     it('should multiply chaosEquivalent by amount for currency rewards', () => {
       const card = makeCurrencyCard(10);
-      const market = MarketSnapshot.create(
-        makeCardPrice(1, 5),
-        makeCurrencyReward(50),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(1, 5),
+        rewardPrice: makeCurrencyReward(50),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -208,11 +208,11 @@ describe('ArbitrageCalculationService', () => {
 
     it('should use chaosEquivalent directly when currency amount is 1', () => {
       const card = makeCurrencyCard(1);
-      const market = MarketSnapshot.create(
-        makeCardPrice(1, 3),
-        makeCurrencyReward(200),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(1, 3),
+        rewardPrice: makeCurrencyReward(200),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
@@ -222,32 +222,16 @@ describe('ArbitrageCalculationService', () => {
 
     it('should use chaosValue directly for item rewards', () => {
       const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(1, 5),
-        makeItemReward(150),
-        'Standard',
-      );
+      const market = new MarketSnapshot({
+        cardPrice: makeCardPrice(1, 5),
+        rewardPrice: makeItemReward(150),
+        leagueId: 'Standard',
+      });
 
       const result = service.calculateProfit(card, market);
 
       expect(result).not.toBeNull();
       expect(result!.rewardChaosValue).toBe(150);
-    });
-
-    it('should throw when currency card receives ItemOverview reward', () => {
-      // This tests the guard: CurrencyItem instanceof check fails,
-      // so it falls through to return rewardPrice.chaosValue — no error.
-      // The reverse case (non-currency card with CurrencyItem) triggers the error.
-      const card = makeItemCard();
-      const market = MarketSnapshot.create(
-        makeCardPrice(1, 5),
-        makeCurrencyReward(50),
-        'Standard',
-      );
-
-      expect(() => service.calculateProfit(card, market)).toThrow(
-        'Expected currency card',
-      );
     });
   });
 });

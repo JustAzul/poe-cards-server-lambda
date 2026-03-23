@@ -1,4 +1,4 @@
-import { RewardMatcherService, AmbiguousMatchCallback } from '@domain/services/reward-matcher.service';
+import { RewardMatcherService } from '@domain/services/reward-matcher.service';
 import { DivinationCard } from '@domain/entities/card.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
@@ -37,7 +37,9 @@ describe('RewardMatcherService', () => {
   let service: RewardMatcherService;
 
   beforeEach(() => {
-    service = new RewardMatcherService();
+    // eslint-disable-next-line no-empty-function
+    const silentLogger = { warn: () => {}, log: () => {}, error: () => {} };
+    service = new RewardMatcherService(silentLogger);
   });
 
   describe('findCardPrice', () => {
@@ -207,32 +209,29 @@ describe('RewardMatcherService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null and call onAmbiguousMatch when multiple items match', () => {
-        const ambiguousCalls: { cardName: string; rewardName: string; matchCount: number }[] = [];
-        const callback: AmbiguousMatchCallback = (cardName, rewardName, matchCount) => {
-          ambiguousCalls.push({ cardName, rewardName, matchCount });
-        };
-        const serviceWithCallback = new RewardMatcherService(callback);
+      it('should return null and log warning when multiple items match', () => {
+        const warnMessages: string[] = [];
+        // eslint-disable-next-line no-empty-function, max-len
+        const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
+        const serviceWithLogger = new RewardMatcherService(logger);
 
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
-        const index = serviceWithCallback.buildIndex([
+        const index = serviceWithLogger.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
         ], []);
 
-        const result = serviceWithCallback.findRewardPrice(index, card);
+        const result = serviceWithLogger.findRewardPrice(index, card);
 
         expect(result).toBeNull();
-        expect(ambiguousCalls).toHaveLength(1);
-        expect(ambiguousCalls[0]).toEqual({
-          cardName: 'The Doctor',
-          rewardName: 'Headhunter',
-          matchCount: 2,
-        });
+        expect(warnMessages).toHaveLength(1);
+        expect(warnMessages[0]).toContain('The Doctor');
+        expect(warnMessages[0]).toContain('Headhunter');
+        expect(warnMessages[0]).toContain('2');
       });
 
       it('should return null without crashing when ambiguous match occurs without callback', () => {

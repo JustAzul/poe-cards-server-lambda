@@ -1,4 +1,4 @@
-import { RewardParserService, DivinationCardLine, SkipCallback } from '@domain/services/reward-parser.service';
+import { RewardParserService, DivinationCardLine } from '@domain/services/reward-parser.service';
 import { RewardType } from '@domain/value-objects/reward-spec';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 
@@ -6,17 +6,27 @@ function line(name: string, text: string, optional = false): DivinationCardLine 
   return { name, explicitModifiers: [{ text, optional }] };
 }
 
+// Parse warn message: '[RewardParser] Skipped "${cardName}": ${reason}[ | raw: ${rawText}]'
+function parseSkipWarn(msg: string): { cardName: string; reason: string; rawText: string } {
+  const match = msg.match(/\[RewardParser\] Skipped "([^"]+)": (.+?)(?:\s+\| raw: (.*))?$/s);
+  if (!match) return { cardName: '', reason: msg, rawText: '' };
+  return { cardName: match[1], reason: match[2], rawText: match[3] ?? '' };
+}
+
 describe('RewardParserService', () => {
   let parser: RewardParserService;
   let skipped: { cardName: string; reason: string; rawText: string }[];
-  let onSkip: SkipCallback;
 
   beforeEach(() => {
     skipped = [];
-    onSkip = (cardName, reason, rawText) => {
-      skipped.push({ cardName, reason, rawText });
+    const logger = {
+      warn: (msg: string) => { skipped.push(parseSkipWarn(msg)); },
+      // eslint-disable-next-line no-empty-function
+      log: () => {},
+      // eslint-disable-next-line no-empty-function
+      error: () => {},
     };
-    parser = new RewardParserService(onSkip);
+    parser = new RewardParserService(logger);
   });
 
   describe('unique item rewards', () => {
