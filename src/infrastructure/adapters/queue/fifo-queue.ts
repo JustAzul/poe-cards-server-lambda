@@ -6,10 +6,6 @@ export interface QueuedTask<T> {
   reject: (error: Error) => void;
 }
 
-/**
- * Generic queue for processing tasks sequentially via pub/sub events
- * Tasks are executed one at a time in FIFO order
- */
 export class FIFOQueue<T> extends EventEmitter {
   protected tasks: Array<QueuedTask<T>> = [];
 
@@ -20,9 +16,6 @@ export class FIFOQueue<T> extends EventEmitter {
     this.on('queue:process', () => this.processNext());
   }
 
-  /**
-   * Add a task to the queue and trigger processing
-   */
   async enqueue(execute: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this.tasks.push({ execute, resolve, reject });
@@ -31,25 +24,17 @@ export class FIFOQueue<T> extends EventEmitter {
     });
   }
 
-  /**
-   * Process the next task in the queue
-   * Called via queue:process event
-   */
-  protected async processNext(): Promise<void> {
-    if (this.isProcessing || this.tasks.length === 0) {
-      return;
-    }
+  // Hook for subclasses to run logic before each task executes (e.g. rate limiting)
+  // eslint-disable-next-line class-methods-use-this
+  protected async beforeExecute(): Promise<void> { /* no-op by default */ }
 
+  protected async processNext(): Promise<void> {
+    if (this.isProcessing || this.tasks.length === 0) return;
     this.isProcessing = true;
     const task = this.tasks.shift();
-
-    if (!task) {
-      this.isProcessing = false;
-      return;
-    }
-
+    if (!task) { this.isProcessing = false; return; }
+    await this.beforeExecute();
     const { execute, resolve, reject } = task;
-
     this.emit('task:start', { queueLength: this.tasks.length });
     try {
       const result = await execute();
@@ -60,24 +45,13 @@ export class FIFOQueue<T> extends EventEmitter {
       reject(error instanceof Error ? error : new Error(String(error)));
     } finally {
       this.isProcessing = false;
-      // Emit queue:process to handle next task if any
       if (this.tasks.length > 0) {
         setImmediate(() => this.emit('queue:process'));
       }
     }
   }
 
-  /**
-   * Get current queue length
-   */
-  getQueueLength(): number {
-    return this.tasks.length;
-  }
+  getQueueLength(): number { return this.tasks.length; }
 
-  /**
-   * Check if queue is currently processing
-   */
-  isProcessingTask(): boolean {
-    return this.isProcessing;
-  }
+  isProcessingTask(): boolean { return this.isProcessing; }
 }
