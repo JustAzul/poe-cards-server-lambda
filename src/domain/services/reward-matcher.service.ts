@@ -3,17 +3,13 @@ import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { RewardType } from '@domain/value-objects/reward-spec';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
+import { Logger } from '@shared/logger';
 
 /**
  * Reward Matcher Domain Service
  * Encapsulates business logic for matching card rewards to market data
  * Handles both currency and item reward matching strategies
  */
-export type AmbiguousMatchCallback = (
-  cardName: string,
-  rewardName: string,
-  matchCount: number,
-) => void;
 
 /**
  * Pre-built index for O(1) market data lookups
@@ -28,11 +24,7 @@ export interface MarketIndex {
 export class RewardMatcherService {
   private static readonly DIVINATION_CARD_CLASS = ItemClass.DIVINATION_CARD;
 
-  private readonly onAmbiguousMatch?: AmbiguousMatchCallback;
-
-  constructor(onAmbiguousMatch?: AmbiguousMatchCallback) {
-    this.onAmbiguousMatch = onAmbiguousMatch;
-  }
+  constructor(private readonly logger: Logger = console) {}
 
   /**
    * Build a market index for O(1) lookups during batch evaluation
@@ -103,7 +95,7 @@ export class RewardMatcherService {
     );
 
     if (matches.length > 1) {
-      this.onAmbiguousMatch?.(card.name, card.reward, matches.length);
+      this.logger.warn(`[RewardMatcher] Ambiguous match: card "${card.name}" reward "${card.reward}" matched ${matches.length} items, skipping`);
     }
 
     return matches.length === 1 ? matches[0] : null;
