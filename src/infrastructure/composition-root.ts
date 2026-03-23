@@ -3,7 +3,8 @@ import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculat
 import { TrustValidationService } from '@domain/services/trust-validation.service';
 import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
 import { RewardParserService } from '@domain/services/reward-parser.service';
-import { HttpService } from '@infrastructure/adapters/http/http.service';
+import { PoeApiService } from '@infrastructure/adapters/http/poe-api.service';
+import { PoeNinjaService } from '@infrastructure/adapters/http/poe-ninja.service';
 import { LeagueRepository } from '@infrastructure/adapters/persistence/league.repository';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
@@ -12,42 +13,17 @@ import { LoadAdapter } from '@infrastructure/adapters/etl/load.adapter';
 import { App } from '@infrastructure/app';
 
 // Infrastructure
-const httpService = new HttpService();
-const leagueRepository = new LeagueRepository(httpService);
-const leagueAdapter = new LeagueAdapter(httpService);
+const poeApiService = new PoeApiService();
+const poeNinjaService = new PoeNinjaService();
+const leagueRepository = new LeagueRepository(poeApiService);
+const leagueAdapter = new LeagueAdapter(poeNinjaService);
 
 // Domain services
-const rewardParser = new RewardParserService(
-  (cardName, reason, rawText) => {
-    console.warn(
-      `[RewardParser] Skipped "${cardName}": ${reason}${rawText ? ` | raw: ${rawText.substring(0, 80)}` : ''}`,
-    );
-  },
-  (parsed, total, skipped) => {
-    console.log(
-      `[RewardParser] Parsed ${parsed}/${total}`
-      + ` divination cards (${skipped} skipped)`,
-    );
-  },
-);
-const rewardMatcher = new RewardMatcherService(
-  (cardName, rewardName, matchCount) => {
-    console.warn(
-      `[RewardMatcher] Ambiguous match: card "${cardName}"`
-      + ` reward "${rewardName}" matched ${matchCount} items, skipping`,
-    );
-  },
-);
+const rewardParser = new RewardParserService();
+const rewardMatcher = new RewardMatcherService();
 const calculator = new ArbitrageCalculationService();
 const trustValidator = new TrustValidationService();
-const evaluatorService = new ArbitrageEvaluatorService(
-  rewardMatcher,
-  calculator,
-  trustValidator,
-  (cardName, reason) => {
-    console.warn(`[ArbitrageEvaluator] Skipped "${cardName}": ${reason}`);
-  },
-);
+const evaluatorService = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator);
 
 // ETL adapters
 const extractAdapter = new ExtractAdapter(leagueRepository, rewardParser, leagueAdapter);
