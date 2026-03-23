@@ -4,12 +4,14 @@ import { CurrencyItem } from '@domain/value-objects/currency-item';
 
 /**
  * Individual league data result yielded by generator
+ * error is set when the league fetch failed; items/currency/timestamp are empty in that case
  */
 export interface LeagueDataYield {
   league: League;
   items: ItemOverview[];
   currency: CurrencyItem[];
   timestamp: string;
+  error?: Error;
 }
 
 /**

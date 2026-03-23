@@ -1,3 +1,7 @@
+const INELIGIBLE_RULE_IDS = ['NoParties', 'HardMode'] as const;
+const PC_REALM = 'pc';
+const HARDCORE_LEAGUE_NAME = 'Hardcore';
+
 export class League {
   readonly name: string;
 
@@ -34,10 +38,9 @@ export class League {
   /** Whether this league is eligible for arbitrage analysis */
   isEligible(): boolean {
     if (this.startAt === null) return false;
-    if (this.ruleIds.includes('NoParties')) return false; // Solo Self Found
-    if (this.ruleIds.includes('HardMode')) return false; // Ruthless
-    if (this.realm !== 'pc') return false; // Console leagues
-    if (this.name === 'Hardcore') return false;
+    if (INELIGIBLE_RULE_IDS.some((id) => this.ruleIds.includes(id))) return false; // SSF / Ruthless
+    if (this.realm !== PC_REALM) return false; // Console leagues
+    if (this.name === HARDCORE_LEAGUE_NAME) return false;
     return true;
   }
 }
