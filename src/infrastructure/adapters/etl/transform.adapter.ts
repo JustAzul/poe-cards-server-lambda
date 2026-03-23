@@ -2,12 +2,13 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
-import { CardArbitrage } from '@domain/aggregates/card-arbitrage.aggregate';
+import { ArbitrageOpportunity } from '@domain/aggregates/arbitrage-opportunity';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { ArbitrageMapper } from '@infrastructure/mappers/arbitrage.mapper';
 
 // Interfaces
-import { IArbitrageEvaluator } from '@domain/services/arbitrage-evaluator.service';
+import { IArbitrageEvaluator } from '@domain/ports/arbitrage-evaluator.port';
+import { Logger } from '@shared/logger';
 
 /**
  * Result of transforming a single league
@@ -17,14 +18,24 @@ export interface SingleLeagueTransformResult {
   currency: CurrencyItem[];
 }
 
+export interface ITransformAdapter {
+  transform(
+    leagueName: string,
+    items: ItemOverview[],
+    currencyItems: CurrencyItem[],
+    cards: DivinationCard[],
+  ): SingleLeagueTransformResult;
+}
+
 /**
  * ETL Pipeline Transform Adapter
  * Responsible for transforming raw league data
  * Processes raw data into structured arbitrage opportunities and currency results
  */
-export class TransformAdapter {
+export class TransformAdapter implements ITransformAdapter {
   constructor(
     private readonly arbitrageEvaluator: IArbitrageEvaluator,
+    private readonly logger: Logger = console,
   ) {}
 
   /**
@@ -42,15 +53,13 @@ export class TransformAdapter {
     currencyItems: CurrencyItem[],
     cards: DivinationCard[],
   ): SingleLeagueTransformResult {
-    console.log(`Transforming data for league: ${leagueName}`);
+    this.logger.log(`Transforming data for league: ${leagueName}`);
 
     const leagueData = { league: leagueName, items, currency: currencyItems };
 
     // Application layer returns domain aggregates
-    const domainResults: CardArbitrage[] = this.arbitrageEvaluator.findAllArbitrageOpportunities(
-      leagueData,
-      cards,
-    );
+    const domainResults: ArbitrageOpportunity[] = this.arbitrageEvaluator
+      .findAllArbitrageOpportunities(leagueData, cards);
 
     // Infrastructure layer maps domain → DTO at architectural boundary
     const profitTable: ProfitTableRowDto[] = domainResults.map(

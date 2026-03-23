@@ -6,10 +6,8 @@ export interface ProfitTableRowDto {
     chaosPrice: number;
     details: {
       artFilename: string;
-      cardName: string;
-      cardStack: number;
       rewardName: string;
-      rewardClass: number | string;
+      rewardClass: number | null;
       isCorrupted: boolean;
       flavour: string;
     };
