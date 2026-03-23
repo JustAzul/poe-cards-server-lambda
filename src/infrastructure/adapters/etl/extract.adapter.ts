@@ -9,6 +9,7 @@ import { RewardParserService } from '@domain/services/reward-parser.service';
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/league.repository';
 import { ILeagueAdapter } from '@domain/ports/league-adapter.port';
+import { Logger } from '@shared/logger';
 
 export interface LeagueExtractionData {
   items: ItemOverview[];
@@ -20,6 +21,12 @@ export interface LeagueExtractionData {
 export interface LeagueExtractionYield {
   league: League;
   data: LeagueExtractionData;
+  /** Set when league extraction failed; data fields are empty in that case */
+  error?: Error;
+}
+
+export interface IExtractAdapter {
+  extract(): AsyncGenerator<LeagueExtractionYield>;
 }
 
 /**
@@ -27,11 +34,12 @@ export interface LeagueExtractionYield {
  * Responsible for extracting raw league data from API
  * Handles league filtering and rate-limited data fetching
  */
-export class ExtractAdapter {
+export class ExtractAdapter implements IExtractAdapter {
   constructor(
     private readonly leagueRepository: ILeagueRepository,
     private readonly rewardParser: RewardParserService,
     private readonly leagueAdapter: ILeagueAdapter,
+    private readonly logger: Logger = console,
   ) {}
 
   /**
@@ -45,33 +53,44 @@ export class ExtractAdapter {
    * @yields Individual league extraction result for each league with cards
    */
   async* extract(): AsyncGenerator<LeagueExtractionYield> {
-    console.log('Fetching Leagues..');
+    this.logger.log('Fetching Leagues..');
 
     const leagues = await this.leagueRepository.getAllLeagues();
     const filteredLeagues = ExtractAdapter.selectLeagues(leagues);
 
-    console.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
+    this.logger.log(`Found ${leagues.length} leagues, filtered to ${filteredLeagues.length} leagues for processing.`);
 
-    for await (const {
-      league,
-      items,
-      currency,
-      timestamp,
-    } of this.leagueAdapter.fetchBatchLeagueOverview(filteredLeagues)) {
-      const divinationItems = items.filter(
-        (item) => item.itemClass === ItemClass.DIVINATION_CARD,
-      );
-      const cards = this.rewardParser.parseAll(divinationItems);
+    for await (const result of this.leagueAdapter.fetchBatchLeagueOverview(filteredLeagues)) {
+      if (result.error) {
+        yield {
+          league: result.league,
+          data: {
+            items: [],
+            currency: [],
+            cards: [],
+            timestamp: '',
+          },
+          error: result.error,
+        };
+      } else {
+        const {
+          league, items, currency, timestamp,
+        } = result;
+        const divinationItems = items.filter(
+          (item) => item.itemClass === ItemClass.DIVINATION_CARD,
+        );
+        const cards = this.rewardParser.parseAll(divinationItems);
 
-      yield {
-        league,
-        data: {
-          items,
-          currency,
-          cards,
-          timestamp,
-        },
-      };
+        yield {
+          league,
+          data: {
+            items,
+            currency,
+            cards,
+            timestamp,
+          },
+        };
+      }
     }
   }
 
