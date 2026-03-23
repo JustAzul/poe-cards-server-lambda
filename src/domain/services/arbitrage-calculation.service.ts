@@ -3,6 +3,7 @@ import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
 import { ProfitResult } from '@domain/value-objects/profit-result';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyRewardSpec } from '@domain/value-objects/reward-spec';
 /**
  * Arbitrage Calculation Domain Service
  * Encapsulates profit calculation business rules
@@ -22,7 +23,12 @@ export class ArbitrageCalculationService {
     const profit = rewardChaosValue - cardSetCost;
     const roi = cardSetCost > 0 ? (profit / cardSetCost) * 100 : 0;
 
-    return ProfitResult.create(profit, cardSetCost, rewardChaosValue, roi);
+    return new ProfitResult({
+      chaosProfitValue: profit,
+      setChaosPrice: cardSetCost,
+      rewardChaosValue,
+      roi,
+    });
   }
 
   /**
@@ -34,9 +40,10 @@ export class ArbitrageCalculationService {
     rewardPrice: ItemOverview | CurrencyItem,
   ): number {
     // Currency reward: calculate value with amount multiplier
+    // invariant: rewardPrice is CurrencyItem only when card.isCurrencyCard()
+    // — guaranteed by RewardMatcherService
     if (rewardPrice instanceof CurrencyItem) {
-      if (!card.isCurrencyCard()) throw new Error('Expected currency card');
-      return rewardPrice.chaosEquivalent * card.rewardSpec.amount;
+      return rewardPrice.chaosEquivalent * (card.rewardSpec as CurrencyRewardSpec).amount;
     }
 
     return rewardPrice.chaosValue;
