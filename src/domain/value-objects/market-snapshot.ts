@@ -21,15 +21,4 @@ export class MarketSnapshot {
     this.rewardPrice = data.rewardPrice;
     this.leagueId = data.leagueId;
   }
-
-  /**
-   * Factory method: Create MarketSnapshot from market data
-   */
-  static create(
-    cardPrice: ItemOverview,
-    rewardPrice: ItemOverview | CurrencyItem,
-    leagueId: string,
-  ): MarketSnapshot {
-    return new MarketSnapshot({ cardPrice, rewardPrice, leagueId });
-  }
 }

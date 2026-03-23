@@ -24,39 +24,9 @@ export class ProfitResult {
   }
 
   /**
-   * Factory method: Create ProfitResult from calculation values
-   */
-  static create(
-    chaosProfitValue: number,
-    setChaosPrice: number,
-    rewardChaosValue: number,
-    roi: number,
-  ): ProfitResult {
-    return new ProfitResult({
-      chaosProfitValue,
-      setChaosPrice,
-      rewardChaosValue,
-      roi,
-    });
-  }
-
-  /**
    * Check if arbitrage opportunity is viable (profitable)
    */
   isViable(): boolean {
     return this.chaosProfitValue > 0;
-  }
-
-  // TODO: reshape for Supabase schema when LoadAdapter is implemented
-  /**
-   * Convert to plain object for serialization
-   */
-  toPlain(): Record<string, unknown> {
-    return {
-      chaosProfitValue: this.chaosProfitValue,
-      setChaosPrice: this.setChaosPrice,
-      rewardChaosValue: this.rewardChaosValue,
-      roi: this.roi,
-    };
   }
 }
