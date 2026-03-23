@@ -3,6 +3,7 @@ import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { League } from '@domain/entities/league.entity';
 import { IMarketDataApi } from '@domain/ports/http-service.port';
 import { ILeagueAdapter, LeagueDataYield } from '@domain/ports/league-adapter.port';
+import { Logger } from '@shared/logger';
 
 const ITEM_TYPES_TO_FETCH = [
   'DivinationCard',
@@ -21,7 +22,10 @@ const ITEM_TYPES_TO_FETCH = [
  * Coordinates batch fetching with rate limiting
  */
 export class LeagueAdapter implements ILeagueAdapter {
-  constructor(private readonly marketDataApi: IMarketDataApi) {}
+  constructor(
+    private readonly marketDataApi: IMarketDataApi,
+    private readonly logger: Logger = console,
+  ) {}
 
   /**
    * Fetch complete league overview (items + currency)
@@ -32,7 +36,7 @@ export class LeagueAdapter implements ILeagueAdapter {
   private async fetchLeagueOverview(
     leagueName: string,
   ): Promise<{ items: ItemOverview[]; currency: CurrencyItem[] }> {
-    console.log(`Requesting league '${leagueName}' Overview..`);
+    this.logger.log(`Requesting league '${leagueName}' Overview..`);
 
     const [currency, items] = await Promise.all([
       this.marketDataApi.fetchCurrencyOverview(leagueName),
@@ -46,7 +50,7 @@ export class LeagueAdapter implements ILeagueAdapter {
     const itemArrays = await Promise.all(
       ITEM_TYPES_TO_FETCH.map(async (type) => {
         const items = await this.marketDataApi.fetchItemOverview(leagueName, type);
-        console.log(`Found ${items.length} ${leagueName} ${type}'s!`);
+        this.logger.log(`Found ${items.length} ${leagueName} ${type}'s!`);
         return items;
       }),
     );
@@ -76,11 +80,15 @@ export class LeagueAdapter implements ILeagueAdapter {
           timestamp,
         };
       } catch (error) {
-        console.error(
-          `Failed to fetch league ${league.name}:`,
-          error instanceof Error ? error.message : error,
-        );
-        // Skip this league, continue to next
+        const fetchError = error instanceof Error ? error : new Error(String(error));
+        this.logger.error(`Failed to fetch league ${league.name}:`, fetchError.message);
+        yield {
+          league,
+          items: [],
+          currency: [],
+          timestamp: '',
+          error: fetchError,
+        };
       }
     }
   }

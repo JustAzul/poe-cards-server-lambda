@@ -2,12 +2,24 @@
 import { League } from '@domain/entities/league.entity';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
+import { Logger } from '@shared/logger';
+
+export interface ILoadAdapter {
+  load(
+    league: League,
+    profitTable: ProfitTableRowDto[],
+    currency: CurrencyItem[],
+    timestamp: string,
+  ): void;
+}
 
 /**
  * ETL Pipeline Load Adapter
  * Responsible for displaying processed data to console
  */
-export class LoadAdapter {
+export class LoadAdapter implements ILoadAdapter {
+  constructor(private readonly logger: Logger = console) {}
+
   /**
    * Display a single league's data to console
    *
@@ -22,11 +34,11 @@ export class LoadAdapter {
     currency: CurrencyItem[],
     timestamp: string,
   ): void {
-    console.log(`Loading data for league: ${league.name}`);
-    console.log(`Timestamp: ${timestamp}`);
-    console.log(`Profit table entries: ${profitTable.length}`);
-    console.log(`Currency items: ${currency.length}`);
-    console.log('Profit table data:', profitTable);
-    console.log('Currency data:', currency);
+    this.logger.log(`Loading data for league: ${league.name}`);
+    this.logger.log(`Timestamp: ${timestamp}`);
+    this.logger.log(`Profit table entries: ${profitTable.length}`);
+    this.logger.log(`Currency items: ${currency.length}`);
+    this.logger.log(`Profit table data: ${JSON.stringify(profitTable)}`);
+    this.logger.log(`Currency data: ${JSON.stringify(currency)}`);
   }
 }

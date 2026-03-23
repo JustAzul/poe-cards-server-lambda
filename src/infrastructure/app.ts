@@ -1,38 +1,45 @@
-import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
-import { TransformAdapter } from '@infrastructure/adapters/etl/transform.adapter';
-import { LoadAdapter } from '@infrastructure/adapters/etl/load.adapter';
+import { IExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
+import { ITransformAdapter } from '@infrastructure/adapters/etl/transform.adapter';
+import { ILoadAdapter } from '@infrastructure/adapters/etl/load.adapter';
+import { Logger } from '@shared/logger';
 
 export class App {
   constructor(
-    private readonly extractAdapter: ExtractAdapter,
-    private readonly transformAdapter: TransformAdapter,
-    private readonly loadAdapter: LoadAdapter,
+    private readonly extractAdapter: IExtractAdapter,
+    private readonly transformAdapter: ITransformAdapter,
+    private readonly loadAdapter: ILoadAdapter,
+    private readonly logger: Logger = console,
   ) {}
 
   async execute(): Promise<{ processed: number; failed: number }> {
-    console.log('Starting ETL pipeline with incremental processing...');
+    this.logger.log('Starting ETL pipeline with incremental processing...');
     let processedCount = 0;
     let errorCount = 0;
 
-    for await (const { league, data } of this.extractAdapter.extract()) {
-      try {
-        const { profitTable, currency: currencyData } = this.transformAdapter.transform(
-          league.name,
-          data.items,
-          data.currency,
-          data.cards,
-        );
-
-        this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
-        processedCount += 1;
-        console.log(`Successfully processed league: ${league.name}`);
-      } catch (error) {
+    for await (const { league, data, error } of this.extractAdapter.extract()) {
+      if (error) {
         errorCount += 1;
-        console.error(`Failed to process league ${league.name}:`, error instanceof Error ? error.message : error);
+        this.logger.error(`Extraction failed for league ${league.name}:`, error.message);
+      } else {
+        try {
+          const { profitTable, currency: currencyData } = this.transformAdapter.transform(
+            league.name,
+            data.items,
+            data.currency,
+            data.cards,
+          );
+
+          this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
+          processedCount += 1;
+          this.logger.log(`Successfully processed league: ${league.name}`);
+        } catch (err) {
+          errorCount += 1;
+          this.logger.error(`Failed to process league ${league.name}:`, err instanceof Error ? err.message : err);
+        }
       }
     }
 
-    console.log(`ETL pipeline completed: ${processedCount} succeeded, ${errorCount} failed`);
+    this.logger.log(`ETL pipeline completed: ${processedCount} succeeded, ${errorCount} failed`);
     return { processed: processedCount, failed: errorCount };
   }
 }
