@@ -7,9 +7,9 @@ export interface QueuedTask<T> {
 }
 
 export class FIFOQueue<T> extends EventEmitter {
-  protected tasks: Array<QueuedTask<T>> = [];
+  private tasks: Array<QueuedTask<T>> = [];
 
-  protected isProcessing: boolean = false;
+  private isProcessing: boolean = false;
 
   constructor() {
     super();
@@ -31,8 +31,8 @@ export class FIFOQueue<T> extends EventEmitter {
   protected async processNext(): Promise<void> {
     if (this.isProcessing || this.tasks.length === 0) return;
     this.isProcessing = true;
-    const task = this.tasks.shift();
-    if (!task) { this.isProcessing = false; return; }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const task = this.tasks.shift()!;
     await this.beforeExecute();
     const { execute, resolve, reject } = task;
     this.emit('task:start', { queueLength: this.tasks.length });
