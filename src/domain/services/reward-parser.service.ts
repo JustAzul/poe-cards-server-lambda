@@ -4,6 +4,7 @@ import {
   createCurrencyRewardSpec,
   createItemRewardSpec,
 } from '@domain/value-objects/reward-spec';
+import { Logger } from '@shared/logger';
 
 export interface ExplicitModifier {
   text: string;
@@ -14,18 +15,6 @@ export interface DivinationCardLine {
   name: string;
   explicitModifiers?: ExplicitModifier[];
 }
-
-export type SkipCallback = (
-  cardName: string,
-  reason: string,
-  rawText: string,
-) => void;
-
-export type CompleteCallback = (
-  parsed: number,
-  total: number,
-  skipped: number,
-) => void;
 
 interface ParseResult {
   card: DivinationCard | null;
@@ -60,14 +49,7 @@ const GEM_NAME_SUFFIXES: Record<string, string> = {
 };
 
 export class RewardParserService {
-  private readonly onSkip?: SkipCallback;
-
-  private readonly onComplete?: CompleteCallback;
-
-  constructor(onSkip?: SkipCallback, onComplete?: CompleteCallback) {
-    this.onSkip = onSkip;
-    this.onComplete = onComplete;
-  }
+  constructor(private readonly logger: Logger = console) {}
 
   parseAll(lines: DivinationCardLine[]): DivinationCard[] {
     const cards: DivinationCard[] = [];
@@ -83,7 +65,7 @@ export class RewardParserService {
       }
     }
 
-    this.onComplete?.(cards.length, lines.length, skippedCount);
+    this.logger.log(`[RewardParser] Parsed ${cards.length}/${lines.length} divination cards (${skippedCount} skipped)`);
 
     return cards;
   }
@@ -206,7 +188,7 @@ export class RewardParserService {
   }
 
   private skip(cardName: string, reason: string, rawText: string): ParseResult {
-    this.onSkip?.(cardName, reason, rawText);
+    this.logger.warn(`[RewardParser] Skipped "${cardName}": ${reason}${rawText ? ` | raw: ${rawText.substring(0, 80)}` : ''}`);
     return { card: null, skipped: true, reason };
   }
 
