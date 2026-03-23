@@ -1,4 +1,5 @@
-import { LeagueData, ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
+import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
+import { LeagueData } from '@domain/ports/arbitrage-evaluator.port';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
@@ -14,10 +15,12 @@ describe('ArbitrageEvaluatorService', () => {
 
   beforeEach(() => {
     // eslint-disable-next-line no-empty-function
-    const rewardMatcher = new RewardMatcherService(() => {});
+    const silentLogger = { warn: () => {}, log: () => {}, error: () => {} };
+    const rewardMatcher = new RewardMatcherService(silentLogger);
     const calculator = new ArbitrageCalculationService();
     const trustValidator = new TrustValidationService();
-    service = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator);
+    // eslint-disable-next-line max-len
+    service = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator, silentLogger);
     leagueData = { league: 'Standard', items: [], currency: [] };
   });
 
