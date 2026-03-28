@@ -19,17 +19,6 @@ export class ItemOverview {
 
   readonly stackSize?: number;
 
-  // Infrastructure-facing fields: artFilename and flavourText are poe.ninja presentation
-  // data read by ArbitrageMapper for the output DTO. explicitModifiers is read by
-  // RewardParserService for card reward parsing. These will be extracted to PoeNinjaItemDto
-  // when the Supabase LoadAdapter is implemented and the mapper no longer needs to reach
-  // into the domain VO for presentation data.
-  readonly artFilename?: string;
-
-  readonly flavourText?: string;
-
-  readonly explicitModifiers?: Array<{ text: string; optional: boolean }>;
-
   constructor(data: {
     name: string;
     itemClass: number;
@@ -39,10 +28,16 @@ export class ItemOverview {
     gemLevel?: number;
     count?: number;
     stackSize?: number;
-    artFilename?: string;
-    flavourText?: string;
-    explicitModifiers?: Array<{ text: string; optional: boolean }>;
   }) {
+    if (!data.name || typeof data.name !== 'string') {
+      throw new Error('ItemOverview: name must be a non-empty string');
+    }
+    if (!Number.isFinite(data.chaosValue)) {
+      throw new Error('ItemOverview: chaosValue must be a finite number');
+    }
+    if (typeof data.itemClass !== 'number' || !Number.isFinite(data.itemClass)) {
+      throw new Error('ItemOverview: itemClass must be a finite number');
+    }
     this.name = data.name;
     this.itemClass = data.itemClass;
     this.chaosValue = data.chaosValue;
@@ -51,13 +46,11 @@ export class ItemOverview {
     this.gemLevel = data.gemLevel;
     this.count = data.count;
     this.stackSize = data.stackSize;
-    this.artFilename = data.artFilename;
-    this.flavourText = data.flavourText;
-    this.explicitModifiers = data.explicitModifiers;
   }
 
   /**
-   * Get item count for trust validation (defaults to 0)
+   * Get item count for trust validation
+   * Returns 0 when count is undefined — treats missing data as insufficient trust
    */
   getCount(): number {
     return this.count ?? 0;

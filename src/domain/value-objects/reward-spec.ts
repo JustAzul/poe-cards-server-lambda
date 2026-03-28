@@ -29,6 +29,9 @@ export type RewardSpec = CurrencyRewardSpec | ItemRewardSpec;
  * Factory function to create currency reward spec
  */
 export function createCurrencyRewardSpec(amount: number): CurrencyRewardSpec {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error(`Invalid currency reward amount: ${amount}`);
+  }
   return {
     type: RewardType.CURRENCY,
     amount,
@@ -44,6 +47,12 @@ export function createItemRewardSpec(
   links: number,
   gemLevel: number,
 ): ItemRewardSpec {
+  if (!Number.isFinite(links) || links < 0) {
+    throw new Error(`Invalid links value: ${links}`);
+  }
+  if (!Number.isFinite(gemLevel) || gemLevel < 0) {
+    throw new Error(`Invalid gemLevel value: ${gemLevel}`);
+  }
   return {
     type: RewardType.ITEM,
     itemClass,

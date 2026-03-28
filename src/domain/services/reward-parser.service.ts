@@ -49,7 +49,7 @@ const GEM_NAME_SUFFIXES: Record<string, string> = {
 };
 
 export class RewardParserService {
-  constructor(private readonly logger: Logger = console) {}
+  constructor(private readonly logger: Logger) {}
 
   parseAll(lines: DivinationCardLine[]): DivinationCard[] {
     const cards: DivinationCard[] = [];

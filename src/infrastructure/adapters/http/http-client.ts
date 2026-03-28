@@ -4,6 +4,7 @@ import { HttpConfig } from '@infrastructure/types/http-config.types';
 import { RateLimitedQueue } from '@infrastructure/adapters/queue/rate-limited-queue';
 
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36';
+const DEFAULT_RETRY_SECONDS = 60;
 
 export class HttpClient {
   private queue: RateLimitedQueue<unknown>;
@@ -57,13 +58,16 @@ export class HttpClient {
         if (error instanceof AxiosError && error.response) {
           const { status } = error.response;
           if (status >= 400 && status < 500 && status !== 429) {
-            throw new Error(`${operationName} failed with status ${status}: ${error.message}`);
+            throw new Error(`${operationName} failed with status ${status}: ${error.message}`, { cause: error });
           }
           if (status === 429) {
             if (!isLastAttempt) {
-              const retryAfter = parseInt(error.response.headers['retry-after'] ?? '60', 10);
+              const parsed = parseInt(error.response.headers['retry-after'] ?? '', 10);
+              const retryAfterSeconds = Number.isNaN(parsed) || parsed <= 0
+                ? DEFAULT_RETRY_SECONDS
+                : parsed;
               // eslint-disable-next-line no-await-in-loop
-              await sleep(retryAfter * 1000);
+              await sleep(retryAfterSeconds * 1000);
             }
           } else if (!isLastAttempt) {
             const delayMs = exponentialBackoff ? retryDelayMs * 2 ** attempt : retryDelayMs;
@@ -78,7 +82,6 @@ export class HttpClient {
       }
     }
 
-    const cause = lastError instanceof Error ? lastError.message : String(lastError);
-    throw new Error(`${operationName} failed after ${maxRetries} retries: ${cause}`);
+    throw new Error(`${operationName} failed after ${maxRetries} retries`, { cause: lastError });
   }
 }

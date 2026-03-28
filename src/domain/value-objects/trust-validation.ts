@@ -25,4 +25,9 @@ export class TrustValidation {
   static invalid(reason: string): TrustValidation {
     return new TrustValidation({ isValid: false, reason });
   }
+
+  equals(other: TrustValidation): boolean {
+    return this.isValid === other.isValid
+      && this.reason === other.reason;
+  }
 }

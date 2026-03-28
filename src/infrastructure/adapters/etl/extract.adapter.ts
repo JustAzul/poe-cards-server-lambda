@@ -3,18 +3,21 @@ import { League } from '@domain/entities/league.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { DivinationCard } from '@domain/entities/card.entity';
-import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { RewardParserService } from '@domain/services/reward-parser.service';
+
+// Infrastructure
+import { ILeagueDataAdapter } from '@infrastructure/ports/league-data-adapter.port';
+import { PoeNinjaItemMeta } from '@infrastructure/types/poe-ninja-item-meta';
+import { Logger } from '@shared/logger';
 
 // Interfaces
 import { ILeagueRepository } from '@domain/repositories/league.repository';
-import { ILeagueAdapter } from '@domain/ports/league-adapter.port';
-import { Logger } from '@shared/logger';
 
 export interface LeagueExtractionData {
   items: ItemOverview[];
   currency: CurrencyItem[];
   cards: DivinationCard[];
+  itemMeta: Map<string, PoeNinjaItemMeta>;
   timestamp: string;
 }
 
@@ -38,8 +41,8 @@ export class ExtractAdapter implements IExtractAdapter {
   constructor(
     private readonly leagueRepository: ILeagueRepository,
     private readonly rewardParser: RewardParserService,
-    private readonly leagueAdapter: ILeagueAdapter,
-    private readonly logger: Logger = console,
+    private readonly leagueAdapter: ILeagueDataAdapter,
+    private readonly logger: Logger,
   ) {}
 
   /**
@@ -68,18 +71,16 @@ export class ExtractAdapter implements IExtractAdapter {
             items: [],
             currency: [],
             cards: [],
+            itemMeta: new Map(),
             timestamp: '',
           },
           error: result.error,
         };
       } else {
         const {
-          league, items, currency, timestamp,
+          league, items, currency, timestamp, cardLines, itemMeta,
         } = result;
-        const divinationItems = items.filter(
-          (item) => item.itemClass === ItemClass.DIVINATION_CARD,
-        );
-        const cards = this.rewardParser.parseAll(divinationItems);
+        const cards = this.rewardParser.parseAll(cardLines);
 
         yield {
           league,
@@ -87,6 +88,7 @@ export class ExtractAdapter implements IExtractAdapter {
             items,
             currency,
             cards,
+            itemMeta,
             timestamp,
           },
         };

@@ -17,6 +17,9 @@ export class MarketSnapshot {
     rewardPrice: ItemOverview | CurrencyItem;
     leagueId: string;
   }) {
+    if (!data.leagueId || typeof data.leagueId !== 'string') {
+      throw new Error('MarketSnapshot: leagueId must be a non-empty string');
+    }
     this.cardPrice = data.cardPrice;
     this.rewardPrice = data.rewardPrice;
     this.leagueId = data.leagueId;

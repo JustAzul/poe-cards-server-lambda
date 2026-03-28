@@ -3,13 +3,14 @@ import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { RewardType } from '@domain/value-objects/reward-spec';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
+import { PoeNinjaItemMeta } from '@infrastructure/types/poe-ninja-item-meta';
 
 /**
  * Maps domain arbitrage aggregates to infrastructure DTOs
  * Enforces architectural boundary: domain models stay in domain layer
  */
 export class ArbitrageMapper {
-  static toDto(arbitrage: ArbitrageOpportunity): ProfitTableRowDto {
+  static toDto(arbitrage: ArbitrageOpportunity, meta?: PoeNinjaItemMeta): ProfitTableRowDto {
     const { card, market, profit } = arbitrage;
     const { cardPrice, rewardPrice } = market;
 
@@ -21,13 +22,13 @@ export class ArbitrageMapper {
         stack: cardPrice.stackSize ?? 1,
         chaosPrice: cardPrice.chaosValue,
         details: {
-          artFilename: cardPrice.artFilename ?? '',
+          artFilename: meta?.artFilename ?? '',
           rewardName: rewardDisplayName,
           rewardClass: rewardPrice instanceof ItemOverview ? rewardPrice.itemClass : null,
           isCorrupted: rewardPrice instanceof ItemOverview
             ? (rewardPrice.corrupted ?? false)
             : false,
-          flavour: cardPrice.flavourText ?? '',
+          flavour: meta?.flavourText ?? '',
         },
       },
       reward: {
