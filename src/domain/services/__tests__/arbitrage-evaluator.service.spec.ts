@@ -33,8 +33,6 @@ describe('ArbitrageEvaluatorService', () => {
           chaosValue: 500,
           count: 50,
           stackSize: 8,
-          artFilename: 'doctor.png',
-          flavourText: 'You are the Disease',
         });
 
         const rewardOverview = new ItemOverview({

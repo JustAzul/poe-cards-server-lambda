@@ -20,7 +20,7 @@ export class ArbitrageEvaluatorService implements IArbitrageEvaluator {
     private readonly rewardMatcher: RewardMatcherService,
     private readonly calculator: ArbitrageCalculationService,
     private readonly trustValidator: TrustValidationService,
-    private readonly logger: Logger = console,
+    private readonly logger: Logger,
   ) {}
 
   /**

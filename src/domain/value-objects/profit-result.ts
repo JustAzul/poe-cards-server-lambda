@@ -17,6 +17,12 @@ export class ProfitResult {
     rewardChaosValue: number;
     roi: number;
   }) {
+    if (!Number.isFinite(data.chaosProfitValue)
+      || !Number.isFinite(data.setChaosPrice)
+      || !Number.isFinite(data.rewardChaosValue)
+      || !Number.isFinite(data.roi)) {
+      throw new Error('ProfitResult: all fields must be finite numbers');
+    }
     this.chaosProfitValue = data.chaosProfitValue;
     this.setChaosPrice = data.setChaosPrice;
     this.rewardChaosValue = data.rewardChaosValue;
@@ -28,5 +34,12 @@ export class ProfitResult {
    */
   isViable(): boolean {
     return this.chaosProfitValue > 0;
+  }
+
+  equals(other: ProfitResult): boolean {
+    return this.chaosProfitValue === other.chaosProfitValue
+      && this.setChaosPrice === other.setChaosPrice
+      && this.rewardChaosValue === other.rewardChaosValue
+      && this.roi === other.roi;
   }
 }

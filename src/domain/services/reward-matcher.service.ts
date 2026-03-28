@@ -24,7 +24,7 @@ export interface MarketIndex {
 export class RewardMatcherService {
   private static readonly DIVINATION_CARD_CLASS = ItemClass.DIVINATION_CARD;
 
-  constructor(private readonly logger: Logger = console) {}
+  constructor(private readonly logger: Logger) {}
 
   /**
    * Build a market index for O(1) lookups during batch evaluation

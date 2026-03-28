@@ -18,7 +18,7 @@ export interface ILoadAdapter {
  * Responsible for displaying processed data to console
  */
 export class LoadAdapter implements ILoadAdapter {
-  constructor(private readonly logger: Logger = console) {}
+  constructor(private readonly logger: Logger) {}
 
   /**
    * Display a single league's data to console
@@ -36,9 +36,7 @@ export class LoadAdapter implements ILoadAdapter {
   ): void {
     this.logger.log(`Loading data for league: ${league.name}`);
     this.logger.log(`Timestamp: ${timestamp}`);
-    this.logger.log(`Profit table entries: ${profitTable.length}`);
-    this.logger.log(`Currency items: ${currency.length}`);
-    this.logger.log(`Profit table data: ${JSON.stringify(profitTable)}`);
-    this.logger.log(`Currency data: ${JSON.stringify(currency)}`);
+    this.logger.log(`Profit table: ${profitTable.length} entries`);
+    this.logger.log(`Currency: ${currency.length} items`);
   }
 }

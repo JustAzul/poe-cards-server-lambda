@@ -3,7 +3,6 @@ import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
 import { ProfitResult } from '@domain/value-objects/profit-result';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemOverview } from '@domain/value-objects/item-overview';
-import { CurrencyRewardSpec } from '@domain/value-objects/reward-spec';
 /**
  * Arbitrage Calculation Domain Service
  * Encapsulates profit calculation business rules
@@ -43,7 +42,10 @@ export class ArbitrageCalculationService {
     // invariant: rewardPrice is CurrencyItem only when card.isCurrencyCard()
     // — guaranteed by RewardMatcherService
     if (rewardPrice instanceof CurrencyItem) {
-      return rewardPrice.chaosEquivalent * (card.rewardSpec as CurrencyRewardSpec).amount;
+      if (!card.isCurrencyCard()) {
+        throw new Error(`Currency reward price for non-currency card "${card.name}"`);
+      }
+      return rewardPrice.chaosEquivalent * card.rewardSpec.amount;
     }
 
     return rewardPrice.chaosValue;

@@ -26,13 +26,19 @@ export class League {
     endAt: Date | null;
     ruleIds: string[];
   }) {
+    if (!data.name || typeof data.name !== 'string') {
+      throw new Error('League: name must be a non-empty string');
+    }
+    if (!data.realm || typeof data.realm !== 'string') {
+      throw new Error('League: realm must be a non-empty string');
+    }
     this.name = data.name;
     this.ladder = data.ladder;
     this.delveEvent = data.delveEvent;
     this.realm = data.realm;
     this.startAt = data.startAt;
     this.endAt = data.endAt;
-    this.ruleIds = data.ruleIds;
+    this.ruleIds = [...data.ruleIds];
   }
 
   /** Whether this league is eligible for arbitrage analysis */

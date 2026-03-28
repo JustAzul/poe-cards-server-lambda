@@ -1,24 +1,36 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
-import { IMarketDataApi } from '@domain/ports/http-service.port';
+import { IMarketDataApiWithRaw } from '@infrastructure/ports/market-data-with-raw.port';
 import {
   ItemOverviewApiResponse,
   CurrencyOverviewApiResponse,
+  PoeNinjaItemLine,
 } from '@infrastructure/types/poe-ninja.types';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 import { Logger } from '@shared/logger';
 
-const DEFAULT_THROTTLE_DELAY_MS = 2000;
-
-export class PoeNinjaService implements IMarketDataApi {
+export class PoeNinjaService implements IMarketDataApiWithRaw {
   constructor(
-    private readonly client: HttpClient = new HttpClient(
-      { throttleDelayMs: DEFAULT_THROTTLE_DELAY_MS },
-    ),
-    private readonly logger: Logger = console,
+    private readonly client: HttpClient,
+    private readonly logger: Logger,
   ) {}
 
   async fetchItemOverview(league: string, type: string): Promise<ItemOverview[]> {
+    const rawLines = await this.fetchRawItemLines(league, type);
+
+    return rawLines.map((line) => new ItemOverview({
+      name: line.name,
+      itemClass: line.itemClass,
+      chaosValue: line.chaosValue,
+      corrupted: line.corrupted,
+      links: line.links,
+      gemLevel: line.gemLevel,
+      count: line.count,
+      stackSize: line.stackSize,
+    }));
+  }
+
+  async fetchRawItemLines(league: string, type: string): Promise<PoeNinjaItemLine[]> {
     const url = 'https://poe.ninja/poe1/api/economy/stash/current/item/overview';
     const response = await this.client.get<ItemOverviewApiResponse>(url, {
       league,
@@ -31,11 +43,22 @@ export class PoeNinjaService implements IMarketDataApi {
       return [];
     }
 
-    return response.lines
-      .filter((line) => typeof line.name === 'string'
+    const validLines = response.lines.filter(
+      (line) => typeof line.name === 'string'
         && typeof line.chaosValue === 'number'
-        && !Number.isNaN(line.chaosValue))
-      .map((line) => new ItemOverview(line));
+        && !Number.isNaN(line.chaosValue)
+        && typeof line.itemClass === 'number'
+        && !Number.isNaN(line.itemClass),
+    );
+
+    const droppedCount = response.lines.length - validLines.length;
+    if (droppedCount > 0) {
+      this.logger.warn(
+        `[PoeNinjaService] Dropped ${droppedCount} invalid ${type} entries for ${league}`,
+      );
+    }
+
+    return validLines;
   }
 
   async fetchCurrencyOverview(league: string): Promise<CurrencyItem[]> {
@@ -50,10 +73,19 @@ export class PoeNinjaService implements IMarketDataApi {
       return [];
     }
 
-    return response.lines
-      .filter((line) => typeof line.currencyTypeName === 'string'
+    const validLines = response.lines.filter(
+      (line) => typeof line.currencyTypeName === 'string'
         && typeof line.chaosEquivalent === 'number'
-        && !Number.isNaN(line.chaosEquivalent))
-      .map((line) => new CurrencyItem(line));
+        && !Number.isNaN(line.chaosEquivalent),
+    );
+
+    const droppedCount = response.lines.length - validLines.length;
+    if (droppedCount > 0) {
+      this.logger.warn(
+        `[PoeNinjaService] Dropped ${droppedCount} invalid Currency entries for ${league}`,
+      );
+    }
+
+    return validLines.map((line) => new CurrencyItem(line));
   }
 }
