@@ -90,6 +90,41 @@ describe('RewardMatcherService', () => {
 
   describe('findRewardPrice', () => {
     describe('currency cards', () => {
+      it('should synthesize Chaos Orb in market index when not present in currency data', () => {
+        const card = new DivinationCard(
+          'Rain of Chaos',
+          'Chaos Orb',
+          createCurrencyRewardSpec(1),
+        );
+        const index = service.buildIndex([], []);
+
+        const result = service.findRewardPrice(index, card);
+
+        expect(result).not.toBeNull();
+        expect(result).toBeInstanceOf(CurrencyItem);
+        expect((result as CurrencyItem).currencyTypeName).toBe('Chaos Orb');
+        expect((result as CurrencyItem).chaosEquivalent).toBe(1);
+      });
+
+      it('should not overwrite Chaos Orb if already present in currency data', () => {
+        const card = new DivinationCard(
+          'Rain of Chaos',
+          'Chaos Orb',
+          createCurrencyRewardSpec(1),
+        );
+        const existingChaosOrb = new CurrencyItem({
+          currencyTypeName: 'Chaos Orb',
+          chaosEquivalent: 1,
+          receive: { count: 999 },
+        });
+        const index = service.buildIndex([], [existingChaosOrb]);
+
+        const result = service.findRewardPrice(index, card);
+
+        expect(result).toBeInstanceOf(CurrencyItem);
+        expect((result as CurrencyItem).receive?.count).toBe(999);
+      });
+
       it('should match currency item by currencyTypeName', () => {
         const card = new DivinationCard('Abandoned Wealth', 'Exalted Orb', createCurrencyRewardSpec(3));
         const index = service.buildIndex([], [
@@ -162,14 +197,35 @@ describe('RewardMatcherService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null when corruption status does not match', () => {
+      it('should match corrupted unique reward against uncorrupted market data', () => {
+        // poe.ninja returns corrupted: undefined for all uniques — corruption is ignored
+        // for non-gem items because the API doesn't differentiate pricing by corruption
         const card = new DivinationCard(
           'Test Card',
           'Mageblood',
           createItemRewardSpec(ItemClass.UNIQUE, true, 0, 0),
         );
         const index = service.buildIndex([
-          makeItem({ name: 'Mageblood', itemClass: ItemClass.UNIQUE, corrupted: false }),
+          makeItem({ name: 'Mageblood', itemClass: ItemClass.UNIQUE }),
+        ], []);
+
+        const result = service.findRewardPrice(index, card);
+
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).name).toBe('Mageblood');
+      });
+
+      it('should still enforce corruption matching for skill gems', () => {
+        // poe.ninja tracks corruption for gems (Vaal gems have corrupted: true)
+        const card = new DivinationCard(
+          'Test Card',
+          'Empower Support',
+          createItemRewardSpec(ItemClass.SKILL_GEM, true, 0, 4),
+        );
+        const index = service.buildIndex([
+          makeItem({
+            name: 'Empower Support', itemClass: ItemClass.SKILL_GEM, corrupted: false, gemLevel: 4,
+          }),
         ], []);
 
         const result = service.findRewardPrice(index, card);
@@ -177,19 +233,64 @@ describe('RewardMatcherService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null when links do not match', () => {
+      it('should return null when gem links do not match', () => {
         const card = new DivinationCard(
           'Test Card',
-          'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 6, 0),
+          'Empower Support',
+          createItemRewardSpec(ItemClass.SKILL_GEM, true, 6, 4),
         );
         const index = service.buildIndex([
-          makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE, links: 0 }),
+          makeItem({
+            name: 'Empower Support',
+            itemClass: ItemClass.SKILL_GEM,
+            corrupted: true,
+            links: 0,
+            gemLevel: 4,
+          }),
         ], []);
 
         const result = service.findRewardPrice(index, card);
 
         expect(result).toBeNull();
+      });
+
+      it('should ignore links when matching non-gem items', () => {
+        const card = new DivinationCard(
+          'Humility',
+          'Tabula Rasa',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
+        const index = service.buildIndex([
+          makeItem({
+            name: 'Tabula Rasa',
+            itemClass: ItemClass.UNIQUE,
+            links: 6,
+          }),
+        ], []);
+
+        const result = service.findRewardPrice(index, card);
+
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).name).toBe('Tabula Rasa');
+      });
+
+      it('should match relic variant (itemClass 10) for unique rewards', () => {
+        const card = new DivinationCard(
+          'Father\'s Love',
+          'Sublime Vision',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
+        const index = service.buildIndex([
+          makeItem({
+            name: 'Sublime Vision',
+            itemClass: ItemClass.RELIC,
+          }),
+        ], []);
+
+        const result = service.findRewardPrice(index, card);
+
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).name).toBe('Sublime Vision');
       });
 
       it('should return null when gemLevel does not match', () => {
@@ -209,7 +310,7 @@ describe('RewardMatcherService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null and log warning when multiple items match', () => {
+      it('should log warning and return highest-count entry when multiple items match', () => {
         const warnMessages: string[] = [];
         // eslint-disable-next-line no-empty-function, max-len
         const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
@@ -221,33 +322,44 @@ describe('RewardMatcherService', () => {
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
         const index = serviceWithLogger.buildIndex([
-          makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
-          makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
+          makeItem({
+            name: 'Headhunter', itemClass: ItemClass.UNIQUE, chaosValue: 100, count: 50,
+          }),
+          makeItem({
+            name: 'Headhunter', itemClass: ItemClass.UNIQUE, chaosValue: 1, count: 100,
+          }),
         ], []);
 
         const result = serviceWithLogger.findRewardPrice(index, card);
 
-        expect(result).toBeNull();
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).count).toBe(100);
         expect(warnMessages).toHaveLength(1);
         expect(warnMessages[0]).toContain('The Doctor');
         expect(warnMessages[0]).toContain('Headhunter');
         expect(warnMessages[0]).toContain('2');
+        expect(warnMessages[0]).toContain('using highest-count entry');
       });
 
-      it('should return null without crashing when ambiguous match occurs without callback', () => {
+      it('should pick highest chaosValue when counts are equal in ambiguous match', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
         );
         const index = service.buildIndex([
-          makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
-          makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
+          makeItem({
+            name: 'Headhunter', itemClass: ItemClass.UNIQUE, chaosValue: 100, count: 50,
+          }),
+          makeItem({
+            name: 'Headhunter', itemClass: ItemClass.UNIQUE, chaosValue: 500, count: 50,
+          }),
         ], []);
 
         const result = service.findRewardPrice(index, card);
 
-        expect(result).toBeNull();
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).chaosValue).toBe(500);
       });
 
       it('should match when optional fields default to false/0 on both sides', () => {

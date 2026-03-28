@@ -51,6 +51,14 @@ export class RewardMatcherService {
       currencyByName.set(c.currencyTypeName, c);
     }
 
+    if (!currencyByName.has(CurrencyItem.BASELINE_CURRENCY)) {
+      currencyByName.set(CurrencyItem.BASELINE_CURRENCY, new CurrencyItem({
+        currencyTypeName: CurrencyItem.BASELINE_CURRENCY,
+        chaosEquivalent: 1,
+        receive: { count: Number.MAX_SAFE_INTEGER },
+      }));
+    }
+
     return { cardsByName, itemsByName, currencyByName };
   }
 
@@ -77,25 +85,46 @@ export class RewardMatcherService {
   }
 
   /**
-   * Match item reward by name and specifications (itemClass, corruption, links, gem level)
-   * Returns matching item if exactly one match found, null otherwise
+   * Match item reward by name and specifications
+   *
+   * Gem matching: strict on itemClass, corruption, links, gemLevel
+   * Non-gem matching: relaxed — poe.ninja doesn't track corruption
+   * or links as price variants for unique items, and some uniques
+   * appear under itemClass 10 (relic variants) instead of 3
    */
-  private matchItem(index: MarketIndex, card: DivinationCard): ItemOverview | null {
+  private matchItem(
+    index: MarketIndex,
+    card: DivinationCard,
+  ): ItemOverview | null {
     if (card.rewardSpec.type !== RewardType.ITEM) return null;
     const { rewardSpec } = card;
 
     const candidates = index.itemsByName.get(card.reward);
     if (!candidates) return null;
 
-    const matches = candidates.filter(
-      (item) => item.itemClass === rewardSpec.itemClass
-        && (item.corrupted ?? false) === rewardSpec.corrupted
-        && (item.links ?? 0) === rewardSpec.links
-        && (item.gemLevel ?? 0) === rewardSpec.gemLevel,
-    );
+    const isGem = rewardSpec.itemClass === ItemClass.SKILL_GEM;
+
+    const matches = candidates.filter((item) => {
+      if (isGem) {
+        return item.itemClass === rewardSpec.itemClass
+          && (item.corrupted ?? false) === rewardSpec.corrupted
+          && (item.links ?? 0) === rewardSpec.links
+          && (item.gemLevel ?? 0) === rewardSpec.gemLevel;
+      }
+      // Non-gem: match itemClass loosely (accept relic variants)
+      // and ignore corruption + links (API doesn't price by these)
+      return item.itemClass === rewardSpec.itemClass
+        || item.itemClass === ItemClass.RELIC;
+    });
 
     if (matches.length > 1) {
-      this.logger.warn(`[RewardMatcher] Ambiguous match: card "${card.name}" reward "${card.reward}" matched ${matches.length} items, skipping`);
+      this.logger.warn(
+        `[RewardMatcher] Ambiguous match: card "${card.name}" reward "${card.reward}" `
+        + `matched ${matches.length} items, using highest-count entry`,
+      );
+      matches.sort((a, b) => (b.count ?? 0) - (a.count ?? 0)
+        || b.chaosValue - a.chaosValue);
+      return matches[0];
     }
 
     return matches.length === 1 ? matches[0] : null;

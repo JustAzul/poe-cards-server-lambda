@@ -158,6 +158,69 @@ describe('ArbitrageEvaluatorService', () => {
         expect(result).toBeNull();
       });
 
+      it('should use lower trust threshold for divination card chain rewards', () => {
+        // The Nurse (count:7) → The Doctor (count:7): below MIN_TRUST_COUNT=10 but above
+        // MIN_DIV_CHAIN_TRUST_COUNT=5, so the chain should pass trust validation
+        const nurseCard = new DivinationCard(
+          'The Nurse',
+          'The Doctor',
+          createItemRewardSpec(ItemClass.DIVINATION_CARD, false, 0, 0),
+        );
+
+        const nurseOverview = new ItemOverview({
+          name: 'The Nurse',
+          itemClass: ItemClass.DIVINATION_CARD,
+          chaosValue: 100,
+          count: 7,
+          stackSize: 9,
+        });
+
+        const doctorOverview = new ItemOverview({
+          name: 'The Doctor',
+          itemClass: ItemClass.DIVINATION_CARD,
+          chaosValue: 5000,
+          count: 7,
+          stackSize: 8,
+        });
+
+        leagueData.items = [nurseOverview, doctorOverview];
+
+        const result = service.evaluateCardArbitrage(leagueData, nurseCard);
+
+        expect(result).not.toBeNull();
+        expect(result?.card.name).toBe('The Nurse');
+      });
+
+      it('should still skip non-div-card rewards with count below MIN_TRUST_COUNT', () => {
+        // Regular unique reward with count=7 should still be rejected (threshold=10)
+        const card = new DivinationCard(
+          'The Doctor',
+          'Headhunter',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        );
+
+        const cardOverview = new ItemOverview({
+          name: 'The Doctor',
+          itemClass: ItemClass.DIVINATION_CARD,
+          chaosValue: 500,
+          count: 7, // Below MIN_TRUST_COUNT=10
+          stackSize: 8,
+        });
+
+        const rewardOverview = new ItemOverview({
+          name: 'Headhunter',
+          itemClass: ItemClass.UNIQUE,
+          chaosValue: 5000,
+          count: 20,
+        });
+
+        leagueData.items = [cardOverview, rewardOverview];
+
+        const result = service.evaluateCardArbitrage(leagueData, card);
+
+        expect(result).toBeNull();
+      });
+
       it('should return aggregate with negative profit (filtering at app layer)', () => {
         const cardOverview = new ItemOverview({
           name: 'The Doctor',
