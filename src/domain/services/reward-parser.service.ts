@@ -53,19 +53,25 @@ export class RewardParserService {
 
   parseAll(lines: DivinationCardLine[]): DivinationCard[] {
     const cards: DivinationCard[] = [];
-    let skippedCount = 0;
+    const skipReasons: Record<string, number> = {};
 
     for (const line of lines) {
       const result = this.parseLine(line);
       if (result.card) {
         cards.push(result.card);
       }
-      if (result.skipped) {
-        skippedCount += 1;
+      if (result.skipped && result.reason) {
+        skipReasons[result.reason] = (skipReasons[result.reason] ?? 0) + 1;
       }
     }
 
+    const skippedCount = lines.length - cards.length;
     this.logger.log(`[RewardParser] Parsed ${cards.length}/${lines.length} divination cards (${skippedCount} skipped)`);
+
+    if (skippedCount > 0) {
+      const breakdown = JSON.stringify(skipReasons);
+      this.logger.log(`[RewardParser] Skipped ${skippedCount} cards: ${breakdown}`);
+    }
 
     return cards;
   }
@@ -104,6 +110,11 @@ export class RewardParserService {
     }
 
     // Item-based tags (uniqueitem, divination, gemitem)
+    // NOTE: <divination> tags (card-chain rewards) use ItemRewardSpec with
+    // itemClass DIVINATION_CARD rather than a separate CARD_CHAIN type.
+    // RewardMatcherService.matchItem already resolves these via itemsByName
+    // which includes divination cards, so a dedicated type would add
+    // complexity with no pricing benefit.
     const itemClass = TAG_TO_ITEM_CLASS[tagName];
     if (itemClass === undefined) {
       return this.skip(line.name, `unrecognized reward tag <${tagName}>`, rawText);

@@ -16,13 +16,14 @@ function parseSkipWarn(msg: string): { cardName: string; reason: string; rawText
 describe('RewardParserService', () => {
   let parser: RewardParserService;
   let skipped: { cardName: string; reason: string; rawText: string }[];
+  let logged: string[];
 
   beforeEach(() => {
     skipped = [];
+    logged = [];
     const logger = {
       warn: (msg: string) => { skipped.push(parseSkipWarn(msg)); },
-      // eslint-disable-next-line no-empty-function
-      log: () => {},
+      log: (msg: string) => { logged.push(msg); },
       // eslint-disable-next-line no-empty-function
       error: () => {},
     };
@@ -385,6 +386,40 @@ describe('RewardParserService', () => {
         "The Dragon's Heart",
       ]);
       expect(skipped).toHaveLength(2);
+    });
+
+    it('should log per-reason skip breakdown', () => {
+      const lines: DivinationCardLine[] = [
+        line('The Doctor', '<uniqueitem>{Headhunter}'),
+        line('The Catch', '<whiteitem>{Fishing Rod}'),
+        line('Who Asked', "<magicitem>{Dictator's Weapon}"),
+        line('Matryoshka', '<rareitem> {Onyx Amulet}'),
+        line('Also White', '<whiteitem>{Diamond Ring}'),
+      ];
+
+      parser.parseAll(lines);
+
+      const breakdownLog = logged.find((msg) => msg.includes('Skipped') && msg.includes('{'));
+      expect(breakdownLog).toBeDefined();
+
+      const jsonMatch = breakdownLog!.match(/\{.*\}/);
+      expect(jsonMatch).not.toBeNull();
+      const breakdown = JSON.parse(jsonMatch![0]);
+
+      expect(breakdown['unsupported reward type <whiteitem>']).toBe(2);
+      expect(breakdown['unsupported reward type <magicitem>']).toBe(1);
+      expect(breakdown['unsupported reward type <rareitem>']).toBe(1);
+    });
+
+    it('should not log breakdown when no cards are skipped', () => {
+      const lines: DivinationCardLine[] = [
+        line('The Doctor', '<uniqueitem>{Headhunter}'),
+      ];
+
+      parser.parseAll(lines);
+
+      const breakdownLog = logged.find((msg) => msg.includes('Skipped') && msg.includes('{'));
+      expect(breakdownLog).toBeUndefined();
     });
 
     it('should handle all cards being unparseable', () => {
