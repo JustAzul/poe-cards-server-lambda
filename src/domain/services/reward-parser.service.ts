@@ -60,12 +60,13 @@ export class RewardParserService {
       if (result.card) {
         cards.push(result.card);
       }
-      if (result.skipped && result.reason) {
-        skipReasons[result.reason] = (skipReasons[result.reason] ?? 0) + 1;
+      if (result.skipped) {
+        const reason = result.reason ?? 'unknown';
+        skipReasons[reason] = (skipReasons[reason] ?? 0) + 1;
       }
     }
 
-    const skippedCount = lines.length - cards.length;
+    const skippedCount = Object.values(skipReasons).reduce((sum, n) => sum + n, 0);
     this.logger.log(`[RewardParser] Parsed ${cards.length}/${lines.length} divination cards (${skippedCount} skipped)`);
 
     if (skippedCount > 0) {
