@@ -6,9 +6,11 @@
   "scripts": {
     "build": "tsc && tsc-alias",
     "build:watch": "tsc --watch",
-    "dev": "npm run build && NODE_ENV=development node dist/index.js",
+    "dev": "npm run build && NODE_ENV=development ETL_MODE=job node dist/index.js",
+    "dev:http": "npm run build && NODE_ENV=development ETL_MODE=http node dist/index.js",
     "prestart": "npm run build",
-    "start": "NODE_ENV=development node dist/index.js",
+    "start": "NODE_ENV=development ETL_MODE=job node dist/index.js",
+    "start:http": "NODE_ENV=development ETL_MODE=http node dist/index.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
@@ -17,9 +19,13 @@
   "author": "Azul",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.13.2"
+    "axios": "^1.13.2",
+    "better-sqlite3": "^12.9.0",
+    "express": "^5.2.1"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.9",
     "@typescript-eslint/eslint-plugin": "^8.53.0",

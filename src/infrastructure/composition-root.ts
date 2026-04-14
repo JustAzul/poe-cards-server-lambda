@@ -11,26 +11,32 @@ import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
 import { TransformAdapter } from '@infrastructure/adapters/etl/transform.adapter';
 import { LoadAdapter } from '@infrastructure/adapters/etl/load.adapter';
+import { SqliteLeagueStore } from '@infrastructure/persistence/sqlite/sqlite-league-store';
 import { App } from '@infrastructure/app';
+
+const logger = console;
 
 // Infrastructure
 const httpClient = new HttpClient();
 const poeApiService = new PoeApiService(httpClient);
-const poeNinjaService = new PoeNinjaService(httpClient, console);
+const poeNinjaService = new PoeNinjaService(httpClient, logger);
 const leagueRepository = new LeagueRepository(poeApiService);
-const leagueAdapter = new LeagueAdapter(poeNinjaService, console);
+const leagueAdapter = new LeagueAdapter(poeNinjaService, logger);
+const sqliteLeagueStore = new SqliteLeagueStore();
 
 // Domain services
-const rewardParser = new RewardParserService(console);
-const rewardMatcher = new RewardMatcherService(console);
+const rewardParser = new RewardParserService(logger);
+const rewardMatcher = new RewardMatcherService(logger);
 const calculator = new ArbitrageCalculationService();
 const trustValidator = new TrustValidationService();
-const evaluator = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator, console);
+const evaluator = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator, logger);
 
 // ETL adapters
-const extractAdapter = new ExtractAdapter(leagueRepository, rewardParser, leagueAdapter, console);
-const transformAdapter = new TransformAdapter(evaluator, console);
-const loadAdapter = new LoadAdapter(console);
+const extractAdapter = new ExtractAdapter(leagueRepository, rewardParser, leagueAdapter, logger);
+const transformAdapter = new TransformAdapter(evaluator, logger);
+const loadAdapter = new LoadAdapter(sqliteLeagueStore, logger);
 
 // App
-export const app = new App(extractAdapter, transformAdapter, loadAdapter, console);
+export const app = new App(extractAdapter, transformAdapter, loadAdapter, logger);
+export const store = sqliteLeagueStore;
+export const compositionLogger = logger;

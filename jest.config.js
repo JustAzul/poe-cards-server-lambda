@@ -7,6 +7,7 @@ module.exports = {
   moduleNameMapper: {
     '^@domain/(.*)$': '<rootDir>/src/domain/$1',
     '^@infrastructure/(.*)$': '<rootDir>/src/infrastructure/$1',
+    '^@runtime/(.*)$': '<rootDir>/src/runtime/$1',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
   },
   collectCoverageFrom: [

@@ -1,4 +1,6 @@
-import { app } from '@infrastructure/composition-root';
+import { app, store, compositionLogger as logger } from '@infrastructure/composition-root';
+import { createHttpServer } from '@runtime/http-server';
+import { EtlRuntime } from '@runtime/etl-runtime';
 
 /** AWS Lambda response structure */
 interface LambdaResponse {
@@ -6,20 +8,15 @@ interface LambdaResponse {
   body: string;
 }
 
-const logger = console;
-
-/**
- * Timeout buffer for Lambda execution.
- * Set below the configured Lambda timeout to allow graceful error reporting.
- */
 const LAMBDA_TIMEOUT_MS = 15 * 60 * 1000;
 const LAMBDA_TIMEOUT_BUFFER_MS = LAMBDA_TIMEOUT_MS - 60_000;
+const ETL_MODE = process.env.ETL_MODE ?? 'job';
+const HTTP_PORT = Number(process.env.PORT ?? 3002);
 
-/**
- * Main orchestration function
- */
+const runtime = new EtlRuntime(app, store, logger);
+
 async function main(): Promise<{ processed: number; failed: number }> {
-  return app.execute();
+  return runtime.refresh();
 }
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -34,8 +31,25 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   }
 }
 
-if (process.env.NODE_ENV === 'development') {
-  main().catch((err) => logger.error(err));
+async function startHttpMode(): Promise<void> {
+  const httpServer = createHttpServer(runtime, logger);
+
+  httpServer.listen(HTTP_PORT, () => {
+    logger.log(`ETL HTTP server listening on port ${HTTP_PORT}`);
+  });
+
+  if (runtime.isDatabaseEmpty()) {
+    logger.log('SQLite database is empty, running initial seed...');
+    runtime.refresh().catch((error: unknown) => {
+      logger.error('Initial ETL seed failed:', error);
+    });
+  }
+}
+
+if (ETL_MODE === 'http') {
+  startHttpMode().catch((error: unknown) => logger.error('Failed to start ETL HTTP mode:', error));
+} else if (process.env.NODE_ENV === 'development') {
+  main().catch((error: unknown) => logger.error(error));
 }
 
 export const handler = async (): Promise<LambdaResponse> => {
@@ -54,7 +68,7 @@ export const handler = async (): Promise<LambdaResponse> => {
       statusCode,
       body: JSON.stringify({ message: 'Job done.', ...result }),
     };
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Lambda execution failed:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     const cause = error instanceof Error && error.cause instanceof Error

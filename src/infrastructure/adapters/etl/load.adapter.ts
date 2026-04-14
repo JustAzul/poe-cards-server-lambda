@@ -2,6 +2,8 @@
 import { League } from '@domain/entities/league.entity';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
+import { SqliteLeagueStore } from '@infrastructure/persistence/sqlite/sqlite-league-store';
+import { buildLeaguePayload } from '@runtime/etl-runtime';
 import { Logger } from '@shared/logger';
 
 export interface ILoadAdapter {
@@ -15,28 +17,22 @@ export interface ILoadAdapter {
 
 /**
  * ETL Pipeline Load Adapter
- * Responsible for displaying processed data to console
+ * Responsible for persisting processed data into SQLite
  */
 export class LoadAdapter implements ILoadAdapter {
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly store: SqliteLeagueStore,
+    private readonly logger: Logger,
+  ) {}
 
-  /**
-   * Display a single league's data to console
-   *
-   * @param league - The league entity
-   * @param profitTable - Profit table data for this league
-   * @param currency - Currency data for this league
-   * @param timestamp - Update timestamp for this league
-   */
   load(
     league: League,
     profitTable: ProfitTableRowDto[],
     currency: CurrencyItem[],
     timestamp: string,
   ): void {
-    this.logger.log(`Loading data for league: ${league.name}`);
-    this.logger.log(`Timestamp: ${timestamp}`);
-    this.logger.log(`Profit table: ${profitTable.length} entries`);
-    this.logger.log(`Currency: ${currency.length} items`);
+    const payload = buildLeaguePayload(profitTable, currency, timestamp);
+    this.store.upsertLeaguePayload(league.name, payload);
+    this.logger.log(`Persisted data for league: ${league.name} (${payload.entryCount} entries)`);
   }
 }

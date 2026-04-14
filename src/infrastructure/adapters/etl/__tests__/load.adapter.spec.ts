@@ -4,10 +4,6 @@ import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { LoadAdapter } from '@infrastructure/adapters/etl/load.adapter';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function buildLeague(overrides: Partial<ConstructorParameters<typeof League>[0]> = {}): League {
   return new League({
     name: 'Settlers',
@@ -51,89 +47,79 @@ function makeLogger() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+function makeStore() {
+  return {
+    upsertLeaguePayload: jest.fn(),
+  };
+}
 
 describe('LoadAdapter.load', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('logging league info', () => {
-    it('should log the league name', () => {
-      const logger = makeLogger();
-      const adapter = new LoadAdapter(logger);
-      const league = buildLeague({ name: 'Settlers' });
+  it('persists league payload into the store', () => {
+    const logger = makeLogger();
+    const store = makeStore();
+    const adapter = new LoadAdapter(store as never, logger);
+    const league = buildLeague({ name: 'Settlers' });
 
-      adapter.load(league, [buildProfitRow()], [], '2025-01-01T00:00:00.000Z');
+    adapter.load(league, [buildProfitRow()], [], '2025-01-01T00:00:00.000Z');
 
-      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Settlers'));
-    });
-
-    it('should log the timestamp', () => {
-      const logger = makeLogger();
-      const adapter = new LoadAdapter(logger);
-      const league = buildLeague();
-      const timestamp = '2025-06-15T12:00:00.000Z';
-
-      adapter.load(league, [], [], timestamp);
-
-      expect(logger.log).toHaveBeenCalledWith(expect.stringContaining(timestamp));
-    });
-
-    it('should log profit table entry count', () => {
-      const logger = makeLogger();
-      const adapter = new LoadAdapter(logger);
-      const league = buildLeague();
-      const profitTable = [buildProfitRow(), buildProfitRow({ card: { ...buildProfitRow().card, name: 'The Hoarder' } })];
-
-      adapter.load(league, profitTable, [], '2025-01-01T00:00:00.000Z');
-
-      const logCalls = logger.log.mock.calls.map((c: unknown[]) => String(c[0]));
-      const countLog = logCalls.find((msg) => msg.includes('2'));
-      expect(countLog).toBeDefined();
-    });
-
-    it('should log currency item count', () => {
-      const logger = makeLogger();
-      const adapter = new LoadAdapter(logger);
-      const league = buildLeague();
-      const currency = [
-        new CurrencyItem({ currencyTypeName: 'Chaos Orb', chaosEquivalent: 1 }),
-        new CurrencyItem({ currencyTypeName: 'Divine Orb', chaosEquivalent: 200 }),
-        new CurrencyItem({ currencyTypeName: 'Exalted Orb', chaosEquivalent: 300 }),
-      ];
-
-      adapter.load(league, [], currency, '2025-01-01T00:00:00.000Z');
-
-      const logCalls = logger.log.mock.calls.map((c: unknown[]) => String(c[0]));
-      const countLog = logCalls.find((msg) => msg.includes('3'));
-      expect(countLog).toBeDefined();
-    });
+    expect(store.upsertLeaguePayload).toHaveBeenCalledTimes(1);
+    expect(store.upsertLeaguePayload).toHaveBeenCalledWith(
+      'Settlers',
+      expect.objectContaining({
+        updatedAt: '2025-01-01T00:00:00.000Z',
+        entryCount: 1,
+      }),
+    );
   });
 
-  describe('empty data', () => {
-    it('should handle empty profitTable and currency arrays without throwing', () => {
-      const logger = makeLogger();
-      const adapter = new LoadAdapter(logger);
-      const league = buildLeague();
+  it('computes currency rates from known currencies', () => {
+    const logger = makeLogger();
+    const store = makeStore();
+    const adapter = new LoadAdapter(store as never, logger);
+    const league = buildLeague();
+    const currency = [
+      new CurrencyItem({ currencyTypeName: 'Divine Orb', chaosEquivalent: 210 }),
+      new CurrencyItem({ currencyTypeName: 'Exalted Orb', chaosEquivalent: 85 }),
+      new CurrencyItem({ currencyTypeName: 'Orb of Annulment', chaosEquivalent: 12 }),
+      new CurrencyItem({ currencyTypeName: 'Mirror of Kalandra', chaosEquivalent: 120000 }),
+    ];
 
-      expect(() => {
-        adapter.load(league, [], [], '2025-01-01T00:00:00.000Z');
-      }).not.toThrow();
-    });
+    adapter.load(league, [buildProfitRow()], currency, '2025-01-01T00:00:00.000Z');
 
-    it('should log 0 entries when profitTable is empty', () => {
-      const logger = makeLogger();
-      const adapter = new LoadAdapter(logger);
-      const league = buildLeague();
+    expect(store.upsertLeaguePayload).toHaveBeenCalledWith(
+      'Settlers',
+      expect.objectContaining({
+        currencyRates: {
+          divine: 210,
+          exalted: 85,
+          annul: 12,
+          mirror: 120000,
+        },
+      }),
+    );
+  });
 
-      adapter.load(league, [], [], '2025-01-01T00:00:00.000Z');
+  it('logs persistence details', () => {
+    const logger = makeLogger();
+    const store = makeStore();
+    const adapter = new LoadAdapter(store as never, logger);
+    const league = buildLeague({ name: 'Settlers' });
 
-      const logCalls = logger.log.mock.calls.map((c: unknown[]) => String(c[0]));
-      const zeroLog = logCalls.find((msg) => msg.includes('0'));
-      expect(zeroLog).toBeDefined();
-    });
+    adapter.load(league, [buildProfitRow()], [], '2025-01-01T00:00:00.000Z');
+
+    expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Persisted data for league: Settlers'));
+  });
+
+  it('handles empty arrays without throwing', () => {
+    const logger = makeLogger();
+    const store = makeStore();
+    const adapter = new LoadAdapter(store as never, logger);
+    const league = buildLeague();
+
+    expect(() => adapter.load(league, [], [], '2025-01-01T00:00:00.000Z')).not.toThrow();
   });
 });
