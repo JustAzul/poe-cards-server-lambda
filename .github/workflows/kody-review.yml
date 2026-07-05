@@ -3,60 +3,87 @@ name: Kody Code Review
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [master, develop]
-
-concurrency:
-  group: kody-ephemeral
-  cancel-in-progress: false
+  issue_comment:
+    types: [created]
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
   kody-review:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'JustAzul') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.user.login == 'JustAzul' && contains(github.event.comment.body, '@kody'))
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::247988977671:role/github-actions-kody
-          aws-region: us-east-2
+          role-to-assume: ${{ secrets.KODY_AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.KODY_AWS_REGION }}
 
-      - name: Start Kody infrastructure
-        id: start
+      - name: Ensure Kody infrastructure is running
+        id: infra
+        env:
+          EC2_TAG: ${{ secrets.KODY_EC2_TAG }}
+          CLUSTER: ${{ secrets.KODY_ECS_CLUSTER }}
+          SERVICE: ${{ secrets.KODY_ECS_SERVICE }}
         run: |
-          STATE=$(aws ec2 describe-instances --instance-ids i-0a5065955987011c3 \
+          TAG_KEY="${EC2_TAG%%=*}"
+          TAG_VALUE="${EC2_TAG##*=}"
+
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:${TAG_KEY},Values=${TAG_VALUE}" "Name=instance-state-name,Values=stopped,running,pending" \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+
+          if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "::error::No EC2 instance found"
+            exit 1
+          fi
+
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
+          STATE=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" \
             --query 'Reservations[0].Instances[0].State.Name' --output text)
 
           if [ "$STATE" = "stopped" ]; then
             echo "Starting EC2 instance..."
-            aws ec2 start-instances --instance-ids i-0a5065955987011c3
-            aws ec2 wait instance-status-ok --instance-ids i-0a5065955987011c3
-            echo "started=true" >> "$GITHUB_OUTPUT"
+            aws ec2 start-instances --instance-ids "$INSTANCE_ID"
+            aws ec2 wait instance-status-ok --instance-ids "$INSTANCE_ID"
+          elif [ "$STATE" = "running" ]; then
+            echo "EC2 already running"
           else
-            echo "EC2 already in state: $STATE"
-            echo "started=false" >> "$GITHUB_OUTPUT"
+            echo "EC2 in state: $STATE, waiting..."
+            aws ec2 wait instance-status-ok --instance-ids "$INSTANCE_ID"
           fi
 
-          DESIRED=$(aws ecs describe-services --cluster kody --services kody \
+          DESIRED=$(aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" \
             --query 'services[0].desiredCount' --output text)
 
           if [ "$DESIRED" = "0" ]; then
             echo "Scaling ECS service to 1..."
-            aws ecs update-service --cluster kody --service kody --desired-count 1 > /dev/null
-            echo "scaled=true" >> "$GITHUB_OUTPUT"
+            aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --desired-count 1 > /dev/null
           else
-            echo "Service already at desired count: $DESIRED"
-            echo "scaled=false" >> "$GITHUB_OUTPUT"
+            echo "ECS service already at desired count: $DESIRED"
           fi
 
-      - name: Wait for Kody healthy
+      - name: Tag EC2 with activity timestamp
+        env:
+          INSTANCE_ID: ${{ steps.infra.outputs.instance_id }}
         run: |
-          echo "Waiting for ECS tasks to start..."
+          aws ec2 create-tags --resources "$INSTANCE_ID" \
+            --tags "Key=kody:last-activity,Value=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Wait for Kody healthy
+        env:
+          CLUSTER: ${{ secrets.KODY_ECS_CLUSTER }}
+          SERVICE: ${{ secrets.KODY_ECS_SERVICE }}
+        run: |
           for i in $(seq 1 30); do
-            RUNNING=$(aws ecs describe-services --cluster kody --services kody \
+            RUNNING=$(aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" \
               --query 'services[0].runningCount' --output text)
             if [ "$RUNNING" = "1" ]; then
               echo "Kody is running! Waiting 60s for containers to initialize..."
@@ -68,24 +95,40 @@ jobs:
           done
           echo "::warning::Kody did not reach healthy state in 5 minutes"
 
-      - name: Wait for review completion
+      - name: Resolve PR number
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Waiting 5 minutes for GitHub webhook retry + Kody review..."
-          sleep 300
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Shutdown Kody infrastructure
-        if: always()
+      - name: Trigger Kody review
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Scaling ECS service to 0..."
-          aws ecs update-service --cluster kody --service kody --desired-count 0 > /dev/null || true
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --repo ${{ github.repository }} \
+            --body "@kody start-review"
 
-          echo "Waiting for tasks to drain..."
-          for i in $(seq 1 12); do
-            RUNNING=$(aws ecs describe-services --cluster kody --services kody \
-              --query 'services[0].runningCount' --output text 2>/dev/null || echo "0")
-            if [ "$RUNNING" = "0" ]; then break; fi
+      - name: Wait for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Waiting for Kody to post review findings..."
+          for i in $(seq 1 30); do
+            COUNT=$(gh pr view ${{ steps.pr.outputs.number }} \
+              --repo ${{ github.repository }} \
+              --json comments --jq '[.comments[] | select(.author.login == "kodus-review")] | length')
+            if [ "$COUNT" -gt 1 ]; then
+              echo "Kody review findings found after $((i * 10)) seconds! ($COUNT comments)"
+              exit 0
+            fi
+            echo "Attempt $i/30: $COUNT kody comment(s), waiting 10s..."
             sleep 10
           done
-
-          echo "Stopping EC2 instance..."
-          aws ec2 stop-instances --instance-ids i-0a5065955987011c3 || true
+          echo "::warning::Kody did not post review findings within 5 minutes"
