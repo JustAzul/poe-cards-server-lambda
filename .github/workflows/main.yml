@@ -105,7 +105,7 @@ jobs:
           aws events put-rule --name "$RULE_NAME" --schedule-expression "rate(1 hour)" --state ENABLED
           aws lambda add-permission \
             --function-name "$FUNCTION_NAME" \
-            --statement-id "${RULE_NAME}-eventbridge" \
+            --statement-id "${FUNCTION_NAME}-eventbridge" \
             --action lambda:InvokeFunction \
             --principal events.amazonaws.com \
             --source-arn "$RULE_ARN" || true
