@@ -13,4 +13,11 @@ export interface ILoadAdapter {
 
   /** Optional post-run step (e.g. writing an aggregate index). */
   finalize?(): Promise<void>;
+
+  /**
+   * Optional cleanup for a run that aborted before `finalize()` could run (e.g. the
+   * extract generator threw mid-iteration). Must discard any in-memory state
+   * accumulated by `load()` so it never bleeds into a later invocation's `finalize()`.
+   */
+  reset?(): void;
 }

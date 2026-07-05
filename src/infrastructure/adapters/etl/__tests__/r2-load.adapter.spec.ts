@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { League } from '@domain/entities/league.entity';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
 import { R2LoadAdapter } from '@infrastructure/adapters/etl/r2-load.adapter';
@@ -50,8 +50,35 @@ function makeLogger() {
   };
 }
 
-function makeS3Client() {
-  return { send: jest.fn().mockResolvedValue({}) } as unknown as jest.Mocked<S3Client>;
+interface LeagueIndexEntry {
+  name: string;
+  ladder: string;
+  updatedAt: string;
+}
+
+/**
+ * Builds a mock S3Client whose GetObjectCommand(index.json) response is controllable:
+ * omit `existingIndexEntries` to simulate a fresh bucket (NoSuchKey), or pass an array
+ * to simulate an index.json already written by a prior run.
+ */
+function makeS3Client(existingIndexEntries?: LeagueIndexEntry[]) {
+  const send = jest.fn().mockImplementation((command: unknown) => {
+    if (command instanceof GetObjectCommand) {
+      if (existingIndexEntries === undefined) {
+        const notFound = new Error('The specified key does not exist.');
+        notFound.name = 'NoSuchKey';
+        return Promise.reject(notFound);
+      }
+
+      return Promise.resolve({
+        Body: { transformToString: jest.fn().mockResolvedValue(JSON.stringify(existingIndexEntries)) },
+      });
+    }
+
+    return Promise.resolve({});
+  });
+
+  return { send } as unknown as jest.Mocked<S3Client>;
 }
 
 function makeFanOut() {
@@ -106,7 +133,7 @@ describe('R2LoadAdapter', () => {
     await adapter.finalize();
 
     const indexCall = s3Client.send.mock.calls.find(
-      ([command]) => (command as PutObjectCommand).input.Key === 'index.json',
+      ([command]) => command instanceof PutObjectCommand && command.input.Key === 'index.json',
     );
     expect(indexCall).toBeDefined();
 
@@ -115,5 +142,67 @@ describe('R2LoadAdapter', () => {
       { name: 'Settlers', ladder: 'Settlers', updatedAt: '2025-01-01T00:00:00.000Z' },
       { name: 'Standard', ladder: 'Standard', updatedAt: '2025-01-02T00:00:00.000Z' },
     ]);
+  });
+
+  it('preserves leagues from a prior run that failed this run, instead of overwriting the index', async () => {
+    // Simulates a partial-failure run: index.json already lists 3 leagues from a
+    // previous successful run, but only 1 of them (plus a brand-new one) succeeds
+    // this run. The other 2 previously-known leagues must survive the merge.
+    const existingIndexEntries = [
+      { name: 'Settlers', ladder: 'Settlers', updatedAt: '2025-01-01T00:00:00.000Z' },
+      { name: 'Hardcore Settlers', ladder: 'Hardcore Settlers', updatedAt: '2025-01-01T00:00:00.000Z' },
+      { name: 'Standard', ladder: 'Standard', updatedAt: '2025-01-01T00:00:00.000Z' },
+    ];
+    const s3Client = makeS3Client(existingIndexEntries);
+    const logger = makeLogger();
+    const fanOut = makeFanOut();
+    const adapter = new R2LoadAdapter(s3Client, BUCKET, logger, fanOut);
+
+    // This run: 'Settlers' refreshes successfully, 'New League' is brand new;
+    // 'Hardcore Settlers' and 'Standard' failed extraction/transform and never call load().
+    await adapter.load(buildLeague({ name: 'Settlers', ladder: 'Settlers' }), [], [], '2025-02-01T00:00:00.000Z');
+    await adapter.load(buildLeague({ name: 'New League', ladder: 'New League' }), [], [], '2025-02-01T00:00:00.000Z');
+    await adapter.finalize();
+
+    const indexCall = s3Client.send.mock.calls.find(
+      ([command]) => command instanceof PutObjectCommand && command.input.Key === 'index.json',
+    );
+    expect(indexCall).toBeDefined();
+
+    const indexBody = JSON.parse((indexCall![0] as PutObjectCommand).input.Body as string);
+    expect(indexBody).toEqual([
+      { name: 'Settlers', ladder: 'Settlers', updatedAt: '2025-02-01T00:00:00.000Z' }, // refreshed
+      { name: 'Hardcore Settlers', ladder: 'Hardcore Settlers', updatedAt: '2025-01-01T00:00:00.000Z' }, // preserved
+      { name: 'Standard', ladder: 'Standard', updatedAt: '2025-01-01T00:00:00.000Z' }, // preserved
+      { name: 'New League', ladder: 'New League', updatedAt: '2025-02-01T00:00:00.000Z' }, // added
+    ]);
+  });
+
+  it('reset() discards accumulated entries so an aborted run never leaks into a later finalize()', async () => {
+    // Simulates a generator-level abort: 'Settlers' loaded successfully, then the
+    // extract generator itself threw. App.execute() calls reset() on that abort path
+    // instead of finalize(). A later invocation (warm Lambda, same adapter instance)
+    // must not see 'Settlers' bleed into its finalize() write.
+    const existingIndexEntries = [
+      { name: 'Standard', ladder: 'Standard', updatedAt: '2025-01-01T00:00:00.000Z' },
+    ];
+    const s3Client = makeS3Client(existingIndexEntries);
+    const logger = makeLogger();
+    const fanOut = makeFanOut();
+    const adapter = new R2LoadAdapter(s3Client, BUCKET, logger, fanOut);
+
+    await adapter.load(buildLeague({ name: 'Settlers', ladder: 'Settlers' }), [], [], '2025-01-05T00:00:00.000Z');
+    adapter.reset();
+
+    // Next invocation reuses the same adapter instance and completes normally.
+    await adapter.finalize();
+
+    const indexCall = s3Client.send.mock.calls.find(
+      ([command]) => command instanceof PutObjectCommand && command.input.Key === 'index.json',
+    );
+    expect(indexCall).toBeDefined();
+
+    const indexBody = JSON.parse((indexCall![0] as PutObjectCommand).input.Body as string);
+    expect(indexBody).toEqual(existingIndexEntries);
   });
 });

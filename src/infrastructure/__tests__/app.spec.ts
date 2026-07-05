@@ -101,7 +101,11 @@ function makeTransformAdapter(
 }
 
 function makeLoadAdapter(): jest.Mocked<ILoadAdapter> {
-  return { load: jest.fn().mockResolvedValue(undefined) };
+  return {
+    load: jest.fn().mockResolvedValue(undefined),
+    finalize: jest.fn().mockResolvedValue(undefined),
+    reset: jest.fn(),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -143,6 +147,19 @@ describe('App.execute', () => {
 
       expect(transformAdapter.transform).toHaveBeenCalledTimes(1);
       expect(loadAdapter.load).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call finalize() once after the extract loop completes, and never reset()', async () => {
+      const league = buildLeague();
+      const extractAdapter = makeExtractAdapter([buildExtractionYield(league)]);
+      const transformAdapter = makeTransformAdapter();
+      const loadAdapter = makeLoadAdapter();
+
+      const app = new App(extractAdapter, transformAdapter, loadAdapter, silentLogger);
+      await app.execute();
+
+      expect(loadAdapter.finalize).toHaveBeenCalledTimes(1);
+      expect(loadAdapter.reset).not.toHaveBeenCalled();
     });
   });
 
@@ -289,6 +306,25 @@ describe('App.execute', () => {
       const app = new App(extractAdapter, transformAdapter, loadAdapter, silentLogger);
 
       await expect(app.execute()).rejects.toThrow('Mid-stream failure');
+    });
+
+    it('should call reset() instead of finalize() when the generator aborts, so accumulated state never leaks into a later run', async () => {
+      const successLeague = buildLeague('Settlers');
+      const generatorError = new Error('Mid-stream failure');
+
+      const extractAdapter: jest.Mocked<IExtractAdapter> = {
+        extract: jest.fn().mockReturnValue(
+          asyncYieldsThenThrow([buildExtractionYield(successLeague)], generatorError),
+        ),
+      };
+      const transformAdapter = makeTransformAdapter();
+      const loadAdapter = makeLoadAdapter();
+
+      const app = new App(extractAdapter, transformAdapter, loadAdapter, silentLogger);
+
+      await expect(app.execute()).rejects.toThrow('Mid-stream failure');
+      expect(loadAdapter.reset).toHaveBeenCalledTimes(1);
+      expect(loadAdapter.finalize).not.toHaveBeenCalled();
     });
   });
 });

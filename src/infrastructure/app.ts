@@ -42,6 +42,10 @@ export class App {
       }
     } catch (error) {
       this.logger.error('ETL pipeline failed:', error);
+      // Generator-level abort: discard whatever load() accumulated so it never leaks
+      // into a later invocation's finalize() (the adapter instance may be reused
+      // across warm Lambda invocations).
+      this.loadAdapter.reset?.();
       throw error;
     }
 
