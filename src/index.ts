@@ -1,4 +1,4 @@
-import { app, store, compositionLogger as logger } from '@infrastructure/composition-root';
+import { app, compositionLogger as logger } from '@infrastructure/composition-root';
 import { createHttpServer } from '@runtime/http-server';
 import { EtlRuntime } from '@runtime/etl-runtime';
 
@@ -13,7 +13,7 @@ const LAMBDA_TIMEOUT_BUFFER_MS = LAMBDA_TIMEOUT_MS - 60_000;
 const ETL_MODE = process.env.ETL_MODE ?? 'job';
 const HTTP_PORT = Number(process.env.PORT ?? 3002);
 
-const runtime = new EtlRuntime(app, store, logger);
+const runtime = new EtlRuntime(app, logger);
 
 async function main(): Promise<{ processed: number; failed: number }> {
   return runtime.refresh();
@@ -37,13 +37,6 @@ async function startHttpMode(): Promise<void> {
   httpServer.listen(HTTP_PORT, () => {
     logger.log(`ETL HTTP server listening on port ${HTTP_PORT}`);
   });
-
-  if (runtime.isDatabaseEmpty()) {
-    logger.log('SQLite database is empty, running initial seed...');
-    runtime.refresh().catch((error: unknown) => {
-      logger.error('Initial ETL seed failed:', error);
-    });
-  }
 }
 
 if (ETL_MODE === 'http') {

@@ -31,7 +31,7 @@ export class App {
               data.itemMeta,
             );
 
-            this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
+            await this.loadAdapter.load(league, profitTable, currencyData, data.timestamp);
             processedCount += 1;
             this.logger.log(`Successfully processed league: ${league.name}`);
           } catch (err) {
@@ -45,6 +45,7 @@ export class App {
       throw error;
     }
 
+    await this.loadAdapter.finalize?.();
     this.logger.log(`ETL pipeline completed: ${processedCount} succeeded, ${errorCount} failed`);
     return { processed: processedCount, failed: errorCount };
   }

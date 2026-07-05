@@ -14,20 +14,6 @@ export function createHttpServer(runtime: EtlRuntime, logger: Logger) {
     res.json(runtime.getStatus());
   });
 
-  app.get('/debug/leagues', (_req: Request, res: Response) => {
-    res.json({ leagues: runtime.listDebugLeagues() });
-  });
-
-  app.get('/debug/leagues/:name', (req: Request, res: Response) => {
-    const leagueName = typeof req.params.name === 'string' ? req.params.name : '';
-    const payload = runtime.getDebugLeague(leagueName);
-    if (!payload) {
-      res.status(404).json({ error: 'League not found' });
-      return;
-    }
-    res.json(payload);
-  });
-
   app.post('/refresh', async (_req: Request, res: Response) => {
     try {
       const result = await runtime.refresh();

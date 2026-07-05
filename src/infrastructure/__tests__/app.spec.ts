@@ -101,7 +101,7 @@ function makeTransformAdapter(
 }
 
 function makeLoadAdapter(): jest.Mocked<ILoadAdapter> {
-  return { load: jest.fn() };
+  return { load: jest.fn().mockResolvedValue(undefined) };
 }
 
 // ---------------------------------------------------------------------------
