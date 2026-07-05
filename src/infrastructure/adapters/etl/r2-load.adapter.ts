@@ -21,6 +21,21 @@ interface LeagueIndexEntry {
   updatedAt: string;
 }
 
+function isLeagueIndexEntry(value: unknown): value is LeagueIndexEntry {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.name === 'string'
+    && typeof candidate.ladder === 'string'
+    && typeof candidate.updatedAt === 'string'
+  );
+}
+
+function isLeagueIndexEntryArray(value: unknown): value is LeagueIndexEntry[] {
+  return Array.isArray(value) && value.every(isLeagueIndexEntry);
+}
+
 /**
  * ETL Pipeline Load Adapter
  * Persists processed league data to Cloudflare R2 (S3-compatible) and fans out
@@ -85,18 +100,45 @@ export class R2LoadAdapter implements ILoadAdapter {
   }
 
   private async fetchExistingIndex(): Promise<LeagueIndexEntry[]> {
+    let body: string | undefined;
+
     try {
       const response = await this.s3Client.send(new GetObjectCommand({
         Bucket: this.bucket,
         Key: INDEX_KEY,
       }));
 
-      const body = await response.Body?.transformToString();
-      return body ? (JSON.parse(body) as LeagueIndexEntry[]) : [];
+      body = await response.Body?.transformToString();
     } catch (error: unknown) {
       if (this.isMissingKeyError(error)) return [];
       throw error;
     }
+
+    return body ? this.parseIndexEntries(body) : [];
+  }
+
+  /**
+   * Parses and validates the persisted index — it's external R2 input (could be
+   * corrupted, hand-edited, or written by an incompatible future version), so a
+   * malformed body must degrade to "no prior index" rather than crash the run.
+   */
+  private parseIndexEntries(body: string): LeagueIndexEntry[] {
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(body);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`R2LoadAdapter: ${INDEX_KEY} is not valid JSON — treating as empty index: ${message}`);
+      return [];
+    }
+
+    if (!isLeagueIndexEntryArray(parsed)) {
+      this.logger.warn(`R2LoadAdapter: ${INDEX_KEY} has an unexpected shape — treating as empty index`);
+      return [];
+    }
+
+    return parsed;
   }
 
   private isMissingKeyError(error: unknown): boolean {

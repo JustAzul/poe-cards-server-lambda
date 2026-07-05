@@ -70,9 +70,8 @@ function makeS3Client(existingIndexEntries?: LeagueIndexEntry[]) {
         return Promise.reject(notFound);
       }
 
-      return Promise.resolve({
-        Body: { transformToString: jest.fn().mockResolvedValue(JSON.stringify(existingIndexEntries)) },
-      });
+      const transformToString = jest.fn().mockResolvedValue(JSON.stringify(existingIndexEntries));
+      return Promise.resolve({ Body: { transformToString } });
     }
 
     return Promise.resolve({});
@@ -81,8 +80,22 @@ function makeS3Client(existingIndexEntries?: LeagueIndexEntry[]) {
   return { send } as unknown as jest.Mocked<S3Client>;
 }
 
+/** Builds a mock S3Client whose GetObjectCommand(index.json) returns an arbitrary raw body. */
+function makeS3ClientWithRawIndexBody(rawBody: string) {
+  const transformToString = jest.fn().mockResolvedValue(rawBody);
+  const send = jest.fn().mockImplementation((command: unknown) => {
+    if (command instanceof GetObjectCommand) {
+      return Promise.resolve({ Body: { transformToString } });
+    }
+    return Promise.resolve({});
+  });
+
+  return { send } as unknown as jest.Mocked<S3Client>;
+}
+
 function makeFanOut() {
-  return { notifyLeagueUpdated: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<FanOutService>;
+  const notifyLeagueUpdated = jest.fn().mockResolvedValue(undefined);
+  return { notifyLeagueUpdated } as unknown as jest.Mocked<FanOutService>;
 }
 
 describe('R2LoadAdapter', () => {
@@ -204,5 +217,29 @@ describe('R2LoadAdapter', () => {
 
     const indexBody = JSON.parse((indexCall![0] as PutObjectCommand).input.Body as string);
     expect(indexBody).toEqual(existingIndexEntries);
+  });
+
+  it.each([
+    ['a JSON object instead of an array', JSON.stringify({ name: 'Settlers', ladder: 'Settlers', updatedAt: 'x' })],
+    ['an array with an entry missing a required field', JSON.stringify([{ name: 'Settlers' }])],
+    ['syntactically invalid JSON', '{not json'],
+  ])('treats a malformed existing index.json (%s) as empty instead of throwing', async (_case, rawBody) => {
+    const s3Client = makeS3ClientWithRawIndexBody(rawBody);
+    const logger = makeLogger();
+    const fanOut = makeFanOut();
+    const adapter = new R2LoadAdapter(s3Client, BUCKET, logger, fanOut);
+
+    await adapter.load(buildLeague({ name: 'New League', ladder: 'New League' }), [], [], '2025-02-01T00:00:00.000Z');
+
+    await expect(adapter.finalize()).resolves.toBeUndefined();
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('index.json'));
+
+    const indexCall = s3Client.send.mock.calls.find(
+      ([command]) => command instanceof PutObjectCommand && command.input.Key === 'index.json',
+    );
+    const indexBody = JSON.parse((indexCall![0] as PutObjectCommand).input.Body as string);
+    expect(indexBody).toEqual([
+      { name: 'New League', ladder: 'New League', updatedAt: '2025-02-01T00:00:00.000Z' },
+    ]);
   });
 });
