@@ -88,19 +88,25 @@ jobs:
           --environment file://lambda-env.json
           rm -f lambda-env.json
       - name: Reconcile EventBridge schedule
+        # Best-effort: the deploy IAM user currently has AWSLambda_FullAccess only, no
+        # events:* grants, so this fails with AccessDeniedException until that's widened.
+        # continue-on-error keeps that a visible warning instead of a red Lambda deploy;
+        # the rule is already ENABLED in prod today independent of this step succeeding.
+        continue-on-error: true
+        env:
+          RULE_NAME: poe.cards
+          FUNCTION_NAME: poe-cards
+          AWS_REGION_NAME: us-east-2
         run: |
-          if aws events describe-rule --name poe.cards >/dev/null 2>&1; then
-            aws events enable-rule --name poe.cards
-          else
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            aws events put-rule --name poe.cards --schedule-expression "rate(1 hour)" --state ENABLED
-            aws lambda add-permission \
-              --function-name poe-cards \
-              --statement-id poe-cards-eventbridge \
-              --action lambda:InvokeFunction \
-              --principal events.amazonaws.com \
-              --source-arn "arn:aws:events:us-east-2:${ACCOUNT_ID}:rule/poe.cards"
-            aws events put-targets \
-              --rule poe.cards \
-              --targets "Id=1,Arn=arn:aws:lambda:us-east-2:${ACCOUNT_ID}:function:poe-cards"
-          fi
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          RULE_ARN="arn:aws:events:${AWS_REGION_NAME}:${ACCOUNT_ID}:rule/${RULE_NAME}"
+          FUNCTION_ARN="arn:aws:lambda:${AWS_REGION_NAME}:${ACCOUNT_ID}:function:${FUNCTION_NAME}"
+
+          aws events put-rule --name "$RULE_NAME" --schedule-expression "rate(1 hour)" --state ENABLED
+          aws lambda add-permission \
+            --function-name "$FUNCTION_NAME" \
+            --statement-id "${RULE_NAME}-eventbridge" \
+            --action lambda:InvokeFunction \
+            --principal events.amazonaws.com \
+            --source-arn "$RULE_ARN" || true
+          aws events put-targets --rule "$RULE_NAME" --targets "Id=1,Arn=${FUNCTION_ARN}"
