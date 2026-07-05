@@ -24,7 +24,7 @@ export class FanOutService {
 
     const revalidated = await this.postWithRetry(
       revalidateUrl,
-      { league: leagueName },
+      { leagueName },
       process.env.REVALIDATE_SECRET,
       `revalidate for ${leagueName}`,
     );
@@ -33,7 +33,7 @@ export class FanOutService {
 
     await this.postWithRetry(
       `${broadcastUrl}/${encodeURIComponent(leagueName)}`,
-      { league: leagueName },
+      { leagueName },
       process.env.BROADCAST_SECRET,
       `broadcast for ${leagueName}`,
     );

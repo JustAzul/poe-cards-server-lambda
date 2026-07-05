@@ -55,12 +55,52 @@ jobs:
           --function-name poe-cards \
           --zip-file fileb://bundle.zip
       - name: Update Lambda configuration
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          BROADCAST_SECRET: ${{ secrets.BROADCAST_SECRET }}
+          REVALIDATE_URL: ${{ secrets.REVALIDATE_URL }}
+          BROADCAST_URL: ${{ secrets.BROADCAST_URL }}
         run: |
           aws lambda wait function-updated --function-name poe-cards
+          jq -n \
+            --arg r2_account_id "$R2_ACCOUNT_ID" \
+            --arg r2_access_key_id "$R2_ACCESS_KEY_ID" \
+            --arg r2_secret_access_key "$R2_SECRET_ACCESS_KEY" \
+            --arg r2_bucket "$R2_BUCKET" \
+            --arg r2_endpoint "$R2_ENDPOINT" \
+            --arg revalidate_secret "$REVALIDATE_SECRET" \
+            --arg broadcast_secret "$BROADCAST_SECRET" \
+            --arg revalidate_url "$REVALIDATE_URL" \
+            --arg broadcast_url "$BROADCAST_URL" \
+            '{Variables: {R2_ACCOUNT_ID: $r2_account_id, R2_ACCESS_KEY_ID: $r2_access_key_id, R2_SECRET_ACCESS_KEY: $r2_secret_access_key, R2_BUCKET: $r2_bucket, R2_ENDPOINT: $r2_endpoint, REVALIDATE_SECRET: $revalidate_secret, BROADCAST_SECRET: $broadcast_secret, REVALIDATE_URL: $revalidate_url, BROADCAST_URL: $broadcast_url}}' \
+            > lambda-env.json
           aws lambda update-function-configuration \
           --function-name poe-cards \
           --runtime nodejs20.x \
           --handler dist/index.handler \
           --timeout 900 \
           --memory-size 512 \
-          --environment "Variables={R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }},R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }},R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }},R2_BUCKET=${{ secrets.R2_BUCKET }},R2_ENDPOINT=${{ secrets.R2_ENDPOINT }},REVALIDATE_SECRET=${{ secrets.REVALIDATE_SECRET }},BROADCAST_SECRET=${{ secrets.BROADCAST_SECRET }},REVALIDATE_URL=${{ secrets.REVALIDATE_URL }},BROADCAST_URL=${{ secrets.BROADCAST_URL }}}"
+          --environment file://lambda-env.json
+          rm -f lambda-env.json
+      - name: Reconcile EventBridge schedule
+        run: |
+          if aws events describe-rule --name poe.cards >/dev/null 2>&1; then
+            aws events enable-rule --name poe.cards
+          else
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            aws events put-rule --name poe.cards --schedule-expression "rate(1 hour)" --state ENABLED
+            aws lambda add-permission \
+              --function-name poe-cards \
+              --statement-id poe-cards-eventbridge \
+              --action lambda:InvokeFunction \
+              --principal events.amazonaws.com \
+              --source-arn "arn:aws:events:us-east-2:${ACCOUNT_ID}:rule/poe.cards"
+            aws events put-targets \
+              --rule poe.cards \
+              --targets "Id=1,Arn=arn:aws:lambda:us-east-2:${ACCOUNT_ID}:function:poe-cards"
+          fi
