@@ -31,12 +31,14 @@ export class PoeAtlasService implements IDivCardDefinitionSource {
 
     const definitions = new Map<string, DivCardDefinition>();
     let droppedCount = 0;
+    let malformedModifierCount = 0;
 
     for (const entry of response) {
       const mapped = PoeAtlasService.toDefinition(entry);
 
       if (mapped) {
         definitions.set(mapped.slug, mapped.definition);
+        if (mapped.malformedModifiers) malformedModifierCount += 1;
       } else {
         droppedCount += 1;
       }
@@ -46,6 +48,10 @@ export class PoeAtlasService implements IDivCardDefinitionSource {
       this.logger.warn(`[PoeAtlasService] Dropped ${droppedCount} card definitions with no usable slug/name`);
     }
 
+    if (malformedModifierCount > 0) {
+      this.logger.warn(`[PoeAtlasService] ${malformedModifierCount} definitions had malformed explicitModifiers (skipped downstream by the parser)`);
+    }
+
     return definitions;
   }
 
@@ -53,20 +59,25 @@ export class PoeAtlasService implements IDivCardDefinitionSource {
    * Validate one raw entry and map it to a slug-keyed definition.
    * Returns null when the slug or name is missing (e.g. gamble cards with a
    * null detailsId) — those cannot join to an exchange price line.
+   * `malformedModifiers` flags an entry whose reward text was present but
+   * unusable, so the caller can surface it rather than dropping it silently.
    */
   private static toDefinition(
     entry: PoeAtlasCardDetail,
-  ): { slug: string; definition: DivCardDefinition } | null {
+  ): { slug: string; definition: DivCardDefinition; malformedModifiers: boolean } | null {
     const slug = entry.detailsId ?? entry.id ?? null;
 
     if (typeof slug !== 'string' || slug.length === 0) return null;
     if (typeof entry.name !== 'string' || entry.name.length === 0) return null;
 
+    const { modifiers, malformed } = PoeAtlasService.normalizeModifiers(entry.explicitModifiers);
+
     return {
       slug,
+      malformedModifiers: malformed,
       definition: {
         name: entry.name,
-        explicitModifiers: PoeAtlasService.normalizeModifiers(entry.explicitModifiers),
+        explicitModifiers: modifiers,
         artFilename: entry.artFilename,
         flavourText: entry.flavourText,
         stackSize: entry.stackSize,
@@ -76,18 +87,26 @@ export class PoeAtlasService implements IDivCardDefinitionSource {
 
   /**
    * Validate raw external modifiers before they reach the (unchanged) parser.
-   * Keeps only well-shaped `{ text, optional }` entries; a non-array or an
-   * all-malformed list degrades to undefined so the parser skips the card.
+   * Keeps only well-shaped `{ text, optional }` entries and coerces `optional`
+   * strictly (only a real boolean true is optional). Reports `malformed` when
+   * the reward text was present but unusable (non-array, or an array with
+   * entries but none usable) so the boundary reason isn't lost; a legitimately
+   * absent list (null/undefined, e.g. gamble cards) is not malformed.
    */
-  private static normalizeModifiers(raw: unknown): ExplicitModifier[] | undefined {
-    if (!Array.isArray(raw)) return undefined;
+  private static normalizeModifiers(
+    raw: unknown,
+  ): { modifiers?: ExplicitModifier[]; malformed: boolean } {
+    if (raw === null || raw === undefined) return { malformed: false };
+    if (!Array.isArray(raw)) return { malformed: true };
 
     const valid = raw
       .filter((mod): mod is { text: string; optional?: unknown } => (
         typeof mod === 'object' && mod !== null && typeof (mod as { text?: unknown }).text === 'string'
       ))
-      .map((mod) => ({ text: mod.text, optional: Boolean(mod.optional) }));
+      .map((mod) => ({ text: mod.text, optional: mod.optional === true }));
 
-    return valid.length > 0 ? valid : undefined;
+    if (valid.length === 0) return { malformed: raw.length > 0 };
+
+    return { modifiers: valid, malformed: false };
   }
 }

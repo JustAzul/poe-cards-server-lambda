@@ -85,6 +85,24 @@ describe('PoeAtlasService', () => {
 
     expect(defs.get('bad-array')?.explicitModifiers).toBeUndefined();
     expect(defs.get('bad-items')?.explicitModifiers).toBeUndefined();
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/malformed explicitModifiers/i));
+  });
+
+  it('should treat a non-boolean optional strictly (only real true is optional)', async () => {
+    client.get.mockResolvedValue([
+      {
+        name: 'Stringy Optional',
+        detailsId: 'stringy-optional',
+        stackSize: 1,
+        explicitModifiers: [{ text: '<uniqueitem>{Headhunter}', optional: 'false' }],
+      },
+    ] as unknown as PoeAtlasCardDetail[]);
+
+    const defs = await service.fetchDefinitions();
+
+    expect(defs.get('stringy-optional')?.explicitModifiers).toEqual([
+      { text: '<uniqueitem>{Headhunter}', optional: false },
+    ]);
   });
 
   it('should keep only well-shaped modifier entries and coerce optional to boolean', async () => {
