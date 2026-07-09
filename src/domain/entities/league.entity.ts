@@ -1,6 +1,6 @@
 const INELIGIBLE_RULE_IDS = ['NoParties', 'HardMode'] as const;
 const PC_REALM = 'pc';
-const HARDCORE_LEAGUE_NAME = 'Hardcore';
+const EXCLUDED_LEAGUE_NAMES = ['Standard', 'Hardcore'] as const;
 
 export class League {
   readonly name: string;
@@ -41,12 +41,18 @@ export class League {
     this.ruleIds = [...data.ruleIds];
   }
 
-  /** Whether this league is eligible for arbitrage analysis */
+  /**
+   * Whether this league is eligible for arbitrage analysis.
+   * The league source (poe.ninja index-state) is pre-filtered to PC economy
+   * leagues, so eligibility reduces to excluding the permanent leagues by name.
+   */
   isEligible(): boolean {
-    if (this.startAt === null) return false;
-    if (INELIGIBLE_RULE_IDS.some((id) => this.ruleIds.includes(id))) return false; // SSF / Ruthless
     if (this.realm !== PC_REALM) return false; // Console leagues
-    if (this.name === HARDCORE_LEAGUE_NAME) return false;
+    if (INELIGIBLE_RULE_IDS.some((id) => this.ruleIds.includes(id))) return false; // SSF / Ruthless
+
+    // Standard / Hardcore — the permanent leagues, excluded by name
+    if ((EXCLUDED_LEAGUE_NAMES as readonly string[]).includes(this.name)) return false;
+
     return true;
   }
 }

@@ -1,0 +1,242 @@
+[
+  {
+    "name": "A Fate Worse Than Death",
+    "dropAreas": [],
+    "dropMonsters": [
+      "Baran, The Crusader",
+      "Veritania, The Redeemer",
+      "Al-Hezmin, The Hunter",
+      "Drox, The Warlord",
+      "Sirus, Awakener of Worlds"
+    ],
+    "stackSize": 4,
+    "dropLevel": 81,
+    "artFilename": "AFateWorseThanDeath",
+    "explicitModifiers": [
+      {
+        "text": "<uniqueitem>{Cortex}\n<corrupted>{Corrupted}",
+        "optional": false
+      }
+    ],
+    "flavourText": "\"It was as though my very thoughts were breaking... fracturing into tiny motes to be lost on the wind.\"",
+    "detailsId": "a-fate-worse-than-death",
+    "id": "a-fate-worse-than-death",
+    "dropWeight": 66
+  },
+  {
+    "name": "Alone in the Darkness",
+    "dropAreas": [],
+    "dropMonsters": [
+      "Stygian Spire"
+    ],
+    "stackSize": 5,
+    "dropLevel": 34,
+    "artFilename": "AloneintheDarkness",
+    "explicitModifiers": [
+      {
+        "text": "<uniqueitem>{Delve Item}",
+        "optional": false
+      }
+    ],
+    "flavourText": "\"Sometimes, the most beautiful treasures...are the ones you cannot have.\" \n- Beryl, Survivor from the Azurite Mines",
+    "detailsId": "alone-in-the-darkness",
+    "id": "alone-in-the-darkness",
+    "dropWeight": 7951
+  },
+  {
+    "name": "Anarchy's Price",
+    "dropAreas": [],
+    "dropMonsters": [
+      "Torr Olgosso",
+      "Armios Bell",
+      "Zacharie Desmarais",
+      "Oyra Ona",
+      "Ainsley Varrich",
+      "Jonah Unchained",
+      "Damoi Tui",
+      "Xandro Blooddrinker",
+      "Vickas Giantbone",
+      "Bolt Brownfur",
+      "Ohne Trix",
+      "Sevet Tetherein",
+      "Orra Greengate",
+      "Thena Moga",
+      "Antalie Napora",
+      "Ailentia Rac",
+      "Augustina Solaria",
+      "Lael Furia",
+      "Vanth Agiel",
+      "Ion Darkshroud",
+      "Ash Lessard",
+      "Wilorin Demontamer",
+      "Ulysses Morvant",
+      "Thom Imperial",
+      "Eoin Greyfur",
+      "Tinevin Highdove",
+      "Magnus Stonethorn",
+      "Aurelio Voidsinger",
+      "Baracus Phraxisanct",
+      "Minara Anemina",
+      "Igna Phoenix",
+      "Dena Lorenni",
+      "Ultima Thule",
+      "Kirmes Olli",
+      "Hector Titucius, Eternal Servant"
+    ],
+    "stackSize": 13,
+    "dropLevel": 64,
+    "artFilename": null,
+    "explicitModifiers": null,
+    "flavourText": null,
+    "detailsId": null,
+    "id": null,
+    "dropWeight": 18
+  },
+  {
+    "name": "Avian Pursuit",
+    "dropAreas": [
+      "Beach Map",
+      "Courtyard of Wasting Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 3,
+    "dropLevel": 68,
+    "artFilename": "AvianPursuit",
+    "explicitModifiers": [
+      {
+        "text": "<currencyitem>{1,500x Vivid Crystallised Lifeforce}",
+        "optional": false
+      }
+    ],
+    "flavourText": "Blazing through the night\nLonging for infinite flight\nAwaiting dawn's first light",
+    "detailsId": "avian-pursuit",
+    "id": "avian-pursuit",
+    "dropWeight": 150
+  },
+  {
+    "name": "Bound by Flame",
+    "dropAreas": [
+      "Desert Spring Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 2,
+    "dropLevel": 1,
+    "artFilename": "BoundByFlame",
+    "explicitModifiers": [
+      {
+        "text": "<gemitem>{Level 21 Flame Link}\n<default>{Quality:} <augmented>{+20%}",
+        "optional": false
+      }
+    ],
+    "flavourText": "<size:30>{In battle we burn together\nor not at all.}",
+    "detailsId": "bound-by-flame",
+    "id": "bound-by-flame",
+    "dropWeight": 408
+  },
+  {
+    "name": "Bowyer's Dream",
+    "dropAreas": [
+      "Ashen Wood Map",
+      "Spider Forest Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 6,
+    "dropLevel": 81,
+    "artFilename": "BowyersDream",
+    "explicitModifiers": [
+      {
+        "text": "<whiteitem>{Six-Link Harbinger Bow}\n<default>{Item Level:} <normal>{91}",
+        "optional": false
+      }
+    ],
+    "flavourText": "If this is my dream, I don't wish to wake.",
+    "detailsId": "bowyers-dream",
+    "id": "bowyers-dream",
+    "dropWeight": 116
+  },
+  {
+    "name": "Lachrymal Necrosis",
+    "dropAreas": [
+      "The Chamber of Innocence",
+      "The Desecrated Chambers",
+      "Coves Map",
+      "Waterways Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 3,
+    "dropLevel": 33,
+    "artFilename": "LachrymalNecrosis",
+    "explicitModifiers": [
+      {
+        "text": "<rareitem>{Jewel}\n<enchanted>{Implicit Modifier:} \n<magicitem>{Corrupted Blood cannot be inflicted on you}\n<corrupted>{Corrupted}",
+        "optional": false
+      }
+    ],
+    "flavourText": "Without the ability to weep, the heart hardens against both the pure and the corrupt.",
+    "detailsId": "lachrymal-necrosis",
+    "id": "lachrymal-necrosis",
+    "dropWeight": 719
+  },
+  {
+    "name": "Struck by Lightning",
+    "dropAreas": [
+      "Promenade Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 3,
+    "dropLevel": 75,
+    "artFilename": "StruckbyLightning",
+    "explicitModifiers": [
+      {
+        "text": "<magicitem>{Electrocuting Jewellery}\n<default>{Item Level:} <normal>{76}",
+        "optional": false
+      }
+    ],
+    "flavourText": "'Lightning never strikes the same place twice'\nis really just wishful thinking.",
+    "detailsId": "struck-by-lightning",
+    "id": "struck-by-lightning",
+    "dropWeight": 7554
+  },
+  {
+    "name": "The Doctor",
+    "dropAreas": [
+      "Burial Chambers Map",
+      "Sepulchre Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 8,
+    "dropLevel": 75,
+    "artFilename": "TheDoctor",
+    "explicitModifiers": [
+      {
+        "text": "<uniqueitem>{Headhunter}",
+        "optional": false
+      }
+    ],
+    "flavourText": "\"They said I needed my head examined, but I'd rather just take yours.\" - Klopek the Cannibal",
+    "detailsId": "the-doctor",
+    "id": "the-doctor",
+    "dropWeight": 9
+  },
+  {
+    "name": "The Nurse",
+    "dropAreas": [
+      "Abomination Map",
+      "Cells Map"
+    ],
+    "dropMonsters": [],
+    "stackSize": 8,
+    "dropLevel": 75,
+    "artFilename": "TheNurse",
+    "explicitModifiers": [
+      {
+        "text": "<divination>{The Doctor}",
+        "optional": false
+      }
+    ],
+    "flavourText": "We tried to tell him to get his head checked.",
+    "detailsId": "the-nurse",
+    "id": "the-nurse",
+    "dropWeight": 75
+  }
+]

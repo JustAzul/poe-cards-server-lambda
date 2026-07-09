@@ -1,0 +1,204 @@
+{
+  "core": {
+    "items": [
+      {
+        "id": "chaos",
+        "name": "Chaos Orb",
+        "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxSYXJlIiwic2NhbGUiOjF9XQ/46a2347805/CurrencyRerollRare.png",
+        "category": "Currency",
+        "detailsId": "chaos-orb"
+      },
+      {
+        "id": "divine",
+        "name": "Divine Orb",
+        "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MX1d/ec48896769/CurrencyModValues.png",
+        "category": "Currency",
+        "detailsId": "divine-orb"
+      }
+    ],
+    "rates": {
+      "divine": 0.001845
+    },
+    "primary": "chaos",
+    "secondary": "divine"
+  },
+  "items": [
+    {
+      "id": "alone-in-the-darkness",
+      "name": "Alone in the Darkness",
+      "category": "Cards",
+      "detailsId": "alone-in-the-darkness"
+    },
+    {
+      "id": "bowyers-dream",
+      "name": "Bowyer's Dream",
+      "category": "Cards",
+      "detailsId": "bowyers-dream"
+    },
+    {
+      "id": "a-fate-worse-than-death",
+      "name": "A Fate Worse Than Death",
+      "category": "Cards",
+      "detailsId": "a-fate-worse-than-death"
+    },
+    {
+      "id": "avian-pursuit",
+      "name": "Avian Pursuit",
+      "category": "Cards",
+      "detailsId": "avian-pursuit"
+    },
+    {
+      "id": "bound-by-flame",
+      "name": "Bound by Flame",
+      "category": "Cards",
+      "detailsId": "bound-by-flame"
+    },
+    {
+      "id": "the-doctor",
+      "name": "The Doctor",
+      "category": "Cards",
+      "detailsId": "the-doctor"
+    },
+    {
+      "id": "the-nurse",
+      "name": "The Nurse",
+      "category": "Cards",
+      "detailsId": "the-nurse"
+    }
+  ],
+  "lines": [
+    {
+      "id": "alone-in-the-darkness",
+      "primaryValue": 1.12,
+      "volumePrimaryValue": 102.0,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.8889,
+      "sparkline": {
+        "totalChange": 0,
+        "data": [
+          0,
+          null,
+          77.78,
+          null,
+          null,
+          null,
+          0
+        ]
+      }
+    },
+    {
+      "id": "bowyers-dream",
+      "primaryValue": 5,
+      "volumePrimaryValue": 30,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.2,
+      "sparkline": {
+        "totalChange": 0,
+        "data": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "a-fate-worse-than-death",
+      "primaryValue": 39.9,
+      "volumePrimaryValue": 66.50,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.02506,
+      "sparkline": {
+        "totalChange": 1895,
+        "data": [
+          1558,
+          1464,
+          1165,
+          1520,
+          1041,
+          1142,
+          1895
+        ]
+      }
+    },
+    {
+      "id": "avian-pursuit",
+      "primaryValue": 73,
+      "volumePrimaryValue": 60.83,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.01370,
+      "sparkline": {
+        "totalChange": -2.67,
+        "data": [
+          1.90,
+          28.52,
+          0,
+          -2.13,
+          -2.67,
+          13.00,
+          -2.67
+        ]
+      }
+    },
+    {
+      "id": "bound-by-flame",
+      "primaryValue": 16.67,
+      "volumePrimaryValue": 8.33,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.06,
+      "sparkline": {
+        "totalChange": 233.3,
+        "data": [
+          null,
+          null,
+          0,
+          0,
+          null,
+          0,
+          233.3
+        ]
+      }
+    },
+    {
+      "id": "the-doctor",
+      "primaryValue": 1287,
+      "volumePrimaryValue": 1716,
+      "maxVolumeCurrency": "divine",
+      "maxVolumeRate": 0.4211,
+      "sparkline": {
+        "totalChange": -20.83,
+        "data": [
+          -47.16,
+          -48.15,
+          -39.17,
+          -41.67,
+          -53.90,
+          -16.48,
+          -20.83
+        ]
+      }
+    },
+    {
+      "id": "the-nurse",
+      "primaryValue": 82,
+      "volumePrimaryValue": 205.0,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.01220,
+      "sparkline": {
+        "totalChange": -8.89,
+        "data": [
+          -63.74,
+          -64.44,
+          -58.03,
+          -93.33,
+          -93.33,
+          9.73,
+          -8.89
+        ]
+      }
+    }
+  ]
+}

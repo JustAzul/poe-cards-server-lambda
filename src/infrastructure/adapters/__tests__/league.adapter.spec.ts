@@ -1,9 +1,9 @@
 import { League } from '@domain/entities/league.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
-import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
-import { PoeNinjaItemLine } from '@infrastructure/types/poe-ninja.types';
+import { DivCardDefinition } from '@infrastructure/ports/div-card-definition-source.port';
+import { DivCardPrice } from '@infrastructure/ports/div-card-price-source.port';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -25,16 +25,23 @@ function buildLeague(overrides: Partial<ConstructorParameters<typeof League>[0]>
   });
 }
 
-function buildRawItemLine(overrides: Partial<PoeNinjaItemLine> = {}): PoeNinjaItemLine {
+function buildDefinition(overrides: Partial<DivCardDefinition> = {}): DivCardDefinition {
   return {
     name: 'The Doctor',
-    itemClass: ItemClass.DIVINATION_CARD,
-    chaosValue: 500,
-    count: 50,
-    stackSize: 8,
+    explicitModifiers: [{ text: '<uniqueitem>{Headhunter}', optional: false }],
     artFilename: 'Art/2DItems/Divination/TheDoctor.png',
     flavourText: 'Wealth beyond measure.',
-    explicitModifiers: [{ text: '<uniqueitem>{Headhunter}', optional: false }],
+    stackSize: 8,
+    ...overrides,
+  };
+}
+
+function buildPrice(overrides: Partial<DivCardPrice> = {}): DivCardPrice {
+  return {
+    slug: 'the-doctor',
+    name: 'The Doctor',
+    chaosValue: 500,
+    volumePrimaryValue: 42,
     ...overrides,
   };
 }
@@ -51,23 +58,48 @@ function buildItemOverview(
   });
 }
 
-function buildCurrencyItem(name = 'Chaos Orb'): CurrencyItem {
-  return new CurrencyItem({ currencyTypeName: name, chaosEquivalent: 1 });
-}
-
 // ---------------------------------------------------------------------------
-// Market data API mock factory
+// Collaborator mock factories
 // ---------------------------------------------------------------------------
 
 function makeMarketDataApi(overrides: {
-  fetchRawItemLines?: jest.Mock;
   fetchItemOverview?: jest.Mock;
   fetchCurrencyOverview?: jest.Mock;
 } = {}) {
   return {
-    fetchRawItemLines: overrides.fetchRawItemLines ?? jest.fn().mockResolvedValue([]),
+    fetchRawItemLines: jest.fn().mockResolvedValue([]),
     fetchItemOverview: overrides.fetchItemOverview ?? jest.fn().mockResolvedValue([]),
     fetchCurrencyOverview: overrides.fetchCurrencyOverview ?? jest.fn().mockResolvedValue([]),
+  };
+}
+
+function makeDefinitionSource(defs: Array<[string, DivCardDefinition]> = []) {
+  return { fetchDefinitions: jest.fn().mockResolvedValue(new Map(defs)) };
+}
+
+function makePriceSource(prices: DivCardPrice[] = []) {
+  return { fetchPrices: jest.fn().mockResolvedValue(prices) };
+}
+
+function buildAdapter(collaborators: {
+  marketDataApi?: ReturnType<typeof makeMarketDataApi>;
+  definitionSource?: ReturnType<typeof makeDefinitionSource>;
+  priceSource?: ReturnType<typeof makePriceSource>;
+} = {}) {
+  const marketDataApi = collaborators.marketDataApi ?? makeMarketDataApi();
+  const definitionSource = collaborators.definitionSource ?? makeDefinitionSource();
+  const priceSource = collaborators.priceSource ?? makePriceSource();
+
+  const adapter = new LeagueAdapter(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    marketDataApi as any,
+    definitionSource,
+    priceSource,
+    silentLogger,
+  );
+
+  return {
+    adapter, marketDataApi, definitionSource, priceSource,
   };
 }
 
@@ -90,17 +122,10 @@ describe('LeagueAdapter.fetchBatchLeagueOverview', () => {
 
   describe('yields enriched data for each league', () => {
     it('should yield one result per league provided', async () => {
-      const leagueA = buildLeague({ name: 'Settlers' });
-      const leagueB = buildLeague({ name: 'Standard' });
+      const leagueA = buildLeague({ name: 'Mirage' });
+      const leagueB = buildLeague({ name: 'Ancestors' });
+      const { adapter } = buildAdapter();
 
-      const marketDataApi = makeMarketDataApi({
-        fetchCurrencyOverview: jest.fn().mockResolvedValue([buildCurrencyItem()]),
-        fetchRawItemLines: jest.fn().mockResolvedValue([buildRawItemLine()]),
-        fetchItemOverview: jest.fn().mockResolvedValue([buildItemOverview()]),
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
       const results = await collectYields(adapter, [leagueA, leagueB]);
 
       expect(results).toHaveLength(2);
@@ -110,14 +135,8 @@ describe('LeagueAdapter.fetchBatchLeagueOverview', () => {
 
     it('should include a non-empty timestamp in each yield', async () => {
       const league = buildLeague();
-      const marketDataApi = makeMarketDataApi({
-        fetchCurrencyOverview: jest.fn().mockResolvedValue([]),
-        fetchRawItemLines: jest.fn().mockResolvedValue([]),
-        fetchItemOverview: jest.fn().mockResolvedValue([]),
-      });
+      const { adapter } = buildAdapter();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
       const results = await collectYields(adapter, [league]);
 
       expect(results[0].timestamp).toBeTruthy();
@@ -125,119 +144,124 @@ describe('LeagueAdapter.fetchBatchLeagueOverview', () => {
     });
   });
 
-  describe('DivinationCard type', () => {
-    it('should call fetchRawItemLines and build cardLines + itemMeta for divination cards', async () => {
-      const league = buildLeague({ name: 'Settlers' });
-      const rawLine = buildRawItemLine({ name: 'The Doctor' });
-      const fetchRawItemLines = jest.fn().mockResolvedValue([rawLine]);
-
-      const marketDataApi = makeMarketDataApi({
-        fetchRawItemLines,
-        fetchCurrencyOverview: jest.fn().mockResolvedValue([]),
-        fetchItemOverview: jest.fn().mockResolvedValue([]),
+  describe('divination cards (poeatlas definitions × exchange prices)', () => {
+    it('should merge price and definition into an ItemOverview, cardLine and itemMeta', async () => {
+      const league = buildLeague({ name: 'Mirage' });
+      const definition = buildDefinition({ name: 'The Doctor', stackSize: 8 });
+      const price = buildPrice({
+        slug: 'the-doctor', name: 'The Doctor', chaosValue: 500, volumePrimaryValue: 42,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
-      const results = await collectYields(adapter, [league]);
+      const { adapter } = buildAdapter({
+        definitionSource: makeDefinitionSource([['the-doctor', definition]]),
+        priceSource: makePriceSource([price]),
+      });
 
-      expect(fetchRawItemLines).toHaveBeenCalledWith('Settlers', 'DivinationCard');
+      const [result] = await collectYields(adapter, [league]);
 
-      const result = results[0];
-      expect(result.cardLines).toHaveLength(1);
-      expect(result.cardLines[0].name).toBe('The Doctor');
-      expect(result.cardLines[0].explicitModifiers).toEqual(rawLine.explicitModifiers);
+      const card = result.items.find((i) => i.name === 'The Doctor');
+      expect(card).toBeDefined();
+      expect(card?.itemClass).toBe(ItemClass.DIVINATION_CARD);
+      expect(card?.chaosValue).toBe(500);
+      expect(card?.stackSize).toBe(8);
+      expect(card?.volumePrimaryValue).toBe(42);
 
+      expect(result.cardLines).toEqual([
+        { name: 'The Doctor', explicitModifiers: definition.explicitModifiers },
+      ]);
       expect(result.itemMeta.get('The Doctor')).toEqual({
-        artFilename: rawLine.artFilename,
-        flavourText: rawLine.flavourText,
+        artFilename: definition.artFilename,
+        flavourText: definition.flavourText,
       });
     });
 
-    it('should include divination card as an ItemOverview in the items array', async () => {
-      const league = buildLeague();
-      const rawLine = buildRawItemLine({ name: 'The Doctor', chaosValue: 500, stackSize: 8 });
-      const fetchRawItemLines = jest.fn().mockResolvedValue([rawLine]);
+    it('should skip a priced card that has no definition (orphan guard) and keep the rest', async () => {
+      const league = buildLeague({ name: 'Mirage' });
+      const definition = buildDefinition({ name: 'The Doctor' });
 
-      const marketDataApi = makeMarketDataApi({
-        fetchRawItemLines,
-        fetchCurrencyOverview: jest.fn().mockResolvedValue([]),
-        fetchItemOverview: jest.fn().mockResolvedValue([]),
+      const { adapter } = buildAdapter({
+        definitionSource: makeDefinitionSource([['the-doctor', definition]]),
+        priceSource: makePriceSource([
+          buildPrice({ slug: 'the-doctor', name: 'The Doctor' }),
+          buildPrice({ slug: 'ghost-card', name: 'Ghost Card' }),
+        ]),
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
-      const results = await collectYields(adapter, [league]);
+      const [result] = await collectYields(adapter, [league]);
 
-      const doctorItem = results[0].items.find((i) => i.name === 'The Doctor');
-      expect(doctorItem).toBeDefined();
-      expect(doctorItem?.chaosValue).toBe(500);
-      expect(doctorItem?.stackSize).toBe(8);
+      const names = result.items.map((i) => i.name);
+      expect(names).toContain('The Doctor');
+      expect(names).not.toContain('Ghost Card');
+      expect(result.cardLines).toHaveLength(1);
+    });
+
+    it('should fetch definitions exactly once across multiple leagues', async () => {
+      const leagueA = buildLeague({ name: 'Mirage' });
+      const leagueB = buildLeague({ name: 'Ancestors' });
+
+      const { adapter, definitionSource, priceSource } = buildAdapter({
+        definitionSource: makeDefinitionSource([['the-doctor', buildDefinition()]]),
+        priceSource: makePriceSource([buildPrice()]),
+      });
+
+      await collectYields(adapter, [leagueA, leagueB]);
+
+      expect(definitionSource.fetchDefinitions).toHaveBeenCalledTimes(1);
+      expect(priceSource.fetchPrices).toHaveBeenCalledTimes(2);
+      expect(priceSource.fetchPrices).toHaveBeenCalledWith('Mirage');
+      expect(priceSource.fetchPrices).toHaveBeenCalledWith('Ancestors');
     });
   });
 
-  describe('non-DivinationCard types', () => {
-    it('should call fetchItemOverview for non-divination-card types', async () => {
+  describe('non-divination types (unchanged poe.ninja stash path)', () => {
+    it('should call fetchItemOverview for the unique/gem types but never for DivinationCard', async () => {
       const league = buildLeague();
       const fetchItemOverview = jest.fn().mockResolvedValue([buildItemOverview()]);
-
-      const marketDataApi = makeMarketDataApi({
-        fetchRawItemLines: jest.fn().mockResolvedValue([]),
-        fetchCurrencyOverview: jest.fn().mockResolvedValue([]),
-        fetchItemOverview,
+      const { adapter } = buildAdapter({
+        marketDataApi: makeMarketDataApi({ fetchItemOverview }),
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
       await collectYields(adapter, [league]);
 
       expect(fetchItemOverview).toHaveBeenCalledWith('Settlers', 'UniqueArmour');
-      expect(fetchItemOverview).toHaveBeenCalledWith('Settlers', 'UniqueWeapon');
       expect(fetchItemOverview).toHaveBeenCalledWith('Settlers', 'SkillGem');
+      expect(fetchItemOverview).not.toHaveBeenCalledWith('Settlers', 'DivinationCard');
     });
   });
 
   describe('error handling', () => {
-    it('should yield an error result with empty data when fetch throws', async () => {
-      const league = buildLeague({ name: 'Settlers' });
-      const networkError = new Error('Network timeout');
-
-      const marketDataApi = makeMarketDataApi({
-        fetchCurrencyOverview: jest.fn().mockRejectedValue(networkError),
-        fetchRawItemLines: jest.fn().mockResolvedValue([]),
-        fetchItemOverview: jest.fn().mockResolvedValue([]),
+    it('should yield an error result with empty data when currency fetch throws', async () => {
+      const league = buildLeague({ name: 'Mirage' });
+      const { adapter } = buildAdapter({
+        marketDataApi: makeMarketDataApi({
+          fetchCurrencyOverview: jest.fn().mockRejectedValue(new Error('Network timeout')),
+        }),
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
-      const results = await collectYields(adapter, [league]);
+      const [result] = await collectYields(adapter, [league]);
 
-      expect(results).toHaveLength(1);
-      expect(results[0].league).toBe(league);
-      expect(results[0].error).toBeInstanceOf(Error);
-      expect(results[0].items).toEqual([]);
-      expect(results[0].currency).toEqual([]);
-      expect(results[0].cardLines).toEqual([]);
-      expect(results[0].itemMeta).toEqual(new Map());
-      expect(results[0].timestamp).toBe('');
+      expect(result.league).toBe(league);
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.items).toEqual([]);
+      expect(result.currency).toEqual([]);
+      expect(result.cardLines).toEqual([]);
+      expect(result.itemMeta).toEqual(new Map());
+      expect(result.timestamp).toBe('');
     });
 
-    it('should continue yielding subsequent leagues after one fails', async () => {
-      const leagueA = buildLeague({ name: 'Settlers' });
-      const leagueB = buildLeague({ name: 'Standard' });
+    it('should yield an error for a league whose price fetch fails, then continue', async () => {
+      const leagueA = buildLeague({ name: 'Mirage' });
+      const leagueB = buildLeague({ name: 'Ancestors' });
 
-      const fetchCurrencyOverview = jest.fn()
-        .mockRejectedValueOnce(new Error('Timeout'))
+      const fetchPrices = jest.fn()
+        .mockRejectedValueOnce(new Error('exchange 404'))
         .mockResolvedValueOnce([]);
 
-      const marketDataApi = makeMarketDataApi({
-        fetchCurrencyOverview,
-        fetchRawItemLines: jest.fn().mockResolvedValue([]),
-        fetchItemOverview: jest.fn().mockResolvedValue([]),
+      const { adapter } = buildAdapter({
+        definitionSource: makeDefinitionSource([['the-doctor', buildDefinition()]]),
+        priceSource: { fetchPrices },
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = new LeagueAdapter(marketDataApi as any, silentLogger);
       const results = await collectYields(adapter, [leagueA, leagueB]);
 
       expect(results).toHaveLength(2);

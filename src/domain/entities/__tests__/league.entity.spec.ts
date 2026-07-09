@@ -39,8 +39,13 @@ describe('League.isEligible', () => {
     expect(league.isEligible()).toBe(false);
   });
 
-  it('should return false for a league that has not started', () => {
-    const league = buildLeague({ startAt: null });
+  it('should return false for the Standard league', () => {
+    const league = buildLeague({ name: 'Standard' });
     expect(league.isEligible()).toBe(false);
+  });
+
+  it('should return true for a league with null startAt (index-state omits start dates)', () => {
+    const league = buildLeague({ startAt: null });
+    expect(league.isEligible()).toBe(true);
   });
 });

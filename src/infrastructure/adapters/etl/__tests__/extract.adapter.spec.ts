@@ -173,10 +173,10 @@ describe('ExtractAdapter.extract', () => {
       const ssf = buildLeague({ name: 'Settlers SSF', ruleIds: ['NoParties'] });
       const consoleLeague = buildLeague({ name: 'Settlers', realm: 'sony' });
       const hardcore = buildLeague({ name: 'Hardcore' });
-      const noStart = buildLeague({ name: 'Beta', startAt: null });
+      const standard = buildLeague({ name: 'Standard' });
 
       const leagueRepository = makeLeagueRepository(
-        [eligible, ssf, consoleLeague, hardcore, noStart],
+        [eligible, ssf, consoleLeague, hardcore, standard],
       );
       const rewardParser = makeRewardParser([buildCard('The Doctor')]);
       const leagueAdapter = makeLeagueAdapter([buildEnrichedYield(eligible)]);

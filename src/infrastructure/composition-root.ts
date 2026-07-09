@@ -5,8 +5,10 @@ import { TrustValidationService } from '@domain/services/trust-validation.servic
 import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
 import { RewardParserService } from '@domain/services/reward-parser.service';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
-import { PoeApiService } from '@infrastructure/adapters/http/poe-api.service';
+import { PoeNinjaLeagueService } from '@infrastructure/adapters/http/poe-ninja-league.service';
 import { PoeNinjaService } from '@infrastructure/adapters/http/poe-ninja.service';
+import { PoeAtlasService } from '@infrastructure/adapters/http/poe-atlas.service';
+import { PoeNinjaExchangeService } from '@infrastructure/adapters/http/poe-ninja-exchange.service';
 import { LeagueRepository } from '@infrastructure/adapters/persistence/league.repository';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
@@ -44,10 +46,17 @@ const s3Client = new S3Client({
 
 // Infrastructure
 const httpClient = new HttpClient();
-const poeApiService = new PoeApiService(httpClient);
+const poeNinjaLeagueService = new PoeNinjaLeagueService(httpClient, logger);
 const poeNinjaService = new PoeNinjaService(httpClient, logger);
-const leagueRepository = new LeagueRepository(poeApiService);
-const leagueAdapter = new LeagueAdapter(poeNinjaService, logger);
+const divCardDefinitionSource = new PoeAtlasService(httpClient, logger);
+const divCardPriceSource = new PoeNinjaExchangeService(httpClient, logger);
+const leagueRepository = new LeagueRepository(poeNinjaLeagueService);
+const leagueAdapter = new LeagueAdapter(
+  poeNinjaService,
+  divCardDefinitionSource,
+  divCardPriceSource,
+  logger,
+);
 
 // Domain services
 const rewardParser = new RewardParserService(logger);

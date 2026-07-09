@@ -129,12 +129,12 @@ describe('ArbitrageEvaluatorService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null when trust validation fails due to low card count', () => {
+      it('should accept a card with zero traded volume (volume floor default 0 = max coverage)', () => {
         const cardOverview = new ItemOverview({
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
-          count: 5, // Below MIN_TRUST_COUNT of 10
+          volumePrimaryValue: 0, // no liquidity, but floor is 0 so it still passes
           stackSize: 8,
         });
 
@@ -155,12 +155,12 @@ describe('ArbitrageEvaluatorService', () => {
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(result).toBeNull();
+        expect(result).not.toBeNull();
       });
 
-      it('should use lower trust threshold for divination card chain rewards', () => {
-        // The Nurse (count:7) → The Doctor (count:7): below MIN_TRUST_COUNT=10 but above
-        // MIN_DIV_CHAIN_TRUST_COUNT=5, so the chain should pass trust validation
+      it('should produce a card→card chain reward via the volume floor (no listing count)', () => {
+        // The Nurse → The Doctor: div-card reward has no listing count post-migration.
+        // With the default floor 0, the chain still produces a row (FR10 regression guard).
         const nurseCard = new DivinationCard(
           'The Nurse',
           'The Doctor',
@@ -171,7 +171,7 @@ describe('ArbitrageEvaluatorService', () => {
           name: 'The Nurse',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 100,
-          count: 7,
+          volumePrimaryValue: 0,
           stackSize: 9,
         });
 
@@ -179,7 +179,7 @@ describe('ArbitrageEvaluatorService', () => {
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 5000,
-          count: 7,
+          volumePrimaryValue: 0,
           stackSize: 8,
         });
 
@@ -191,8 +191,9 @@ describe('ArbitrageEvaluatorService', () => {
         expect(result?.card.name).toBe('The Nurse');
       });
 
-      it('should still skip non-div-card rewards with count below MIN_TRUST_COUNT', () => {
-        // Regular unique reward with count=7 should still be rejected (threshold=10)
+      it('should still skip a non-div-card reward whose listing count is below the threshold', () => {
+        // Unique reward with count=7 (< MIN_TRUST_COUNT=10) is rejected on the reward
+        // side; the count gate for non-div rewards is unchanged by the migration.
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
@@ -203,7 +204,7 @@ describe('ArbitrageEvaluatorService', () => {
           name: 'The Doctor',
           itemClass: ItemClass.DIVINATION_CARD,
           chaosValue: 500,
-          count: 7, // Below MIN_TRUST_COUNT=10
+          volumePrimaryValue: 50, // card side passes the volume floor
           stackSize: 8,
         });
 
@@ -211,7 +212,7 @@ describe('ArbitrageEvaluatorService', () => {
           name: 'Headhunter',
           itemClass: ItemClass.UNIQUE,
           chaosValue: 5000,
-          count: 20,
+          count: 7, // Below MIN_TRUST_COUNT=10
         });
 
         leagueData.items = [cardOverview, rewardOverview];

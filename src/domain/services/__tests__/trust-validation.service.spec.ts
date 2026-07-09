@@ -3,12 +3,12 @@ import { ItemOverview } from '@domain/value-objects/item-overview';
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 
-function makeCardPrice(count?: number): ItemOverview {
+function makeCardPrice(volumePrimaryValue?: number): ItemOverview {
   return new ItemOverview({
     name: 'The Doctor',
     itemClass: ItemClass.DIVINATION_CARD,
     chaosValue: 1000,
-    count,
+    volumePrimaryValue,
   });
 }
 
@@ -21,6 +21,15 @@ function makeItemReward(count?: number): ItemOverview {
   });
 }
 
+function makeDivCardReward(volumePrimaryValue?: number): ItemOverview {
+  return new ItemOverview({
+    name: 'The Nurse',
+    itemClass: ItemClass.DIVINATION_CARD,
+    chaosValue: 200,
+    volumePrimaryValue,
+  });
+}
+
 function makeCurrency(name: string, receiveCount?: number): CurrencyItem {
   return new CurrencyItem({
     currencyTypeName: name,
@@ -29,65 +38,56 @@ function makeCurrency(name: string, receiveCount?: number): CurrencyItem {
   });
 }
 
+const MIN_TRUST = 10;
+const NO_VOLUME_FLOOR = 0;
+const POSITIVE_FLOOR = 5;
+
 describe('TrustValidationService', () => {
   let service: TrustValidationService;
-  const MIN_TRUST = 10;
 
   beforeEach(() => {
     service = new TrustValidationService();
   });
 
-  describe('card trust validation', () => {
-    it('should be valid when card count meets trust threshold', () => {
+  describe('card-side trust (volume floor)', () => {
+    it('should accept any card when the floor is 0 (default: no volume filtering)', () => {
       const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
+        makeCardPrice(0),
         makeItemReward(20),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(true);
-      expect(result.reason).toBeUndefined();
     });
 
-    it('should be invalid when card count is below trust threshold', () => {
+    it('should reject a card below a positive volume floor', () => {
+      const result = service.validateCardRewardTrust(
+        makeCardPrice(2),
+        makeItemReward(20),
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.reason).toContain('volume');
+    });
+
+    it('should accept a card exactly at a positive volume floor', () => {
       const result = service.validateCardRewardTrust(
         makeCardPrice(5),
         makeItemReward(20),
-        MIN_TRUST,
-      );
-
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('Card price count');
-    });
-
-    it('should be valid when card count is exactly at threshold', () => {
-      const result = service.validateCardRewardTrust(
-        makeCardPrice(10),
-        makeItemReward(20),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
       );
 
       expect(result.isValid).toBe(true);
     });
-
-    it('should be invalid when card count is undefined (defaults to 0)', () => {
-      const result = service.validateCardRewardTrust(
-        makeCardPrice(undefined),
-        makeItemReward(20),
-        MIN_TRUST,
-      );
-
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('Card price count');
-    });
   });
 
-  describe('item reward trust validation', () => {
+  describe('item reward trust (listing count, unchanged)', () => {
     it('should be valid when item reward count meets threshold', () => {
       const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
+        makeCardPrice(50),
         makeItemReward(20),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(true);
@@ -95,9 +95,9 @@ describe('TrustValidationService', () => {
 
     it('should be invalid when item reward count is below threshold', () => {
       const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
+        makeCardPrice(50),
         makeItemReward(3),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(false);
@@ -105,12 +105,45 @@ describe('TrustValidationService', () => {
     });
   });
 
-  describe('currency reward trust validation', () => {
+  describe('div-chain reward trust (volume floor) — FR10 regression guard', () => {
+    it('should produce a card→card reward with floor 0 even when it has no count/volume', () => {
+      const result = service.validateCardRewardTrust(
+        makeCardPrice(50),
+        makeDivCardReward(0),
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
+      );
+
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject a div-chain reward below a positive volume floor', () => {
+      const result = service.validateCardRewardTrust(
+        makeCardPrice(50),
+        makeDivCardReward(2),
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.reason).toContain('volume');
+    });
+
+    it('should accept a div-chain reward at/above a positive volume floor', () => {
+      const result = service.validateCardRewardTrust(
+        makeCardPrice(50),
+        makeDivCardReward(5),
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
+      );
+
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  describe('currency reward trust (receive count, unchanged)', () => {
     it('should be valid when currency receive count meets threshold', () => {
       const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
+        makeCardPrice(50),
         makeCurrency('Exalted Orb', 15),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(true);
@@ -118,20 +151,9 @@ describe('TrustValidationService', () => {
 
     it('should be invalid when currency receive count is below threshold', () => {
       const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
+        makeCardPrice(50),
         makeCurrency('Exalted Orb', 2),
-        MIN_TRUST,
-      );
-
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('Currency receive count');
-    });
-
-    it('should be invalid when currency has no receive field (defaults to 0)', () => {
-      const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
-        makeCurrency('Exalted Orb'),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(false);
@@ -140,25 +162,12 @@ describe('TrustValidationService', () => {
 
     it('should always trust Chaos Orb regardless of count', () => {
       const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
+        makeCardPrice(50),
         makeCurrency('Chaos Orb', 0),
-        MIN_TRUST,
+        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(true);
-    });
-  });
-
-  describe('combined validation', () => {
-    it('should be invalid when card passes but reward fails', () => {
-      const result = service.validateCardRewardTrust(
-        makeCardPrice(15),
-        makeItemReward(3),
-        MIN_TRUST,
-      );
-
-      expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('Reward price count');
     });
   });
 });

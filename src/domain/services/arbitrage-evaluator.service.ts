@@ -1,8 +1,6 @@
 import { DivinationCard } from '@domain/entities/card.entity';
 import { ArbitrageOpportunity } from '@domain/aggregates/arbitrage-opportunity';
 import { MarketSnapshot } from '@domain/value-objects/market-snapshot';
-import { ItemOverview } from '@domain/value-objects/item-overview';
-import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { RewardMatcherService, MarketIndex } from '@domain/services/reward-matcher.service';
 import { ArbitrageCalculationService } from '@domain/services/arbitrage-calculation.service';
 import { TrustValidationService } from '@domain/services/trust-validation.service';
@@ -18,7 +16,9 @@ import { Logger } from '@shared/logger';
 export class ArbitrageEvaluatorService implements IArbitrageEvaluator {
   private readonly MIN_TRUST_COUNT = 10;
 
-  private readonly MIN_DIV_CHAIN_TRUST_COUNT = 5;
+  // FR13: default 0 = no volume filtering — every exchange-priced card passes the
+  // card-side gate. Raise above 0 to require that much traded volume.
+  private readonly DIV_CARD_VOLUME_FLOOR = 0;
 
   constructor(
     private readonly rewardMatcher: RewardMatcherService,
@@ -53,16 +53,12 @@ export class ArbitrageEvaluatorService implements IArbitrageEvaluator {
     // Create market snapshot
     const market = new MarketSnapshot({ cardPrice, rewardPrice, leagueId });
 
-    // Validate trust (use lower threshold for div-card chain rewards)
-    const isDivCardReward = rewardPrice instanceof ItemOverview
-      && rewardPrice.itemClass === ItemClass.DIVINATION_CARD;
-    const trustThreshold = isDivCardReward
-      ? this.MIN_DIV_CHAIN_TRUST_COUNT
-      : this.MIN_TRUST_COUNT;
+    // Validate trust: div cards (card side and div-chain reward side) gate on the
+    // volume floor; unique/gem/currency rewards keep the listing-count threshold.
     const trust = this.trustValidator.validateCardRewardTrust(
       cardPrice,
       rewardPrice,
-      trustThreshold,
+      { minTrustCount: this.MIN_TRUST_COUNT, volumeFloor: this.DIV_CARD_VOLUME_FLOOR },
     );
 
     if (!trust.isValid) {

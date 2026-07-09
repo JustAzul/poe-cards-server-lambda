@@ -19,6 +19,9 @@ export class ItemOverview {
 
   readonly stackSize?: number;
 
+  /** Traded volume signal from the poe.ninja exchange endpoint (div cards only) */
+  readonly volumePrimaryValue?: number;
+
   constructor(data: {
     name: string;
     itemClass: number;
@@ -28,6 +31,7 @@ export class ItemOverview {
     gemLevel?: number;
     count?: number;
     stackSize?: number;
+    volumePrimaryValue?: number;
   }) {
     if (!data.name || typeof data.name !== 'string') {
       throw new Error('ItemOverview: name must be a non-empty string');
@@ -46,6 +50,7 @@ export class ItemOverview {
     this.gemLevel = data.gemLevel;
     this.count = data.count;
     this.stackSize = data.stackSize;
+    this.volumePrimaryValue = data.volumePrimaryValue;
   }
 
   /**
@@ -54,5 +59,13 @@ export class ItemOverview {
    */
   getCount(): number {
     return this.count ?? 0;
+  }
+
+  /**
+   * Get traded volume for div-card trust validation
+   * Returns 0 when volume is undefined — treats missing data as no liquidity
+   */
+  getVolume(): number {
+    return this.volumePrimaryValue ?? 0;
   }
 }

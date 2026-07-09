@@ -1,0 +1,34 @@
+{
+  "economyLeagues": [
+    {
+      "name": "Ancestors",
+      "url": "ancestors",
+      "displayName": "Ancestors"
+    },
+    {
+      "name": "Mirage",
+      "url": "mirage",
+      "displayName": "Mirage"
+    },
+    {
+      "name": "Hardcore Ancestors",
+      "url": "ancestorshc",
+      "displayName": "HC Ancestors"
+    },
+    {
+      "name": "Hardcore Mirage",
+      "url": "miragehc",
+      "displayName": "Hardcore Mirage"
+    },
+    {
+      "name": "Standard",
+      "url": "standard",
+      "displayName": "Standard"
+    },
+    {
+      "name": "Hardcore",
+      "url": "hardcore",
+      "displayName": "Hardcore"
+    }
+  ]
+}
