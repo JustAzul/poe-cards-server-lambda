@@ -71,6 +71,39 @@ describe('PoeAtlasService', () => {
     expect(defs.has('bowyers-dream')).toBe(true);
   });
 
+  it('should drop malformed explicitModifiers (non-array / missing text) to undefined without throwing', async () => {
+    client.get.mockResolvedValue([
+      {
+        name: 'Bad Array', detailsId: 'bad-array', stackSize: 1, explicitModifiers: 'not-an-array',
+      },
+      {
+        name: 'Bad Items', detailsId: 'bad-items', stackSize: 1, explicitModifiers: [{ optional: false }, 42],
+      },
+    ] as unknown as PoeAtlasCardDetail[]);
+
+    const defs = await service.fetchDefinitions();
+
+    expect(defs.get('bad-array')?.explicitModifiers).toBeUndefined();
+    expect(defs.get('bad-items')?.explicitModifiers).toBeUndefined();
+  });
+
+  it('should keep only well-shaped modifier entries and coerce optional to boolean', async () => {
+    client.get.mockResolvedValue([
+      {
+        name: 'Mixed',
+        detailsId: 'mixed',
+        stackSize: 1,
+        explicitModifiers: [{ text: '<uniqueitem>{Headhunter}' }, { notText: 1 }],
+      },
+    ] as unknown as PoeAtlasCardDetail[]);
+
+    const defs = await service.fetchDefinitions();
+
+    expect(defs.get('mixed')?.explicitModifiers).toEqual([
+      { text: '<uniqueitem>{Headhunter}', optional: false },
+    ]);
+  });
+
   it('should degrade to an empty map with a warn on malformed (non-array) shape', async () => {
     client.get.mockResolvedValue({ notAnArray: true } as unknown as PoeAtlasCardDetail[]);
 

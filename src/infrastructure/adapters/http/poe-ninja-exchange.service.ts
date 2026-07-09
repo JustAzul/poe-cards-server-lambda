@@ -33,10 +33,14 @@ export class PoeNinjaExchangeService implements IDivCardPriceSource {
       return [];
     }
 
+    // primaryValue is emitted as chaosValue on the contract that the primary
+    // currency IS chaos. If it drifts, degrade to empty rather than publish
+    // prices mislabelled as chaos.
     if (response.core.primary !== CHAOS_PRIMARY) {
       this.logger.warn(
-        `[PoeNinjaExchangeService] Exchange primary currency is '${response.core.primary}', expected '${CHAOS_PRIMARY}'`,
+        `[PoeNinjaExchangeService] Exchange primary currency is '${response.core.primary}', expected '${CHAOS_PRIMARY}' — degrading to no prices`,
       );
+      return [];
     }
 
     const itemsById = PoeNinjaExchangeService.indexItemsById(response.items);

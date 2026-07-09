@@ -96,15 +96,16 @@ describe('PoeNinjaExchangeService', () => {
     expect(logger.warn).toHaveBeenCalled();
   });
 
-  it('should warn when the primary currency is not chaos', async () => {
+  it('should degrade to empty with a warn when the primary currency is not chaos', async () => {
     client.get.mockResolvedValue({
       core: { primary: 'divine' },
       items: [{ id: 'the-doctor', name: 'The Doctor' }],
       lines: [{ id: 'the-doctor', primaryValue: 1, volumePrimaryValue: 1 }],
     } as PoeNinjaExchangeResponse);
 
-    await service.fetchPrices('Mirage');
+    const prices = await service.fetchPrices('Mirage');
 
+    expect(prices).toEqual([]);
     expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/primary/i));
   });
 

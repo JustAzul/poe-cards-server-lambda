@@ -2,6 +2,7 @@ import {
   DivCardDefinition,
   IDivCardDefinitionSource,
 } from '@infrastructure/ports/div-card-definition-source.port';
+import { ExplicitModifier } from '@domain/services/reward-parser.service';
 import { PoeAtlasCardDetail } from '@infrastructure/types/poeatlas.types';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 import { Logger } from '@shared/logger';
@@ -65,11 +66,28 @@ export class PoeAtlasService implements IDivCardDefinitionSource {
       slug,
       definition: {
         name: entry.name,
-        explicitModifiers: entry.explicitModifiers ?? undefined,
+        explicitModifiers: PoeAtlasService.normalizeModifiers(entry.explicitModifiers),
         artFilename: entry.artFilename,
         flavourText: entry.flavourText,
         stackSize: entry.stackSize,
       },
     };
+  }
+
+  /**
+   * Validate raw external modifiers before they reach the (unchanged) parser.
+   * Keeps only well-shaped `{ text, optional }` entries; a non-array or an
+   * all-malformed list degrades to undefined so the parser skips the card.
+   */
+  private static normalizeModifiers(raw: unknown): ExplicitModifier[] | undefined {
+    if (!Array.isArray(raw)) return undefined;
+
+    const valid = raw
+      .filter((mod): mod is { text: string; optional?: unknown } => (
+        typeof mod === 'object' && mod !== null && typeof (mod as { text?: unknown }).text === 'string'
+      ))
+      .map((mod) => ({ text: mod.text, optional: Boolean(mod.optional) }));
+
+    return valid.length > 0 ? valid : undefined;
   }
 }
