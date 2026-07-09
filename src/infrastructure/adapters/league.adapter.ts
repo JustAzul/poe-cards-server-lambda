@@ -10,6 +10,7 @@ import {
   IDivCardDefinitionSource,
 } from '@infrastructure/ports/div-card-definition-source.port';
 import { IDivCardPriceSource } from '@infrastructure/ports/div-card-price-source.port';
+import { ICurrencyPriceSource } from '@infrastructure/ports/currency-price-source.port';
 import { PoeNinjaItemMeta } from '@infrastructure/types/poe-ninja-item-meta';
 import { EnrichedLeagueDataYield } from '@infrastructure/types/enriched-league-data';
 import { Logger } from '@shared/logger';
@@ -36,14 +37,16 @@ interface DivinationCardData {
  * ETL League Data Adapter
  * Adapts the HTTP services for fetching league overview data.
  * Divination-card definitions are fetched once per run (hoisted above the
- * league loop) and merged with per-league exchange prices; uniques/gems/currency
- * keep flowing through the unchanged poe.ninja stash adapters.
+ * league loop) and merged with per-league exchange prices; div-card and currency
+ * prices come from the exchange endpoint; uniques/gems keep flowing through the
+ * unchanged poe.ninja stash adapters.
  */
 export class LeagueAdapter implements ILeagueDataAdapter {
   constructor(
     private readonly marketDataApi: IMarketDataApiWithRaw,
     private readonly definitionSource: IDivCardDefinitionSource,
     private readonly priceSource: IDivCardPriceSource,
+    private readonly currencyPriceSource: ICurrencyPriceSource,
     private readonly logger: Logger,
     private readonly itemTypes: string[] = DEFAULT_ITEM_TYPES,
   ) {}
@@ -64,7 +67,7 @@ export class LeagueAdapter implements ILeagueDataAdapter {
     this.logger.log(`Requesting league '${leagueName}' Overview..`);
 
     const [currency, { items, cardLines, itemMeta }] = await Promise.all([
-      this.marketDataApi.fetchCurrencyOverview(leagueName),
+      this.currencyPriceSource.fetchCurrencyPrices(leagueName),
       this.fetchItemsOverview(leagueName, definitions),
     ]);
 

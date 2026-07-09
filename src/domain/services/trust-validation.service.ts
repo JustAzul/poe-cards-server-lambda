@@ -34,7 +34,7 @@ export class TrustValidationService {
     }
 
     if (rewardPrice instanceof CurrencyItem) {
-      return TrustValidationService.validateCurrencyReward(rewardPrice, thresholds.minTrustCount);
+      return TrustValidationService.validateCurrencyReward(rewardPrice, thresholds.volumeFloor);
     }
 
     // Div-card reward (card→card chain) — gated on volume, not count
@@ -55,15 +55,17 @@ export class TrustValidationService {
 
   private static validateCurrencyReward(
     rewardPrice: CurrencyItem,
-    minTrustCount: number,
+    volumeFloor: number,
   ): TrustValidation {
     // Chaos Orb is always trusted (baseline currency)
     if (rewardPrice.isChaosOrb()) {
       return TrustValidation.valid();
     }
 
-    if (rewardPrice.getReceiveCount() < minTrustCount) {
-      return TrustValidation.invalid('Currency receive count below minimum trust threshold');
+    // Currency prices come from the exchange endpoint, which carries traded
+    // volume instead of a listing count — gate on the same volume floor as div cards.
+    if (rewardPrice.getVolume() < volumeFloor) {
+      return TrustValidation.invalid('Currency volume below minimum trust floor');
     }
 
     return TrustValidation.valid();

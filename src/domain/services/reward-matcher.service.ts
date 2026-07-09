@@ -52,10 +52,11 @@ export class RewardMatcherService {
     }
 
     if (!currencyByName.has(CurrencyItem.BASELINE_CURRENCY)) {
+      // Synthetic baseline used only when the currency feed lacks Chaos Orb; its
+      // liquidity is irrelevant since Chaos Orb short-circuits trust validation.
       currencyByName.set(CurrencyItem.BASELINE_CURRENCY, new CurrencyItem({
         currencyTypeName: CurrencyItem.BASELINE_CURRENCY,
         chaosEquivalent: 1,
-        receive: { count: Number.MAX_SAFE_INTEGER },
       }));
     }
 

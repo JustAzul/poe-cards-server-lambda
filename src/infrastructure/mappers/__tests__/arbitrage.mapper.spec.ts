@@ -122,7 +122,7 @@ describe('ArbitrageMapper.toDto', () => {
       const rewardPrice = new CurrencyItem({
         currencyTypeName: 'Divine Orb',
         chaosEquivalent: 200,
-        receive: { count: 50 },
+        volumePrimaryValue: 50,
       });
       const arbitrage = buildArbitrage(card, cardPrice, rewardPrice);
 
@@ -142,7 +142,7 @@ describe('ArbitrageMapper.toDto', () => {
       const rewardPrice = new CurrencyItem({
         currencyTypeName: 'Divine Orb',
         chaosEquivalent: 200,
-        receive: { count: 50 },
+        volumePrimaryValue: 50,
       });
       const arbitrage = buildArbitrage(card, cardPrice, rewardPrice);
 
@@ -290,7 +290,7 @@ describe('ArbitrageMapper.toDto', () => {
       const rewardPrice = new CurrencyItem({
         currencyTypeName: 'Exalted Orb',
         chaosEquivalent: 300,
-        receive: { count: 50 },
+        volumePrimaryValue: 50,
       });
       const arbitrage = buildArbitrage(card, cardPrice, rewardPrice);
 

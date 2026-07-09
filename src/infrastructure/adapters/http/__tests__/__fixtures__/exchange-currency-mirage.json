@@ -1,0 +1,185 @@
+{
+  "core": {
+    "items": [
+      {
+        "id": "chaos",
+        "name": "Chaos Orb",
+        "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxSYXJlIiwic2NhbGUiOjF9XQ/46a2347805/CurrencyRerollRare.png",
+        "category": "Currency",
+        "detailsId": "chaos-orb"
+      },
+      {
+        "id": "divine",
+        "name": "Divine Orb",
+        "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MX1d/ec48896769/CurrencyModValues.png",
+        "category": "Currency",
+        "detailsId": "divine-orb"
+      }
+    ],
+    "rates": {
+      "divine": 0.001843
+    },
+    "primary": "chaos",
+    "secondary": "divine"
+  },
+  "items": [
+    {
+      "id": "chaos",
+      "name": "Chaos Orb",
+      "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxSYXJlIiwic2NhbGUiOjF9XQ/46a2347805/CurrencyRerollRare.png",
+      "category": "Currency",
+      "detailsId": "chaos-orb"
+    },
+    {
+      "id": "divine",
+      "name": "Divine Orb",
+      "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MX1d/ec48896769/CurrencyModValues.png",
+      "category": "Currency",
+      "detailsId": "divine-orb"
+    },
+    {
+      "id": "fracturing-orb",
+      "name": "Fracturing Orb",
+      "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvRnJhY3R1cmluZ09yYkNvbWJpbmVkIiwic2NhbGUiOjF9XQ/3fb18e8a5b/FracturingOrbCombined.png",
+      "category": "Currency",
+      "detailsId": "fracturing-orb"
+    },
+    {
+      "id": "mirror-shard",
+      "name": "Mirror Shard",
+      "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvTWlycm9yU2hhcmQiLCJzY2FsZSI6MX1d/698183ea2b/MirrorShard.png",
+      "category": "Currency",
+      "detailsId": "mirror-shard"
+    },
+    {
+      "id": "regret",
+      "name": "Orb of Regret",
+      "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lQYXNzaXZlU2tpbGxSZWZ1bmQiLCJzY2FsZSI6MX1d/32d499f562/CurrencyPassiveSkillRefund.png",
+      "category": "Currency",
+      "detailsId": "orb-of-regret"
+    },
+    {
+      "id": "annul",
+      "name": "Orb of Annulment",
+      "image": "/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQW5udWxsT3JiIiwic2NhbGUiOjF9XQ/0858a418ac/AnnullOrb.png",
+      "category": "Currency",
+      "detailsId": "orb-of-annulment"
+    }
+  ],
+  "lines": [
+    {
+      "id": "chaos",
+      "primaryValue": 1,
+      "volumePrimaryValue": 394724,
+      "maxVolumeCurrency": "divine",
+      "maxVolumeRate": 542.5,
+      "sparkline": {
+        "totalChange": 3.26,
+        "data": [
+          2.09,
+          4.00,
+          4.21,
+          5.06,
+          3.36,
+          3.85,
+          3.26
+        ]
+      }
+    },
+    {
+      "id": "divine",
+      "primaryValue": 542.5,
+      "volumePrimaryValue": 394724,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.001843,
+      "sparkline": {
+        "totalChange": -3.17,
+        "data": [
+          -2.04,
+          -3.84,
+          -4.01,
+          -4.82,
+          -3.26,
+          -3.72,
+          -3.17
+        ]
+      }
+    },
+    {
+      "id": "fracturing-orb",
+      "primaryValue": 245.4,
+      "volumePrimaryValue": 8589,
+      "maxVolumeCurrency": "divine",
+      "maxVolumeRate": 2.21,
+      "sparkline": {
+        "totalChange": -5.22,
+        "data": [
+          0.91,
+          1.48,
+          -2.69,
+          -8.07,
+          -7.95,
+          -5.90,
+          -5.22
+        ]
+      }
+    },
+    {
+      "id": "mirror-shard",
+      "primaryValue": 43294,
+      "volumePrimaryValue": 230903,
+      "maxVolumeCurrency": "divine",
+      "maxVolumeRate": 0.01253,
+      "sparkline": {
+        "totalChange": 11.30,
+        "data": [
+          -1.48,
+          2.47,
+          1.38,
+          0.99,
+          4.75,
+          7.95,
+          11.30
+        ]
+      }
+    },
+    {
+      "id": "regret",
+      "primaryValue": 2.94,
+      "volumePrimaryValue": 2999,
+      "maxVolumeCurrency": "chaos",
+      "maxVolumeRate": 0.3407,
+      "sparkline": {
+        "totalChange": 21.54,
+        "data": [
+          24.47,
+          -13.73,
+          1.62,
+          39.07,
+          24.90,
+          35.15,
+          21.54
+        ]
+      }
+    },
+    {
+      "id": "annul",
+      "primaryValue": 46.57,
+      "volumePrimaryValue": 20794,
+      "maxVolumeCurrency": "divine",
+      "maxVolumeRate": 11.65,
+      "sparkline": {
+        "totalChange": 36.46,
+        "data": [
+          -12.53,
+          -14.74,
+          -6.98,
+          76.14,
+          44.15,
+          61.57,
+          36.46
+        ]
+      }
+    }
+  ]
+}

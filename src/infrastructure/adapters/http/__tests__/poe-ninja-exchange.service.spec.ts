@@ -96,7 +96,7 @@ describe('PoeNinjaExchangeService', () => {
     expect(logger.warn).toHaveBeenCalled();
   });
 
-  it('should degrade to empty with a warn when the primary currency is not chaos', async () => {
+  it('should degrade to empty with a warn when the base is non-chaos and has no chaos rate', async () => {
     client.get.mockResolvedValue({
       core: { primary: 'divine' },
       items: [{ id: 'the-doctor', name: 'The Doctor' }],
@@ -107,6 +107,18 @@ describe('PoeNinjaExchangeService', () => {
 
     expect(prices).toEqual([]);
     expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/primary/i));
+  });
+
+  it('should convert primaryValue to chaos when the base is divine with a chaos rate', async () => {
+    client.get.mockResolvedValue({
+      core: { primary: 'divine', secondary: 'chaos', rates: { chaos: 542.5 } },
+      items: [{ id: 'the-doctor', name: 'The Doctor' }],
+      lines: [{ id: 'the-doctor', primaryValue: 2, volumePrimaryValue: 10 }],
+    } as PoeNinjaExchangeResponse);
+
+    const [price] = await service.fetchPrices('Mirage');
+
+    expect(price.chaosValue).toBe(1085); // 2 divine * 542.5 chaos/divine
   });
 
   it('should propagate network errors (does not swallow to empty)', async () => {

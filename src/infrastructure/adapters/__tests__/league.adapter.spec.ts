@@ -1,5 +1,6 @@
 import { League } from '@domain/entities/league.entity';
 import { ItemOverview } from '@domain/value-objects/item-overview';
+import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { DivCardDefinition } from '@infrastructure/ports/div-card-definition-source.port';
@@ -64,12 +65,10 @@ function buildItemOverview(
 
 function makeMarketDataApi(overrides: {
   fetchItemOverview?: jest.Mock;
-  fetchCurrencyOverview?: jest.Mock;
 } = {}) {
   return {
     fetchRawItemLines: jest.fn().mockResolvedValue([]),
     fetchItemOverview: overrides.fetchItemOverview ?? jest.fn().mockResolvedValue([]),
-    fetchCurrencyOverview: overrides.fetchCurrencyOverview ?? jest.fn().mockResolvedValue([]),
   };
 }
 
@@ -81,25 +80,32 @@ function makePriceSource(prices: DivCardPrice[] = []) {
   return { fetchPrices: jest.fn().mockResolvedValue(prices) };
 }
 
+function makeCurrencyPriceSource(currency: CurrencyItem[] = []) {
+  return { fetchCurrencyPrices: jest.fn().mockResolvedValue(currency) };
+}
+
 function buildAdapter(collaborators: {
   marketDataApi?: ReturnType<typeof makeMarketDataApi>;
   definitionSource?: ReturnType<typeof makeDefinitionSource>;
   priceSource?: ReturnType<typeof makePriceSource>;
+  currencyPriceSource?: ReturnType<typeof makeCurrencyPriceSource>;
 } = {}) {
   const marketDataApi = collaborators.marketDataApi ?? makeMarketDataApi();
   const definitionSource = collaborators.definitionSource ?? makeDefinitionSource();
   const priceSource = collaborators.priceSource ?? makePriceSource();
+  const currencyPriceSource = collaborators.currencyPriceSource ?? makeCurrencyPriceSource();
 
   const adapter = new LeagueAdapter(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     marketDataApi as any,
     definitionSource,
     priceSource,
+    currencyPriceSource,
     silentLogger,
   );
 
   return {
-    adapter, marketDataApi, definitionSource, priceSource,
+    adapter, marketDataApi, definitionSource, priceSource, currencyPriceSource,
   };
 }
 
@@ -233,9 +239,9 @@ describe('LeagueAdapter.fetchBatchLeagueOverview', () => {
     it('should yield an error result with empty data when currency fetch throws', async () => {
       const league = buildLeague({ name: 'Mirage' });
       const { adapter } = buildAdapter({
-        marketDataApi: makeMarketDataApi({
-          fetchCurrencyOverview: jest.fn().mockRejectedValue(new Error('Network timeout')),
-        }),
+        currencyPriceSource: {
+          fetchCurrencyPrices: jest.fn().mockRejectedValue(new Error('Network timeout')),
+        },
       });
 
       const [result] = await collectYields(adapter, [league]);

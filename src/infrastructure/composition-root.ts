@@ -9,6 +9,7 @@ import { PoeNinjaLeagueService } from '@infrastructure/adapters/http/poe-ninja-l
 import { PoeNinjaService } from '@infrastructure/adapters/http/poe-ninja.service';
 import { PoeAtlasService } from '@infrastructure/adapters/http/poe-atlas.service';
 import { PoeNinjaExchangeService } from '@infrastructure/adapters/http/poe-ninja-exchange.service';
+import { PoeNinjaCurrencyExchangeService } from '@infrastructure/adapters/http/poe-ninja-currency-exchange.service';
 import { LeagueRepository } from '@infrastructure/adapters/persistence/league.repository';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
@@ -50,11 +51,13 @@ const poeNinjaLeagueService = new PoeNinjaLeagueService(httpClient, logger);
 const poeNinjaService = new PoeNinjaService(httpClient, logger);
 const divCardDefinitionSource = new PoeAtlasService(httpClient, logger);
 const divCardPriceSource = new PoeNinjaExchangeService(httpClient, logger);
+const currencyPriceSource = new PoeNinjaCurrencyExchangeService(httpClient, logger);
 const leagueRepository = new LeagueRepository(poeNinjaLeagueService);
 const leagueAdapter = new LeagueAdapter(
   poeNinjaService,
   divCardDefinitionSource,
   divCardPriceSource,
+  currencyPriceSource,
   logger,
 );
 

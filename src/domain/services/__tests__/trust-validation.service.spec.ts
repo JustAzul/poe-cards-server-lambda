@@ -30,11 +30,11 @@ function makeDivCardReward(volumePrimaryValue?: number): ItemOverview {
   });
 }
 
-function makeCurrency(name: string, receiveCount?: number): CurrencyItem {
+function makeCurrency(name: string, volumePrimaryValue?: number): CurrencyItem {
   return new CurrencyItem({
     currencyTypeName: name,
     chaosEquivalent: 100,
-    receive: receiveCount !== undefined ? { count: receiveCount } : undefined,
+    volumePrimaryValue,
   });
 }
 
@@ -138,33 +138,43 @@ describe('TrustValidationService', () => {
     });
   });
 
-  describe('currency reward trust (receive count, unchanged)', () => {
-    it('should be valid when currency receive count meets threshold', () => {
+  describe('currency reward trust (volume floor)', () => {
+    it('should accept any non-chaos currency when the floor is 0 (default)', () => {
       const result = service.validateCardRewardTrust(
         makeCardPrice(50),
-        makeCurrency('Exalted Orb', 15),
+        makeCurrency('Exalted Orb', 0),
         { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
       );
 
       expect(result.isValid).toBe(true);
     });
 
-    it('should be invalid when currency receive count is below threshold', () => {
+    it('should reject a non-chaos currency below a positive volume floor', () => {
       const result = service.validateCardRewardTrust(
         makeCardPrice(50),
         makeCurrency('Exalted Orb', 2),
-        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
       );
 
       expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('Currency receive count');
+      expect(result.reason).toContain('Currency volume');
     });
 
-    it('should always trust Chaos Orb regardless of count', () => {
+    it('should accept a non-chaos currency at/above a positive volume floor', () => {
+      const result = service.validateCardRewardTrust(
+        makeCardPrice(50),
+        makeCurrency('Exalted Orb', 5),
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
+      );
+
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should always trust Chaos Orb regardless of volume or floor', () => {
       const result = service.validateCardRewardTrust(
         makeCardPrice(50),
         makeCurrency('Chaos Orb', 0),
-        { minTrustCount: MIN_TRUST, volumeFloor: NO_VOLUME_FLOOR },
+        { minTrustCount: MIN_TRUST, volumeFloor: POSITIVE_FLOOR },
       );
 
       expect(result.isValid).toBe(true);

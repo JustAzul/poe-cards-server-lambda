@@ -1,9 +1,7 @@
 import { ItemOverview } from '@domain/value-objects/item-overview';
-import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { IMarketDataApiWithRaw } from '@infrastructure/ports/market-data-with-raw.port';
 import {
   ItemOverviewApiResponse,
-  CurrencyOverviewApiResponse,
   PoeNinjaItemLine,
 } from '@infrastructure/types/poe-ninja.types';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
@@ -59,33 +57,5 @@ export class PoeNinjaService implements IMarketDataApiWithRaw {
     }
 
     return validLines;
-  }
-
-  async fetchCurrencyOverview(league: string): Promise<CurrencyItem[]> {
-    const url = 'https://poe.ninja/poe1/api/economy/stash/current/currency/overview';
-    const response = await this.client.get<CurrencyOverviewApiResponse>(url, {
-      league,
-      type: 'Currency',
-    });
-
-    if (!Array.isArray(response.lines)) {
-      this.logger.warn('[PoeNinjaService] Unexpected response shape for Currency: missing \'lines\' array');
-      return [];
-    }
-
-    const validLines = response.lines.filter(
-      (line) => typeof line.currencyTypeName === 'string'
-        && typeof line.chaosEquivalent === 'number'
-        && !Number.isNaN(line.chaosEquivalent),
-    );
-
-    const droppedCount = response.lines.length - validLines.length;
-    if (droppedCount > 0) {
-      this.logger.warn(
-        `[PoeNinjaService] Dropped ${droppedCount} invalid Currency entries for ${league}`,
-      );
-    }
-
-    return validLines.map((line) => new CurrencyItem(line));
   }
 }

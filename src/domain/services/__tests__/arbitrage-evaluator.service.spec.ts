@@ -299,7 +299,7 @@ describe('ArbitrageEvaluatorService', () => {
         const currencyOverview = new CurrencyItem({
           currencyTypeName: 'Exalted Orb',
           chaosEquivalent: 300,
-          receive: { count: 50 },
+          volumePrimaryValue: 50,
         });
 
         const card = new DivinationCard(
@@ -341,7 +341,10 @@ describe('ArbitrageEvaluatorService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null when currency trust validation fails', () => {
+      it('should include a low-volume currency reward now that the floor defaults to 0', () => {
+        // Currency trust moved from listing count to the volume floor (default 0),
+        // so a low-volume currency reward is no longer filtered at the evaluator.
+        // The floor mechanism itself is proven in trust-validation.service.spec.
         const cardOverview = new ItemOverview({
           name: 'The Hoarder',
           itemClass: ItemClass.DIVINATION_CARD,
@@ -353,7 +356,7 @@ describe('ArbitrageEvaluatorService', () => {
         const currencyOverview = new CurrencyItem({
           currencyTypeName: 'Expensive Currency',
           chaosEquivalent: 300,
-          receive: { count: 5 }, // Below MIN_TRUST_COUNT of 10
+          volumePrimaryValue: 0,
         });
 
         const card = new DivinationCard(
@@ -367,7 +370,7 @@ describe('ArbitrageEvaluatorService', () => {
 
         const result = service.evaluateCardArbitrage(leagueData, card);
 
-        expect(result).toBeNull();
+        expect(result).toBeDefined();
       });
     });
   });
@@ -435,7 +438,7 @@ describe('ArbitrageEvaluatorService', () => {
         new CurrencyItem({
           currencyTypeName: 'Exalted Orb',
           chaosEquivalent: 200, // 200 > 25 (card cost), so profitable
-          receive: { count: 50 },
+          volumePrimaryValue: 50,
         }),
       ];
 

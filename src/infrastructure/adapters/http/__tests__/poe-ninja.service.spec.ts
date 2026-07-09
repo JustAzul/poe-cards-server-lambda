@@ -1,12 +1,9 @@
 import { PoeNinjaService } from '@infrastructure/adapters/http/poe-ninja.service';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 import { ItemOverview } from '@domain/value-objects/item-overview';
-import { CurrencyItem } from '@domain/value-objects/currency-item';
 import {
   PoeNinjaItemLine,
-  PoeNinjaCurrencyLine,
   ItemOverviewApiResponse,
-  CurrencyOverviewApiResponse,
 } from '@infrastructure/types/poe-ninja.types';
 
 function makeMockClient(): jest.Mocked<Pick<HttpClient, 'get'>> {
@@ -34,14 +31,6 @@ function makeItemLine(overrides: Partial<PoeNinjaItemLine> = {}): PoeNinjaItemLi
     artFilename: 'Headhunter.art',
     flavourText: 'Some lore text',
     explicitModifiers: [{ text: 'Adds modifier', optional: false }],
-    ...overrides,
-  };
-}
-
-function makeCurrencyLine(overrides: Partial<PoeNinjaCurrencyLine> = {}): PoeNinjaCurrencyLine {
-  return {
-    currencyTypeName: 'Exalted Orb',
-    chaosEquivalent: 200,
     ...overrides,
   };
 }
@@ -155,64 +144,6 @@ describe('PoeNinjaService', () => {
         'https://poe.ninja/poe1/api/economy/stash/current/item/overview',
         { league: 'Settlers', type: 'DivinationCard', language: 'en' },
       );
-    });
-  });
-
-  describe('fetchCurrencyOverview', () => {
-    it('returns CurrencyItem[] from a valid response', async () => {
-      const lines = [makeCurrencyLine(), makeCurrencyLine({ currencyTypeName: 'Divine Orb', chaosEquivalent: 180 })];
-      client.get.mockResolvedValue({ lines } satisfies CurrencyOverviewApiResponse);
-
-      const result = await service.fetchCurrencyOverview('Settlers');
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toBeInstanceOf(CurrencyItem);
-      expect(result[0].currencyTypeName).toBe('Exalted Orb');
-      expect(result[0].chaosEquivalent).toBe(200);
-      expect(result[1].currencyTypeName).toBe('Divine Orb');
-    });
-
-    it('returns [] and logs a warning when response has no lines array', async () => {
-      client.get.mockResolvedValue({} as CurrencyOverviewApiResponse);
-
-      const result = await service.fetchCurrencyOverview('Settlers');
-
-      expect(result).toEqual([]);
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('missing \'lines\' array'),
-      );
-    });
-
-    it('filters out entries that are missing a currencyTypeName', async () => {
-      const validLine = makeCurrencyLine({ currencyTypeName: 'Chaos Orb', chaosEquivalent: 1 });
-      const noNameLine = makeCurrencyLine({
-        currencyTypeName: undefined as unknown as string,
-      });
-      const response: CurrencyOverviewApiResponse = {
-        lines: [validLine, noNameLine],
-      };
-      client.get.mockResolvedValue(response);
-
-      const result = await service.fetchCurrencyOverview('Settlers');
-
-      expect(result).toHaveLength(1);
-      expect(result[0].currencyTypeName).toBe('Chaos Orb');
-    });
-
-    it('filters out entries with a NaN chaosEquivalent', async () => {
-      const validLine = makeCurrencyLine({ currencyTypeName: 'Chaos Orb', chaosEquivalent: 1 });
-      const nanLine = makeCurrencyLine({
-        currencyTypeName: 'Mirror of Kalandra', chaosEquivalent: NaN,
-      });
-      const response: CurrencyOverviewApiResponse = {
-        lines: [validLine, nanLine],
-      };
-      client.get.mockResolvedValue(response);
-
-      const result = await service.fetchCurrencyOverview('Settlers');
-
-      expect(result).toHaveLength(1);
-      expect(result[0].currencyTypeName).toBe('Chaos Orb');
     });
   });
 });

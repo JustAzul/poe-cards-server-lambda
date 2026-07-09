@@ -29,7 +29,7 @@ function makeCurrency(name: string, chaosEquivalent = 100): CurrencyItem {
   return new CurrencyItem({
     currencyTypeName: name,
     chaosEquivalent,
-    receive: { count: 10 },
+    volumePrimaryValue: 10,
   });
 }
 
@@ -115,14 +115,14 @@ describe('RewardMatcherService', () => {
         const existingChaosOrb = new CurrencyItem({
           currencyTypeName: 'Chaos Orb',
           chaosEquivalent: 1,
-          receive: { count: 999 },
+          volumePrimaryValue: 999,
         });
         const index = service.buildIndex([], [existingChaosOrb]);
 
         const result = service.findRewardPrice(index, card);
 
         expect(result).toBeInstanceOf(CurrencyItem);
-        expect((result as CurrencyItem).receive?.count).toBe(999);
+        expect((result as CurrencyItem).getVolume()).toBe(999);
       });
 
       it('should match currency item by currencyTypeName', () => {

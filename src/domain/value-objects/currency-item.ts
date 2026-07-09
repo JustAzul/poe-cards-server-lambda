@@ -9,16 +9,13 @@ export class CurrencyItem {
 
   readonly chaosEquivalent: number;
 
-  readonly receive?: {
-    count: number;
-  };
+  /** Traded volume signal from the poe.ninja exchange endpoint (replaces listing count) */
+  readonly volumePrimaryValue?: number;
 
   constructor(data: {
     currencyTypeName: string;
     chaosEquivalent: number;
-    receive?: {
-      count: number;
-    };
+    volumePrimaryValue?: number;
   }) {
     if (!data.currencyTypeName || typeof data.currencyTypeName !== 'string') {
       throw new Error('CurrencyItem: currencyTypeName must be a non-empty string');
@@ -28,7 +25,7 @@ export class CurrencyItem {
     }
     this.currencyTypeName = data.currencyTypeName;
     this.chaosEquivalent = data.chaosEquivalent;
-    this.receive = data.receive;
+    this.volumePrimaryValue = data.volumePrimaryValue;
   }
 
   /**
@@ -39,10 +36,10 @@ export class CurrencyItem {
   }
 
   /**
-   * Get receive count for trust validation
-   * Returns 0 when receive data is undefined — treats missing data as insufficient trust
+   * Get traded volume for currency-reward trust validation
+   * Returns 0 when volume is undefined — treats missing data as no liquidity
    */
-  getReceiveCount(): number {
-    return this.receive?.count ?? 0;
+  getVolume(): number {
+    return this.volumePrimaryValue ?? 0;
   }
 }
