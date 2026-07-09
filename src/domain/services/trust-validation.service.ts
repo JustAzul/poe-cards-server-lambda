@@ -5,8 +5,9 @@ import { TrustValidation } from '@domain/value-objects/trust-validation';
 
 /**
  * Trust thresholds applied when validating a card→reward pair.
- * `minTrustCount` gates count-priced rewards (uniques/gems/currency);
- * `volumeFloor` gates volume-priced div cards (card side and div-chain reward side).
+ * `minTrustCount` gates count-priced rewards (uniques/gems);
+ * `volumeFloor` gates volume-priced rewards (div cards — card side and div-chain
+ * reward side — and currency).
  */
 export interface TrustThresholds {
   minTrustCount: number;
@@ -17,10 +18,10 @@ export interface TrustThresholds {
  * Trust Validation Service - Domain Service
  * Encapsulates business rules for price data reliability validation.
  *
- * Div cards are priced via the poe.ninja exchange endpoint, which carries a
- * traded-volume signal instead of a listing count — so the card being bought and
- * any div-card reward in a card→card chain are gated on a volume floor. Non-div
- * rewards (unique/gem/currency) keep the listing-count gate.
+ * Div cards and currency are priced via the poe.ninja exchange endpoint, which
+ * carries a traded-volume signal instead of a listing count — so the card being
+ * bought, any div-card reward in a card→card chain, and currency rewards are gated
+ * on a volume floor. Unique/gem rewards keep the listing-count gate.
  */
 export class TrustValidationService {
   validateCardRewardTrust(
