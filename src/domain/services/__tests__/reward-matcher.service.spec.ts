@@ -341,7 +341,10 @@ describe('RewardMatcherService', () => {
         expect(warnMessages[0]).toContain('no 0-link listing');
       });
 
-      it('should match the lowest listed tier for another intrinsically-linked base type (Shadowstitch)', () => {
+      it('should select the lowest listed tier among multiple listings for another '
+        + 'intrinsically-linked base type (Shadowstitch)', () => {
+        // Synthetic multi-tier fixture exercising the allowlist branch's tier-selection
+        // logic — not a claim about Shadowstitch's real market listings.
         const card = new DivinationCard(
           'Test Card',
           'Shadowstitch',
@@ -349,14 +352,18 @@ describe('RewardMatcherService', () => {
         );
         const index = service.buildIndex([
           makeItem({
-            name: 'Shadowstitch', itemClass: ItemClass.UNIQUE, chaosValue: 500, links: 6,
+            name: 'Shadowstitch', itemClass: ItemClass.UNIQUE, chaosValue: 500, links: 6, count: 5,
+          }),
+          makeItem({
+            name: 'Shadowstitch', itemClass: ItemClass.UNIQUE, chaosValue: 450, links: 5, count: 3,
           }),
         ], []);
 
         const result = service.findRewardPrice(index, card);
 
         expect(result).not.toBeNull();
-        expect((result as ItemOverview).name).toBe('Shadowstitch');
+        expect((result as ItemOverview).links).toBe(5);
+        expect((result as ItemOverview).chaosValue).toBe(450);
       });
 
       it('should match relic variant (itemClass 10) for unique rewards', () => {

@@ -154,30 +154,42 @@ export class RewardMatcherService {
    * null instead of guessing.
    */
   private matchLinkTier(card: DivinationCard, matches: ItemOverview[]): ItemOverview | null {
-    if (!RewardMatcherService.INTRINSICALLY_LINKED_UNIQUES.has(card.reward)) {
-      const zeroLinkMatches = matches.filter((item) => (item.links ?? 0) === 0);
+    return RewardMatcherService.INTRINSICALLY_LINKED_UNIQUES.has(card.reward)
+      ? this.matchIntrinsicallyLinkedTier(card, matches)
+      : this.matchOrdinaryUniqueZeroLink(card, matches);
+  }
 
-      if (zeroLinkMatches.length === 0) {
-        this.logger.warn(
-          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" has no 0-link `
-          + `listing among ${matches.length} candidate(s); skipping (not an `
-          + 'intrinsically-linked base type)',
-        );
-        return null;
-      }
+  private matchOrdinaryUniqueZeroLink(
+    card: DivinationCard,
+    matches: ItemOverview[],
+  ): ItemOverview | null {
+    const zeroLinkMatches = matches.filter((item) => (item.links ?? 0) === 0);
 
-      if (zeroLinkMatches.length < matches.length) {
-        this.logger.warn(
-          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
-          + `${matches.length} link-tier variants; selected the 0-link variant`,
-        );
-      }
-
-      return zeroLinkMatches.length === 1
-        ? zeroLinkMatches[0]
-        : RewardMatcherService.pickHighestCount(this.logger, card, zeroLinkMatches);
+    if (zeroLinkMatches.length === 0) {
+      this.logger.warn(
+        `[RewardMatcher] Card "${card.name}" reward "${card.reward}" has no 0-link `
+        + `listing among ${matches.length} candidate(s); skipping (not an `
+        + 'intrinsically-linked base type)',
+      );
+      return null;
     }
 
+    if (zeroLinkMatches.length < matches.length) {
+      this.logger.warn(
+        `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
+        + `${matches.length} link-tier variants; selected the 0-link variant`,
+      );
+    }
+
+    return zeroLinkMatches.length === 1
+      ? zeroLinkMatches[0]
+      : RewardMatcherService.pickHighestCount(this.logger, card, zeroLinkMatches);
+  }
+
+  private matchIntrinsicallyLinkedTier(
+    card: DivinationCard,
+    matches: ItemOverview[],
+  ): ItemOverview {
     const minLinks = Math.min(...matches.map((item) => item.links ?? 0));
     const lowestTierMatches = matches.filter((item) => (item.links ?? 0) === minLinks);
 
