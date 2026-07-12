@@ -346,6 +346,24 @@ describe('R2LoadAdapter', () => {
     ]);
   });
 
+  it('keeps an index entry whose updatedAt is exactly 1 hour old (inclusive boundary)', async () => {
+    const existingIndexEntries = [
+      { name: 'BoundaryLeague', ladder: 'BoundaryLeague', updatedAt: agoIso(60) },
+    ];
+    const s3Client = makeS3Client(existingIndexEntries);
+    const logger = makeLogger();
+    const fanOut = makeFanOut();
+    const adapter = new R2LoadAdapter(s3Client, BUCKET, logger, fanOut);
+
+    await adapter.finalize();
+
+    const indexCall = findIndexPutCall(s3Client);
+    expect(indexCall).toBeDefined();
+
+    const indexBody = JSON.parse((indexCall![0] as PutObjectCommand).input.Body as string);
+    expect(indexBody).toEqual(existingIndexEntries);
+  });
+
   it('keeps an index entry whose updatedAt is less than 1 hour old', async () => {
     const existingIndexEntries = [
       { name: 'FreshLeague', ladder: 'FreshLeague', updatedAt: agoIso(59) },
