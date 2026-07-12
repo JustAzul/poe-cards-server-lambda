@@ -254,10 +254,10 @@ describe('RewardMatcherService', () => {
         expect((result as ItemOverview).name).toBe('Empower Support');
       });
 
-      it('should return null when a non-gem item\'s only listing is linked (no base variant)', () => {
-        // No divination-card mechanic grants a pre-linked unique, so a linked-only
-        // listing is never the correct price for this reward — better to report
-        // "no price" than silently value the card off the wrong (linked) tier.
+      it('should match an intrinsically-linked unique with no 0-link listing (Tabula Rasa)', () => {
+        // Tabula Rasa always has 6 linked white sockets — an unlinked Tabula Rasa
+        // cannot exist, and the "Humility" card grants exactly this item. The
+        // lowest available tier (6, here) is the correct match, not a rejection.
         const card = new DivinationCard(
           'Humility',
           'Tabula Rasa',
@@ -273,14 +273,16 @@ describe('RewardMatcherService', () => {
 
         const result = service.findRewardPrice(index, card);
 
-        expect(result).toBeNull();
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).name).toBe('Tabula Rasa');
       });
 
       it('should prefer the 0-link variant when a unique has multiple link-tier listings', () => {
-        // Regression: divination cards never grant a pre-linked unique — poe.ninja
-        // can list the same name at several link tiers with wildly different prices
-        // (e.g. "The Searing Touch": None/6/5/6/None), and the old highest-count
-        // tie-break could silently pick a far more expensive linked variant.
+        // Regression: ordinary unique-granting cards give the base/unlinked item —
+        // poe.ninja can list the same name at several link tiers with wildly
+        // different prices (e.g. "The Searing Touch": None/6/5/6/None), and the
+        // old highest-count tie-break could silently pick a far more expensive
+        // linked variant.
         const warnMessages: string[] = [];
         // eslint-disable-next-line no-empty-function, max-len
         const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
@@ -306,10 +308,10 @@ describe('RewardMatcherService', () => {
         expect((result as ItemOverview).chaosValue).toBe(45);
         expect(warnMessages).toHaveLength(1);
         expect(warnMessages[0]).toContain('link-tier variants');
-        expect(warnMessages[0]).toContain('0-link/base variant');
+        expect(warnMessages[0]).toContain('0-link variant');
       });
 
-      it('should return null when no 0-link variant exists among several linked listings', () => {
+      it('should select the lowest linked tier when no 0-link variant exists', () => {
         const warnMessages: string[] = [];
         // eslint-disable-next-line no-empty-function, max-len
         const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
@@ -331,8 +333,9 @@ describe('RewardMatcherService', () => {
 
         const result = serviceWithLogger.findRewardPrice(index, card);
 
-        expect(result).toBeNull();
-        expect(warnMessages.some((m) => m.includes('no 0-link/base variant') || m.includes('no valid price'))).toBe(true);
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).links).toBe(5);
+        expect(warnMessages[0]).toContain('5-link variant');
       });
 
       it('should match relic variant (itemClass 10) for unique rewards', () => {

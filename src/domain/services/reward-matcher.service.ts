@@ -94,10 +94,7 @@ export class RewardMatcherService {
    * ignores corruption — poe.ninja never lists the same unique at both
    * corrupted and non-corrupted, so there's no tier to disambiguate. Link
    * tier DOES vary per listing for uniques, so when a name resolves to
-   * several link-tier candidates, prefer the 0-link/base variant: no
-   * divination-card mechanic grants a pre-linked unique (cards that grant
-   * links only ever grant normal/base items, which parseItemTag already
-   * excludes via UNSUPPORTED_TAGS).
+   * several link-tier candidates, delegate to matchLowestLinkTier.
    */
   private matchItem(
     index: MarketIndex,
@@ -124,28 +121,35 @@ export class RewardMatcherService {
     if (matches.length === 0) return null;
 
     if (!isGem) {
-      const baseLinkMatches = matches.filter((item) => (item.links ?? 0) === 0);
-      if (baseLinkMatches.length === 0) {
-        this.logger.warn(
-          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" only has `
-          + 'linked-tier listings (no 0-link/base variant); no valid price',
-        );
-        return null;
-      }
-      if (baseLinkMatches.length < matches.length) {
-        this.logger.warn(
-          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
-          + `${matches.length} link-tier variants; selected the 0-link/base variant`,
-        );
-      }
-      return baseLinkMatches.length === 1
-        ? baseLinkMatches[0]
-        : RewardMatcherService.pickHighestCount(this.logger, card, baseLinkMatches);
+      return this.matchLowestLinkTier(card, matches);
     }
 
     return matches.length === 1
       ? matches[0]
       : RewardMatcherService.pickHighestCount(this.logger, card, matches);
+  }
+
+  /**
+   * Divination cards grant the lowest link tier a unique can exist at — 0 for
+   * an ordinary unique, but some base types (e.g. Tabula Rasa, always 6
+   * linked white sockets — see the "Humility" card) can never exist unlinked.
+   * Picking whichever tier is lowest among the actual market listings covers
+   * both cases without assuming 0 is always reachable.
+   */
+  private matchLowestLinkTier(card: DivinationCard, matches: ItemOverview[]): ItemOverview {
+    const minLinks = Math.min(...matches.map((item) => item.links ?? 0));
+    const lowestTierMatches = matches.filter((item) => (item.links ?? 0) === minLinks);
+
+    if (lowestTierMatches.length < matches.length) {
+      this.logger.warn(
+        `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
+        + `${matches.length} link-tier variants; selected the ${minLinks}-link variant`,
+      );
+    }
+
+    return lowestTierMatches.length === 1
+      ? lowestTierMatches[0]
+      : RewardMatcherService.pickHighestCount(this.logger, card, lowestTierMatches);
   }
 
   /**
