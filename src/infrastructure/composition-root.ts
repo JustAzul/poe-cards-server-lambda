@@ -5,12 +5,11 @@ import { TrustValidationService } from '@domain/services/trust-validation.servic
 import { ArbitrageEvaluatorService } from '@domain/services/arbitrage-evaluator.service';
 import { RewardParserService } from '@domain/services/reward-parser.service';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
-import { PoeNinjaLeagueService } from '@infrastructure/adapters/http/poe-ninja-league.service';
+import { PoeNinjaLeagueSource } from '@infrastructure/adapters/http/poe-ninja-league.source';
 import { PoeNinjaService } from '@infrastructure/adapters/http/poe-ninja.service';
 import { PoeAtlasService } from '@infrastructure/adapters/http/poe-atlas.service';
 import { PoeNinjaExchangeService } from '@infrastructure/adapters/http/poe-ninja-exchange.service';
 import { PoeNinjaCurrencyExchangeService } from '@infrastructure/adapters/http/poe-ninja-currency-exchange.service';
-import { LeagueRepository } from '@infrastructure/adapters/persistence/league.repository';
 import { LeagueAdapter } from '@infrastructure/adapters/league.adapter';
 import { ExtractAdapter } from '@infrastructure/adapters/etl/extract.adapter';
 import { TransformAdapter } from '@infrastructure/adapters/etl/transform.adapter';
@@ -47,12 +46,11 @@ const s3Client = new S3Client({
 
 // Infrastructure
 const httpClient = new HttpClient();
-const poeNinjaLeagueService = new PoeNinjaLeagueService(httpClient, logger);
+const poeNinjaLeagueSource = new PoeNinjaLeagueSource(httpClient, logger);
 const poeNinjaService = new PoeNinjaService(httpClient, logger);
 const divCardDefinitionSource = new PoeAtlasService(httpClient, logger);
 const divCardPriceSource = new PoeNinjaExchangeService(httpClient, logger);
 const currencyPriceSource = new PoeNinjaCurrencyExchangeService(httpClient, logger);
-const leagueRepository = new LeagueRepository(poeNinjaLeagueService);
 const leagueAdapter = new LeagueAdapter(
   poeNinjaService,
   divCardDefinitionSource,
@@ -69,7 +67,12 @@ const trustValidator = new TrustValidationService();
 const evaluator = new ArbitrageEvaluatorService(rewardMatcher, calculator, trustValidator, logger);
 
 // ETL adapters
-const extractAdapter = new ExtractAdapter(leagueRepository, rewardParser, leagueAdapter, logger);
+const extractAdapter = new ExtractAdapter(
+  poeNinjaLeagueSource,
+  rewardParser,
+  leagueAdapter,
+  logger,
+);
 const transformAdapter = new TransformAdapter(evaluator, logger);
 const fanOutService = new FanOutService(logger);
 const loadAdapter = new R2LoadAdapter(s3Client, r2Bucket, logger, fanOutService);

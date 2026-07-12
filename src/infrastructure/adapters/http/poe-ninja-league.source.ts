@@ -1,4 +1,5 @@
-import { ILeagueApi, RawLeagueData } from '@domain/ports/http-service.port';
+import { ILeagueRepository } from '@domain/repositories/league.repository';
+import { League } from '@domain/entities/league.entity';
 import { PoeNinjaIndexStateResponse } from '@infrastructure/types/poe-ninja-index-state.types';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 import { Logger } from '@shared/logger';
@@ -12,13 +13,13 @@ const DEFAULT_REALM = 'pc';
  * scoped to PC economy leagues, so the mapped defaults pass eligibility and the
  * only downstream filter is the name exclusion in League.isEligible().
  */
-export class PoeNinjaLeagueService implements ILeagueApi {
+export class PoeNinjaLeagueSource implements ILeagueRepository {
   constructor(
     private readonly client: HttpClient,
     private readonly logger: Logger,
   ) {}
 
-  async fetchLeagues(): Promise<RawLeagueData[]> {
+  async getAllLeagues(): Promise<League[]> {
     const response = await this.client.get<PoeNinjaIndexStateResponse>(INDEX_STATE_URL);
 
     if (!Array.isArray(response?.economyLeagues)) {
@@ -32,17 +33,17 @@ export class PoeNinjaLeagueService implements ILeagueApi {
 
     const droppedCount = response.economyLeagues.length - validLeagues.length;
     if (droppedCount > 0) {
-      this.logger.warn(`[PoeNinjaLeagueService] Dropped ${droppedCount} malformed economy league entries`);
+      this.logger.warn(`[PoeNinjaLeagueSource] Dropped ${droppedCount} malformed economy league entries`);
     }
 
-    return validLeagues.map((league) => ({
+    return validLeagues.map((league) => new League({
       name: league.name,
-      url: league.url,
+      ladder: league.url,
       delveEvent: false,
       realm: DEFAULT_REALM,
       startAt: null,
       endAt: null,
-      rules: [],
+      ruleIds: [],
     }));
   }
 }
