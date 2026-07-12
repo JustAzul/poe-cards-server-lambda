@@ -185,4 +185,17 @@ describe('FanOutService.notifyLeagueUpdated', () => {
       expect.anything(),
     );
   });
+
+  it('warns about the missing BROADCAST_URL even when revalidate fails after retries', async () => {
+    process.env.REVALIDATE_URL = 'https://example.com/api/revalidate';
+    delete process.env.BROADCAST_URL;
+    mockedAxiosPost.mockRejectedValue(new Error('network error'));
+    const logger = makeLogger();
+
+    const fanOut = new FanOutService(logger);
+    await fanOut.notifyLeagueUpdated('Standard');
+
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('BROADCAST_URL not set'));
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('revalidate for Standard failed'));
+  });
 });

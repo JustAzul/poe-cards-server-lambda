@@ -26,24 +26,19 @@ export class FanOutService {
       return;
     }
 
-    let revalidated = true;
-    if (revalidateUrl) {
-      revalidated = await this.postWithRetry(
+    if (!revalidateUrl) this.warnMissingRevalidateUrlOnce();
+    if (!broadcastUrl) this.warnMissingBroadcastUrlOnce();
+
+    const revalidated = revalidateUrl
+      ? await this.postWithRetry(
         revalidateUrl,
         { leagueName },
         process.env.REVALIDATE_SECRET,
         `revalidate for ${leagueName}`,
-      );
-    } else {
-      this.warnMissingRevalidateUrlOnce();
-    }
+      )
+      : true;
 
-    if (!revalidated) return;
-
-    if (!broadcastUrl) {
-      this.warnMissingBroadcastUrlOnce();
-      return;
-    }
+    if (!revalidated || !broadcastUrl) return;
 
     await this.postWithRetry(
       `${broadcastUrl}/${encodeURIComponent(leagueName)}`,
