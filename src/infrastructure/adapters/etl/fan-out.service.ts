@@ -21,13 +21,7 @@ export class FanOutService {
     const revalidateUrl = process.env.REVALIDATE_URL;
     const broadcastUrl = process.env.BROADCAST_URL;
 
-    if (!revalidateUrl && !broadcastUrl) {
-      this.warnMissingConfigOnce();
-      return;
-    }
-
-    if (!revalidateUrl) this.warnMissingRevalidateUrlOnce();
-    if (!broadcastUrl) this.warnMissingBroadcastUrlOnce();
+    if (!this.warnAndCheckLeagueConfig(revalidateUrl, broadcastUrl)) return;
 
     const revalidated = revalidateUrl
       ? await this.postWithRetry(
@@ -68,6 +62,26 @@ export class FanOutService {
       process.env.REVALIDATE_SECRET,
       'revalidate for index update',
     );
+  }
+
+  /**
+   * Validates league fan-out config, warning once per gap. Returns false only when
+   * both URLs are missing (nothing to do); a single missing URL still warns but
+   * lets the other, configured notification proceed.
+   */
+  private warnAndCheckLeagueConfig(
+    revalidateUrl: string | undefined,
+    broadcastUrl: string | undefined,
+  ): boolean {
+    if (!revalidateUrl && !broadcastUrl) {
+      this.warnMissingConfigOnce();
+      return false;
+    }
+
+    if (!revalidateUrl) this.warnMissingRevalidateUrlOnce();
+    if (!broadcastUrl) this.warnMissingBroadcastUrlOnce();
+
+    return true;
   }
 
   private warnMissingConfigOnce(): void {
