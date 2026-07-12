@@ -15,7 +15,7 @@ const JSON_CONTENT_TYPE = 'application/json';
 // MAX_MISSED_RUNS consecutive misses before it's dropped as stale.
 const CADENCE_MS = 5 * 60 * 1000;
 const MAX_MISSED_RUNS = 12;
-const INDEX_ENTRY_TTL_MS = CADENCE_MS * MAX_MISSED_RUNS;
+export const INDEX_ENTRY_TTL_MS = CADENCE_MS * MAX_MISSED_RUNS;
 
 // S3/R2 error names observed for a GetObject on a key that doesn't exist yet
 // (e.g. the very first run, before any index.json has been written).

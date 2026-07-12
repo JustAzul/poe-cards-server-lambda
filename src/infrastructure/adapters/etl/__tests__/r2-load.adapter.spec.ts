@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { League } from '@domain/entities/league.entity';
 import { ProfitTableRowDto } from '@infrastructure/dtos/profit-table-row.dto';
-import { R2LoadAdapter } from '@infrastructure/adapters/etl/r2-load.adapter';
+import { INDEX_ENTRY_TTL_MS, R2LoadAdapter } from '@infrastructure/adapters/etl/r2-load.adapter';
 import { FanOutService } from '@infrastructure/adapters/etl/fan-out.service';
 import { ItemClass } from '@domain/value-objects/item-class.enum';
 
@@ -17,6 +17,8 @@ const FIXED_NOW_MS = Date.parse(FIXED_NOW_ISO);
 function agoIso(minutes: number): string {
   return new Date(FIXED_NOW_MS - minutes * 60_000).toISOString();
 }
+
+const TTL_MINUTES = INDEX_ENTRY_TTL_MS / 60_000;
 
 function buildLeague(overrides: Partial<ConstructorParameters<typeof League>[0]> = {}): League {
   return new League({
@@ -346,9 +348,9 @@ describe('R2LoadAdapter', () => {
     ]);
   });
 
-  it('keeps an index entry whose updatedAt is exactly 1 hour old (inclusive boundary)', async () => {
+  it('keeps an index entry whose updatedAt is exactly at the TTL boundary (inclusive)', async () => {
     const existingIndexEntries = [
-      { name: 'BoundaryLeague', ladder: 'BoundaryLeague', updatedAt: agoIso(60) },
+      { name: 'BoundaryLeague', ladder: 'BoundaryLeague', updatedAt: agoIso(TTL_MINUTES) },
     ];
     const s3Client = makeS3Client(existingIndexEntries);
     const logger = makeLogger();
@@ -364,9 +366,9 @@ describe('R2LoadAdapter', () => {
     expect(indexBody).toEqual(existingIndexEntries);
   });
 
-  it('keeps an index entry whose updatedAt is less than 1 hour old', async () => {
+  it('keeps an index entry whose updatedAt is less than the TTL old', async () => {
     const existingIndexEntries = [
-      { name: 'FreshLeague', ladder: 'FreshLeague', updatedAt: agoIso(59) },
+      { name: 'FreshLeague', ladder: 'FreshLeague', updatedAt: agoIso(TTL_MINUTES - 1) },
     ];
     const s3Client = makeS3Client(existingIndexEntries);
     const logger = makeLogger();
