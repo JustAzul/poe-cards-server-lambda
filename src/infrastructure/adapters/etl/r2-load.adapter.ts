@@ -11,6 +11,12 @@ const LEAGUES_PREFIX = 'leagues';
 const INDEX_KEY = 'index.json';
 const JSON_CONTENT_TYPE = 'application/json';
 
+// EventBridge invokes the ETL Lambda every 5 minutes; an index entry survives up to
+// MAX_MISSED_RUNS consecutive misses before it's dropped as stale.
+const CADENCE_MS = 5 * 60 * 1000;
+const MAX_MISSED_RUNS = 12;
+const INDEX_ENTRY_TTL_MS = CADENCE_MS * MAX_MISSED_RUNS;
+
 // S3/R2 error names observed for a GetObject on a key that doesn't exist yet
 // (e.g. the very first run, before any index.json has been written).
 const MISSING_KEY_ERROR_NAMES = ['NoSuchKey', 'NotFound'] as const;
@@ -74,24 +80,71 @@ export class R2LoadAdapter implements ILoadAdapter {
   }
 
   async finalize(): Promise<void> {
-    const existingEntries = await this.fetchExistingIndex();
+    try {
+      const existingEntries = await this.fetchExistingIndex();
+      const freshEntries = this.computeFreshIndex(existingEntries);
 
-    // Merge this run's entries over the existing index by league name — a partial
-    // run (some leagues failed extraction/transform) must not erase leagues that
-    // were persisted by an earlier successful run.
+      if (this.wouldViolateZeroEntryFloor(freshEntries, existingEntries)) return;
+
+      await this.s3Client.send(new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: INDEX_KEY,
+        Body: JSON.stringify(freshEntries),
+        ContentType: JSON_CONTENT_TYPE,
+      }));
+
+      await this.fanOut.notifyIndexUpdated();
+    } finally {
+      this.reset();
+    }
+  }
+
+  /**
+   * Merges this run's entries over the existing index by league name — a fresh
+   * write from this run must override a stale entry of the same name — then drops
+   * anything that's aged past INDEX_ENTRY_TTL_MS.
+   */
+  private computeFreshIndex(existingEntries: LeagueIndexEntry[]): LeagueIndexEntry[] {
     const mergedByName = new Map(existingEntries.map((entry) => [entry.name, entry]));
     for (const entry of this.indexEntries) {
       mergedByName.set(entry.name, entry);
     }
 
-    await this.s3Client.send(new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: INDEX_KEY,
-      Body: JSON.stringify([...mergedByName.values()]),
-      ContentType: JSON_CONTENT_TYPE,
-    }));
+    return this.filterFreshEntries([...mergedByName.values()]);
+  }
 
-    this.reset();
+  /**
+   * A total-outage run can TTL-filter every entry away — refusing that overwrite
+   * (keeping the existing index, logging an error) trades self-healing for the
+   * outage-era graceful degradation the old merge-preserve behavior gave for free.
+   */
+  private wouldViolateZeroEntryFloor(
+    freshEntries: LeagueIndexEntry[],
+    existingEntries: LeagueIndexEntry[],
+  ): boolean {
+    if (freshEntries.length > 0 || existingEntries.length === 0) return false;
+
+    this.logger.error(
+      `R2LoadAdapter: TTL filter would empty a non-empty ${INDEX_KEY} `
+      + `(${existingEntries.length} existing entries) — refusing to overwrite`,
+    );
+    return true;
+  }
+
+  /**
+   * Drops any entry whose league hasn't been refreshed within INDEX_ENTRY_TTL_MS —
+   * a league that rotates out of poe.ninja's live league list (or a run that keeps
+   * failing for it) must eventually stop appearing on the homepage instead of
+   * freezing there forever.
+   */
+  private filterFreshEntries(entries: LeagueIndexEntry[]): LeagueIndexEntry[] {
+    const now = Date.now();
+    return entries.filter((entry) => {
+      const ageMs = now - Date.parse(entry.updatedAt);
+      // A negative age (or NaN, from an unparseable string) means the persisted
+      // updatedAt is corrupt or from clock skew — treat as stale, not infinitely fresh.
+      return ageMs >= 0 && ageMs <= INDEX_ENTRY_TTL_MS;
+    });
   }
 
   /** Discards this run's accumulated index entries without writing anything. */

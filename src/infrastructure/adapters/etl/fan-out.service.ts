@@ -39,6 +39,28 @@ export class FanOutService {
     );
   }
 
+  /**
+   * Notifies the revalidate endpoint that index.json changed, independent of any
+   * single league. No `leagueName` in the body — the handler always revalidates `/`
+   * and only revalidates a per-league path when `leagueName` is present. Broadcast is
+   * league-specific and is intentionally not hit here.
+   */
+  async notifyIndexUpdated(): Promise<void> {
+    const revalidateUrl = process.env.REVALIDATE_URL;
+
+    if (!revalidateUrl) {
+      this.warnMissingConfigOnce();
+      return;
+    }
+
+    await this.postWithRetry(
+      revalidateUrl,
+      {},
+      process.env.REVALIDATE_SECRET,
+      'revalidate for index update',
+    );
+  }
+
   private warnMissingConfigOnce(): void {
     if (this.warnedMissingConfig) return;
 

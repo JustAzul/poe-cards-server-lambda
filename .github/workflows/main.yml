@@ -87,6 +87,12 @@ jobs:
           --memory-size 512 \
           --environment file://lambda-env.json
           rm -f lambda-env.json
+      - name: Set reserved concurrency
+        run: |
+          aws lambda wait function-updated --function-name poe-cards
+          aws lambda put-function-concurrency \
+          --function-name poe-cards \
+          --reserved-concurrent-executions 1
       - name: Reconcile EventBridge schedule
         # Best-effort: the deploy IAM user currently has AWSLambda_FullAccess only, no
         # events:* grants, so this fails with AccessDeniedException until that's widened.
@@ -102,7 +108,7 @@ jobs:
           RULE_ARN="arn:aws:events:${AWS_REGION_NAME}:${ACCOUNT_ID}:rule/${RULE_NAME}"
           FUNCTION_ARN="arn:aws:lambda:${AWS_REGION_NAME}:${ACCOUNT_ID}:function:${FUNCTION_NAME}"
 
-          aws events put-rule --name "$RULE_NAME" --schedule-expression "rate(1 hour)" --state ENABLED
+          aws events put-rule --name "$RULE_NAME" --schedule-expression "rate(5 minutes)" --state ENABLED
           aws lambda add-permission \
             --function-name "$FUNCTION_NAME" \
             --statement-id "${FUNCTION_NAME}-eventbridge" \
