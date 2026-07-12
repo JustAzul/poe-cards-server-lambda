@@ -1,7 +1,7 @@
 import { CurrencyItem } from '@domain/value-objects/currency-item';
 import { ICurrencyPriceSource } from '@infrastructure/ports/currency-price-source.port';
 import { PoeNinjaExchangeResponse } from '@infrastructure/types/poe-ninja-exchange.types';
-import { ExchangeOverviewParser, finiteVolume } from '@infrastructure/adapters/http/exchange-overview.parser';
+import { ExchangeOverviewParser } from '@infrastructure/adapters/http/exchange-overview.parser';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 import { Logger } from '@shared/logger';
 
@@ -28,10 +28,10 @@ export class PoeNinjaCurrencyExchangeService implements ICurrencyPriceSource {
 
     return ExchangeOverviewParser.parse(
       response,
-      (line, item, chaosValue) => new CurrencyItem({
+      (line, item, chaosValue, chaosVolume) => new CurrencyItem({
         currencyTypeName: item.name,
         chaosEquivalent: chaosValue,
-        volumePrimaryValue: finiteVolume(line.volumePrimaryValue),
+        volumePrimaryValue: chaosVolume,
       }),
       { warn: (message) => this.logger.warn(message), label: `PoeNinjaCurrencyExchangeService ${league}` },
     );

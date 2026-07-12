@@ -85,6 +85,7 @@ describe('PoeNinjaCurrencyExchangeService', () => {
     const [annul] = await service.fetchCurrencyPrices('Mirage');
 
     expect(annul.chaosEquivalent).toBeCloseTo(54.25); // 0.1 divine * 542.5
+    expect(annul.getVolume()).toBeCloseTo(54250); // 100 divine * 542.5, not raw 100
   });
 
   it('should propagate network errors (does not swallow to empty)', async () => {

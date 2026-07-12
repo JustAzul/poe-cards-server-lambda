@@ -119,6 +119,7 @@ describe('PoeNinjaExchangeService', () => {
     const [price] = await service.fetchPrices('Mirage');
 
     expect(price.chaosValue).toBe(1085); // 2 divine * 542.5 chaos/divine
+    expect(price.volumePrimaryValue).toBe(5425); // 10 divine * 542.5, not raw 10
   });
 
   it('should propagate network errors (does not swallow to empty)', async () => {

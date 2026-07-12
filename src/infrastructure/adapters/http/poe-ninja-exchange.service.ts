@@ -1,6 +1,6 @@
 import { DivCardPrice, IDivCardPriceSource } from '@infrastructure/ports/div-card-price-source.port';
 import { PoeNinjaExchangeResponse } from '@infrastructure/types/poe-ninja-exchange.types';
-import { ExchangeOverviewParser, finiteVolume } from '@infrastructure/adapters/http/exchange-overview.parser';
+import { ExchangeOverviewParser } from '@infrastructure/adapters/http/exchange-overview.parser';
 import { HttpClient } from '@infrastructure/adapters/http/http-client';
 import { Logger } from '@shared/logger';
 
@@ -26,11 +26,11 @@ export class PoeNinjaExchangeService implements IDivCardPriceSource {
 
     return ExchangeOverviewParser.parse(
       response,
-      (line, item, chaosValue) => ({
+      (line, item, chaosValue, chaosVolume) => ({
         slug: line.id,
         name: item.name,
         chaosValue,
-        volumePrimaryValue: finiteVolume(line.volumePrimaryValue),
+        volumePrimaryValue: chaosVolume,
       }),
       { warn: (message) => this.logger.warn(message), label: `PoeNinjaExchangeService ${league}` },
     );

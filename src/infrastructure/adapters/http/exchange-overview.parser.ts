@@ -21,14 +21,20 @@ export interface ExchangeParseHooks {
 /**
  * Shared reader for the poe.ninja normalized exchange shape (`{core, items, lines}`).
  * Owns the boundary-validation invariant for every exchange consumer: validate the
- * shape, normalize `primaryValue` to chaos, join `lines`↔`items` by id, and degrade
- * to empty with a warning — never trust-cast. Each consumer supplies a per-entry
- * mapper that receives the already-chaos-normalized value.
+ * shape, normalize `primaryValue` and `volumePrimaryValue` to chaos (both are
+ * denominated in `core.primary`), join `lines`↔`items` by id, and degrade to empty
+ * with a warning — never trust-cast. Each consumer supplies a per-entry mapper that
+ * receives the already-chaos-normalized values.
  */
 export class ExchangeOverviewParser {
   static parse<T>(
     response: PoeNinjaExchangeResponse,
-    mapEntry: (line: PoeNinjaExchangeLine, item: PoeNinjaExchangeItem, chaosValue: number) => T,
+    mapEntry: (
+      line: PoeNinjaExchangeLine,
+      item: PoeNinjaExchangeItem,
+      chaosValue: number,
+      chaosVolume: number,
+    ) => T,
     hooks: ExchangeParseHooks,
   ): T[] {
     if (!ExchangeOverviewParser.isWellFormed(response)) {
@@ -56,7 +62,8 @@ export class ExchangeOverviewParser {
       const item = typeof line.id === 'string' ? itemsById.get(line.id) : undefined;
 
       if (item && Number.isFinite(line.primaryValue)) {
-        out.push(mapEntry(line, item, line.primaryValue * chaosMultiplier));
+        const chaosVolume = finiteVolume(line.volumePrimaryValue) * chaosMultiplier;
+        out.push(mapEntry(line, item, line.primaryValue * chaosMultiplier, chaosVolume));
       } else {
         droppedCount += 1;
       }
