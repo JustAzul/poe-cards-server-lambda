@@ -17,19 +17,21 @@ export class FanOutService {
     const revalidateUrl = process.env.REVALIDATE_URL;
     const broadcastUrl = process.env.BROADCAST_URL;
 
-    if (!revalidateUrl || !broadcastUrl) {
+    if (!revalidateUrl && !broadcastUrl) {
       this.warnMissingConfigOnce();
       return;
     }
 
-    const revalidated = await this.postWithRetry(
-      revalidateUrl,
-      { leagueName },
-      process.env.REVALIDATE_SECRET,
-      `revalidate for ${leagueName}`,
-    );
+    const revalidated = revalidateUrl
+      ? await this.postWithRetry(
+        revalidateUrl,
+        { leagueName },
+        process.env.REVALIDATE_SECRET,
+        `revalidate for ${leagueName}`,
+      )
+      : true;
 
-    if (!revalidated) return;
+    if (!revalidated || !broadcastUrl) return;
 
     await this.postWithRetry(
       `${broadcastUrl}/${encodeURIComponent(leagueName)}`,
