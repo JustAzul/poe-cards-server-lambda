@@ -170,7 +170,7 @@ export class RewardParserService {
     const card = new DivinationCard(
       cardName,
       reward,
-      createItemRewardSpec(ItemClass.SKILL_GEM, corrupted, 0, gemLevel),
+      createItemRewardSpec(ItemClass.SKILL_GEM, corrupted, gemLevel),
     );
 
     return { card, skipped: false };
@@ -193,7 +193,7 @@ export class RewardParserService {
     const card = new DivinationCard(
       cardName,
       content,
-      createItemRewardSpec(itemClass, corrupted, 0, 0),
+      createItemRewardSpec(itemClass, corrupted, 0),
     );
 
     return { card, skipped: false };

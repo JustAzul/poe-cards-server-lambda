@@ -44,7 +44,6 @@ describe('RewardParserService', () => {
         type: RewardType.ITEM,
         itemClass: ItemClass.UNIQUE,
         corrupted: false,
-        links: 0,
         gemLevel: 0,
       });
     });
@@ -143,7 +142,6 @@ describe('RewardParserService', () => {
         type: RewardType.ITEM,
         itemClass: ItemClass.DIVINATION_CARD,
         corrupted: false,
-        links: 0,
         gemLevel: 0,
       });
     });
@@ -174,7 +172,6 @@ describe('RewardParserService', () => {
         type: RewardType.ITEM,
         itemClass: ItemClass.SKILL_GEM,
         corrupted: true,
-        links: 0,
         gemLevel: 4,
       });
     });

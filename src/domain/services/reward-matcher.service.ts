@@ -88,10 +88,16 @@ export class RewardMatcherService {
   /**
    * Match item reward by name and specifications
    *
-   * Gem matching: strict on itemClass, corruption, links, gemLevel
-   * Non-gem matching: relaxed — poe.ninja doesn't track corruption
-   * or links as price variants for unique items, and some uniques
-   * appear under itemClass 10 (relic variants) instead of 3
+   * Gem matching: strict on itemClass, corruption, gemLevel — gems have no
+   * link count in-game, so links is not part of the match.
+   * Non-gem matching: relaxed on itemClass (accept relic variants) and
+   * ignores corruption — poe.ninja never lists the same unique at both
+   * corrupted and non-corrupted, so there's no tier to disambiguate. Link
+   * tier DOES vary per listing for uniques, so when a name resolves to
+   * several link-tier candidates, prefer the 0-link/base variant: no
+   * divination-card mechanic grants a pre-linked unique (cards that grant
+   * links only ever grant normal/base items, which parseItemTag already
+   * excludes via UNSUPPORTED_TAGS).
    */
   private matchItem(
     index: MarketIndex,
@@ -109,25 +115,47 @@ export class RewardMatcherService {
       if (isGem) {
         return item.itemClass === rewardSpec.itemClass
           && (item.corrupted ?? false) === rewardSpec.corrupted
-          && (item.links ?? 0) === rewardSpec.links
           && (item.gemLevel ?? 0) === rewardSpec.gemLevel;
       }
-      // Non-gem: match itemClass loosely (accept relic variants)
-      // and ignore corruption + links (API doesn't price by these)
       return item.itemClass === rewardSpec.itemClass
         || item.itemClass === ItemClass.RELIC;
     });
 
-    if (matches.length > 1) {
-      this.logger.warn(
-        `[RewardMatcher] Ambiguous match: card "${card.name}" reward "${card.reward}" `
-        + `matched ${matches.length} items, using highest-count entry`,
-      );
-      matches.sort((a, b) => (b.count ?? 0) - (a.count ?? 0)
-        || b.chaosValue - a.chaosValue);
-      return matches[0];
+    if (matches.length <= 1) {
+      return matches.length === 1 ? matches[0] : null;
     }
 
-    return matches.length === 1 ? matches[0] : null;
+    if (!isGem) {
+      const baseLinkMatches = matches.filter((item) => (item.links ?? 0) === 0);
+      if (baseLinkMatches.length >= 1) {
+        if (baseLinkMatches.length < matches.length) {
+          this.logger.warn(
+            `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
+            + `${matches.length} link-tier variants; selected the 0-link/base variant`,
+          );
+        }
+        if (baseLinkMatches.length === 1) return baseLinkMatches[0];
+        return RewardMatcherService.pickHighestCount(this.logger, card, baseLinkMatches);
+      }
+    }
+
+    return RewardMatcherService.pickHighestCount(this.logger, card, matches);
+  }
+
+  /**
+   * Tie-break an ambiguous set of candidates by listing count, then chaosValue
+   */
+  private static pickHighestCount(
+    logger: Logger,
+    card: DivinationCard,
+    matches: ItemOverview[],
+  ): ItemOverview {
+    logger.warn(
+      `[RewardMatcher] Ambiguous match: card "${card.name}" reward "${card.reward}" `
+      + `matched ${matches.length} items, using highest-count entry`,
+    );
+    matches.sort((a, b) => (b.count ?? 0) - (a.count ?? 0)
+      || b.chaosValue - a.chaosValue);
+    return matches[0];
   }
 }

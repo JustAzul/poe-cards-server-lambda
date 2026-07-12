@@ -37,7 +37,7 @@ function makeItemCard(name = 'Test Card', reward = 'Test Reward'): DivinationCar
   return new DivinationCard(
     name,
     reward,
-    createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+    createItemRewardSpec(ItemClass.UNIQUE, false, 0),
   );
 }
 

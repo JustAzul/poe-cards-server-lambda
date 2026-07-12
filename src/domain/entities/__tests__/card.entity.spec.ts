@@ -5,7 +5,7 @@ import { ItemClass } from '@domain/value-objects/item-class.enum';
 describe('DivinationCard', () => {
   describe('constructor', () => {
     it('should store name, reward, and rewardSpec correctly', () => {
-      const rewardSpec = createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0);
+      const rewardSpec = createItemRewardSpec(ItemClass.UNIQUE, false, 0);
       const card = new DivinationCard('The Doctor', 'Headhunter', rewardSpec);
 
       expect(card.name).toBe('The Doctor');
@@ -34,7 +34,7 @@ describe('DivinationCard', () => {
       const card = new DivinationCard(
         'The Doctor',
         'Headhunter',
-        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0),
       );
 
       expect(card.isCurrencyCard()).toBe(false);
@@ -44,7 +44,7 @@ describe('DivinationCard', () => {
       const card = new DivinationCard(
         'Dialla\'s Subjugation',
         'Enlighten Support',
-        createItemRewardSpec(ItemClass.SKILL_GEM, false, 0, 21),
+        createItemRewardSpec(ItemClass.SKILL_GEM, false, 21),
       );
 
       expect(card.isCurrencyCard()).toBe(false);

@@ -154,7 +154,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.UNIQUE }),
@@ -171,7 +171,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           makeItem({ name: 'Mageblood', itemClass: ItemClass.UNIQUE }),
@@ -186,7 +186,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           makeItem({ name: 'Headhunter', itemClass: ItemClass.SKILL_GEM }),
@@ -203,7 +203,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'Test Card',
           'Mageblood',
-          createItemRewardSpec(ItemClass.UNIQUE, true, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, true, 0),
         );
         const index = service.buildIndex([
           makeItem({ name: 'Mageblood', itemClass: ItemClass.UNIQUE }),
@@ -220,7 +220,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'Test Card',
           'Empower Support',
-          createItemRewardSpec(ItemClass.SKILL_GEM, true, 0, 4),
+          createItemRewardSpec(ItemClass.SKILL_GEM, true, 4),
         );
         const index = service.buildIndex([
           makeItem({
@@ -233,32 +233,32 @@ describe('RewardMatcherService', () => {
         expect(result).toBeNull();
       });
 
-      it('should return null when gem links do not match', () => {
+      it('should match a linked gem listing (gems have no link count in-game)', () => {
         const card = new DivinationCard(
           'Test Card',
           'Empower Support',
-          createItemRewardSpec(ItemClass.SKILL_GEM, true, 6, 4),
+          createItemRewardSpec(ItemClass.SKILL_GEM, true, 4),
         );
         const index = service.buildIndex([
           makeItem({
             name: 'Empower Support',
             itemClass: ItemClass.SKILL_GEM,
             corrupted: true,
-            links: 0,
             gemLevel: 4,
           }),
         ], []);
 
         const result = service.findRewardPrice(index, card);
 
-        expect(result).toBeNull();
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).name).toBe('Empower Support');
       });
 
-      it('should ignore links when matching non-gem items', () => {
+      it('should match a non-gem item that has links when it is the only listing', () => {
         const card = new DivinationCard(
           'Humility',
           'Tabula Rasa',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           makeItem({
@@ -274,11 +274,65 @@ describe('RewardMatcherService', () => {
         expect((result as ItemOverview).name).toBe('Tabula Rasa');
       });
 
+      it('should prefer the 0-link variant when a unique has multiple link-tier listings', () => {
+        // Regression: divination cards never grant a pre-linked unique — poe.ninja
+        // can list the same name at several link tiers with wildly different prices
+        // (e.g. "The Searing Touch": None/6/5/6/None), and the old highest-count
+        // tie-break could silently pick a far more expensive linked variant.
+        const warnMessages: string[] = [];
+        // eslint-disable-next-line no-empty-function, max-len
+        const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
+        const serviceWithLogger = new RewardMatcherService(logger);
+
+        const card = new DivinationCard(
+          'Test Card',
+          'The Searing Touch',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
+        );
+        const index = serviceWithLogger.buildIndex([
+          makeItem({
+            name: 'The Searing Touch', itemClass: ItemClass.UNIQUE, chaosValue: 267560, links: 6, count: 40,
+          }),
+          makeItem({
+            name: 'The Searing Touch', itemClass: ItemClass.UNIQUE, chaosValue: 45, count: 3,
+          }),
+        ], []);
+
+        const result = serviceWithLogger.findRewardPrice(index, card);
+
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).chaosValue).toBe(45);
+        expect(warnMessages).toHaveLength(1);
+        expect(warnMessages[0]).toContain('link-tier variants');
+        expect(warnMessages[0]).toContain('0-link/base variant');
+      });
+
+      it('should fall back to the highest-count tie-break when no 0-link variant exists', () => {
+        const card = new DivinationCard(
+          'Test Card',
+          'The Searing Touch',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
+        );
+        const index = service.buildIndex([
+          makeItem({
+            name: 'The Searing Touch', itemClass: ItemClass.UNIQUE, chaosValue: 267560, links: 6, count: 40,
+          }),
+          makeItem({
+            name: 'The Searing Touch', itemClass: ItemClass.UNIQUE, chaosValue: 180000, links: 5, count: 10,
+          }),
+        ], []);
+
+        const result = service.findRewardPrice(index, card);
+
+        expect(result).not.toBeNull();
+        expect((result as ItemOverview).links).toBe(6);
+      });
+
       it('should match relic variant (itemClass 10) for unique rewards', () => {
         const card = new DivinationCard(
           'Father\'s Love',
           'Sublime Vision',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           makeItem({
@@ -297,7 +351,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'Test Card',
           'Empower Support',
-          createItemRewardSpec(ItemClass.SKILL_GEM, true, 0, 4),
+          createItemRewardSpec(ItemClass.SKILL_GEM, true, 4),
         );
         const index = service.buildIndex([
           makeItem({
@@ -319,7 +373,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = serviceWithLogger.buildIndex([
           makeItem({
@@ -345,7 +399,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           makeItem({
@@ -366,7 +420,7 @@ describe('RewardMatcherService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
         const index = service.buildIndex([
           new ItemOverview({

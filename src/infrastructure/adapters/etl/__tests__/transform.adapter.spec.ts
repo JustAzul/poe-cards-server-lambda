@@ -19,7 +19,7 @@ import { PoeNinjaItemMeta } from '@infrastructure/types/poe-ninja-item-meta';
 const silentLogger = { log: () => {}, warn: () => {}, error: () => {} };
 
 function buildCard(name = 'The Doctor'): DivinationCard {
-  return new DivinationCard(name, 'Headhunter', createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0));
+  return new DivinationCard(name, 'Headhunter', createItemRewardSpec(ItemClass.UNIQUE, false, 0));
 }
 
 function buildCurrencyCard(name = 'The Hoarder'): DivinationCard {

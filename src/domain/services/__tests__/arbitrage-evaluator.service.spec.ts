@@ -45,7 +45,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
 
         leagueData.items = [cardOverview, rewardOverview];
@@ -82,7 +82,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'The Wretched',
           'Gem Name',
-          createItemRewardSpec(ItemClass.SKILL_GEM, false, 0, 20),
+          createItemRewardSpec(ItemClass.SKILL_GEM, false, 20),
         );
 
         leagueData.items = [cardOverview, rewardOverview];
@@ -97,7 +97,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'Nonexistent Card',
           'Nonexistent Item',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
 
         leagueData.items = [];
@@ -119,7 +119,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Nonexistent Item',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
 
         leagueData.items = [cardOverview];
@@ -148,7 +148,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
 
         leagueData.items = [cardOverview, rewardOverview];
@@ -164,7 +164,7 @@ describe('ArbitrageEvaluatorService', () => {
         const nurseCard = new DivinationCard(
           'The Nurse',
           'The Doctor',
-          createItemRewardSpec(ItemClass.DIVINATION_CARD, false, 0, 0),
+          createItemRewardSpec(ItemClass.DIVINATION_CARD, false, 0),
         );
 
         const nurseOverview = new ItemOverview({
@@ -197,7 +197,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
 
         const cardOverview = new ItemOverview({
@@ -241,7 +241,7 @@ describe('ArbitrageEvaluatorService', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Bad Reward',
-          createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
 
         leagueData.items = [cardOverview, rewardOverview];
@@ -381,7 +381,7 @@ describe('ArbitrageEvaluatorService', () => {
       const doctorCard = new DivinationCard(
         'The Doctor',
         'Headhunter',
-        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0),
       );
 
       // Profitable currency card (need high enough reward to exceed card cost)
@@ -395,7 +395,7 @@ describe('ArbitrageEvaluatorService', () => {
       const unprofitableCard = new DivinationCard(
         'Bad Card',
         'Bad Item',
-        createItemRewardSpec(ItemClass.SKILL_GEM, false, 0, 0),
+        createItemRewardSpec(ItemClass.SKILL_GEM, false, 0),
       );
 
       leagueData.items = [
@@ -455,7 +455,7 @@ describe('ArbitrageEvaluatorService', () => {
       const card = new DivinationCard(
         'Unprofitable',
         'Cheap Reward',
-        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0),
       );
 
       leagueData.items = [

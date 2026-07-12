@@ -19,7 +19,6 @@ export interface ItemRewardSpec {
   type: RewardType.ITEM;
   itemClass: ItemClass;
   corrupted: boolean;
-  links: number;
   gemLevel: number;
 }
 
@@ -44,12 +43,8 @@ export function createCurrencyRewardSpec(amount: number): CurrencyRewardSpec {
 export function createItemRewardSpec(
   itemClass: ItemClass,
   corrupted: boolean,
-  links: number,
   gemLevel: number,
 ): ItemRewardSpec {
-  if (!Number.isFinite(links) || links < 0) {
-    throw new Error(`Invalid links value: ${links}`);
-  }
   if (!Number.isFinite(gemLevel) || gemLevel < 0) {
     throw new Error(`Invalid gemLevel value: ${gemLevel}`);
   }
@@ -57,7 +52,6 @@ export function createItemRewardSpec(
     type: RewardType.ITEM,
     itemClass,
     corrupted,
-    links,
     gemLevel,
   };
 }

@@ -67,7 +67,7 @@ describe('ArbitrageMapper.toDto', () => {
       const card = new DivinationCard(
         'The Doctor',
         'Headhunter',
-        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0),
       );
       const cardPrice = buildCardOverview({ name: 'The Doctor' });
       const rewardPrice = new ItemOverview({
@@ -93,7 +93,7 @@ describe('ArbitrageMapper.toDto', () => {
       const card = new DivinationCard(
         'The Doctor',
         'Headhunter',
-        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0),
       );
       const cardPrice = buildCardOverview({ name: 'The Doctor' });
       const rewardPrice = new ItemOverview({
@@ -156,7 +156,7 @@ describe('ArbitrageMapper.toDto', () => {
       const card = new DivinationCard(
         'Dialla\'s Subjugation',
         'Enlighten Support',
-        createItemRewardSpec(ItemClass.SKILL_GEM, false, 0, 21),
+        createItemRewardSpec(ItemClass.SKILL_GEM, false, 21),
       );
       const cardPrice = buildCardOverview({ name: 'Dialla\'s Subjugation', stackSize: 4 });
       const rewardPrice = new ItemOverview({
@@ -180,7 +180,7 @@ describe('ArbitrageMapper.toDto', () => {
       const card = new DivinationCard(
         'Corrupted Card',
         'Corrupted Item',
-        createItemRewardSpec(ItemClass.UNIQUE, true, 6, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, true, 0),
       );
       const cardPrice = buildCardOverview({ name: 'Corrupted Card' });
       const rewardPrice = new ItemOverview({
@@ -247,7 +247,7 @@ describe('ArbitrageMapper.toDto', () => {
       const card = new DivinationCard(
         'The Doctor',
         'Headhunter',
-        createItemRewardSpec(ItemClass.UNIQUE, false, 0, 0),
+        createItemRewardSpec(ItemClass.UNIQUE, false, 0),
       );
       const cardPrice = buildCardOverview({
         name: 'The Doctor',
