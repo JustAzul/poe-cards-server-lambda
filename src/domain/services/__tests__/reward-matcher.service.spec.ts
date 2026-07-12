@@ -150,7 +150,7 @@ describe('RewardMatcherService', () => {
     });
 
     describe('item cards', () => {
-      it('should match item by name, itemClass, corrupted, links, and gemLevel', () => {
+      it('should match unique item reward by name and itemClass', () => {
         const card = new DivinationCard(
           'The Doctor',
           'Headhunter',
@@ -254,7 +254,10 @@ describe('RewardMatcherService', () => {
         expect((result as ItemOverview).name).toBe('Empower Support');
       });
 
-      it('should match a non-gem item that has links when it is the only listing', () => {
+      it('should return null when a non-gem item\'s only listing is linked (no base variant)', () => {
+        // No divination-card mechanic grants a pre-linked unique, so a linked-only
+        // listing is never the correct price for this reward — better to report
+        // "no price" than silently value the card off the wrong (linked) tier.
         const card = new DivinationCard(
           'Humility',
           'Tabula Rasa',
@@ -270,8 +273,7 @@ describe('RewardMatcherService', () => {
 
         const result = service.findRewardPrice(index, card);
 
-        expect(result).not.toBeNull();
-        expect((result as ItemOverview).name).toBe('Tabula Rasa');
+        expect(result).toBeNull();
       });
 
       it('should prefer the 0-link variant when a unique has multiple link-tier listings', () => {
@@ -307,13 +309,18 @@ describe('RewardMatcherService', () => {
         expect(warnMessages[0]).toContain('0-link/base variant');
       });
 
-      it('should fall back to the highest-count tie-break when no 0-link variant exists', () => {
+      it('should return null when no 0-link variant exists among several linked listings', () => {
+        const warnMessages: string[] = [];
+        // eslint-disable-next-line no-empty-function, max-len
+        const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
+        const serviceWithLogger = new RewardMatcherService(logger);
+
         const card = new DivinationCard(
           'Test Card',
           'The Searing Touch',
           createItemRewardSpec(ItemClass.UNIQUE, false, 0),
         );
-        const index = service.buildIndex([
+        const index = serviceWithLogger.buildIndex([
           makeItem({
             name: 'The Searing Touch', itemClass: ItemClass.UNIQUE, chaosValue: 267560, links: 6, count: 40,
           }),
@@ -322,10 +329,10 @@ describe('RewardMatcherService', () => {
           }),
         ], []);
 
-        const result = service.findRewardPrice(index, card);
+        const result = serviceWithLogger.findRewardPrice(index, card);
 
-        expect(result).not.toBeNull();
-        expect((result as ItemOverview).links).toBe(6);
+        expect(result).toBeNull();
+        expect(warnMessages.some((m) => m.includes('no 0-link/base variant') || m.includes('no valid price'))).toBe(true);
       });
 
       it('should match relic variant (itemClass 10) for unique rewards', () => {

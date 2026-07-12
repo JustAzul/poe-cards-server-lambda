@@ -121,25 +121,31 @@ export class RewardMatcherService {
         || item.itemClass === ItemClass.RELIC;
     });
 
-    if (matches.length <= 1) {
-      return matches.length === 1 ? matches[0] : null;
-    }
+    if (matches.length === 0) return null;
 
     if (!isGem) {
       const baseLinkMatches = matches.filter((item) => (item.links ?? 0) === 0);
-      if (baseLinkMatches.length >= 1) {
-        if (baseLinkMatches.length < matches.length) {
-          this.logger.warn(
-            `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
-            + `${matches.length} link-tier variants; selected the 0-link/base variant`,
-          );
-        }
-        if (baseLinkMatches.length === 1) return baseLinkMatches[0];
-        return RewardMatcherService.pickHighestCount(this.logger, card, baseLinkMatches);
+      if (baseLinkMatches.length === 0) {
+        this.logger.warn(
+          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" only has `
+          + 'linked-tier listings (no 0-link/base variant); no valid price',
+        );
+        return null;
       }
+      if (baseLinkMatches.length < matches.length) {
+        this.logger.warn(
+          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
+          + `${matches.length} link-tier variants; selected the 0-link/base variant`,
+        );
+      }
+      return baseLinkMatches.length === 1
+        ? baseLinkMatches[0]
+        : RewardMatcherService.pickHighestCount(this.logger, card, baseLinkMatches);
     }
 
-    return RewardMatcherService.pickHighestCount(this.logger, card, matches);
+    return matches.length === 1
+      ? matches[0]
+      : RewardMatcherService.pickHighestCount(this.logger, card, matches);
   }
 
   /**
