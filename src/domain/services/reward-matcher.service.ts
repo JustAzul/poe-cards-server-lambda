@@ -24,6 +24,22 @@ export interface MarketIndex {
 export class RewardMatcherService {
   private static readonly DIVINATION_CARD_CLASS = ItemClass.DIVINATION_CARD;
 
+  /**
+   * Base types that can never exist at 0 links (verified via poedb.tw/poewiki.net).
+   * For these, the lowest listed tier is the lowest possible tier. Any other unique
+   * with no 0-link listing gets null instead — a missing 0-link listing there means
+   * "not currently for sale unlinked," not "impossible," and using a linked price
+   * would overstate the card's actual (unlinked) reward value.
+   */
+  private static readonly INTRINSICALLY_LINKED_UNIQUES = new Set([
+    'Tabula Rasa',
+    'Skin of the Loyal',
+    'Skin of the Lords',
+    'The Goddess Unleashed',
+    'Oni-Goroshi',
+    'Shadowstitch',
+  ]);
+
   constructor(private readonly logger: Logger) {}
 
   /**
@@ -121,7 +137,7 @@ export class RewardMatcherService {
     if (matches.length === 0) return null;
 
     if (!isGem) {
-      return this.matchLowestLinkTier(card, matches);
+      return this.matchLinkTier(card, matches);
     }
 
     return matches.length === 1
@@ -130,20 +146,46 @@ export class RewardMatcherService {
   }
 
   /**
-   * Divination cards grant the lowest link tier a unique can exist at — 0 for
-   * an ordinary unique, but some base types (e.g. Tabula Rasa, always 6
-   * linked white sockets — see the "Humility" card) can never exist unlinked.
-   * Picking whichever tier is lowest among the actual market listings covers
-   * both cases without assuming 0 is always reachable.
+   * Divination cards grant the base (0-link) variant of an ordinary unique.
+   * A handful of base types can never exist at 0 links (INTRINSICALLY_LINKED_UNIQUES);
+   * for those, the lowest listed tier is the correct match. For everything else, a
+   * missing 0-link listing means "not for sale unlinked right now," not "impossible" —
+   * matching a linked listing there would overstate the reward's real value, so return
+   * null instead of guessing.
    */
-  private matchLowestLinkTier(card: DivinationCard, matches: ItemOverview[]): ItemOverview {
+  private matchLinkTier(card: DivinationCard, matches: ItemOverview[]): ItemOverview | null {
+    if (!RewardMatcherService.INTRINSICALLY_LINKED_UNIQUES.has(card.reward)) {
+      const zeroLinkMatches = matches.filter((item) => (item.links ?? 0) === 0);
+
+      if (zeroLinkMatches.length === 0) {
+        this.logger.warn(
+          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" has no 0-link `
+          + `listing among ${matches.length} candidate(s); skipping (not an `
+          + 'intrinsically-linked base type)',
+        );
+        return null;
+      }
+
+      if (zeroLinkMatches.length < matches.length) {
+        this.logger.warn(
+          `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
+          + `${matches.length} link-tier variants; selected the 0-link variant`,
+        );
+      }
+
+      return zeroLinkMatches.length === 1
+        ? zeroLinkMatches[0]
+        : RewardMatcherService.pickHighestCount(this.logger, card, zeroLinkMatches);
+    }
+
     const minLinks = Math.min(...matches.map((item) => item.links ?? 0));
     const lowestTierMatches = matches.filter((item) => (item.links ?? 0) === minLinks);
 
     if (lowestTierMatches.length < matches.length) {
       this.logger.warn(
         `[RewardMatcher] Card "${card.name}" reward "${card.reward}" had `
-        + `${matches.length} link-tier variants; selected the ${minLinks}-link variant`,
+        + `${matches.length} link-tier variants; selected the ${minLinks}-link variant `
+        + '(intrinsically-linked base type)',
       );
     }
 

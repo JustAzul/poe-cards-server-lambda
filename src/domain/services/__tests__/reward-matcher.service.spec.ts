@@ -311,7 +311,11 @@ describe('RewardMatcherService', () => {
         expect(warnMessages[0]).toContain('0-link variant');
       });
 
-      it('should select the lowest linked tier when no 0-link variant exists', () => {
+      it('should return null for an ordinary unique with no 0-link listing available', () => {
+        // "The Searing Touch" is an ordinary unique — its base (0-link) tier can exist,
+        // it's just not currently listed. Matching the cheapest available linked listing
+        // would overstate the card's actual (unlinked) reward value, so this must return
+        // null rather than guess at a linked price.
         const warnMessages: string[] = [];
         // eslint-disable-next-line no-empty-function, max-len
         const logger = { warn: (msg: string) => { warnMessages.push(msg); }, log: () => {}, error: () => {} };
@@ -333,9 +337,26 @@ describe('RewardMatcherService', () => {
 
         const result = serviceWithLogger.findRewardPrice(index, card);
 
+        expect(result).toBeNull();
+        expect(warnMessages[0]).toContain('no 0-link listing');
+      });
+
+      it('should match the lowest listed tier for another intrinsically-linked base type (Shadowstitch)', () => {
+        const card = new DivinationCard(
+          'Test Card',
+          'Shadowstitch',
+          createItemRewardSpec(ItemClass.UNIQUE, false, 0),
+        );
+        const index = service.buildIndex([
+          makeItem({
+            name: 'Shadowstitch', itemClass: ItemClass.UNIQUE, chaosValue: 500, links: 6,
+          }),
+        ], []);
+
+        const result = service.findRewardPrice(index, card);
+
         expect(result).not.toBeNull();
-        expect((result as ItemOverview).links).toBe(5);
-        expect(warnMessages[0]).toContain('5-link variant');
+        expect((result as ItemOverview).name).toBe('Shadowstitch');
       });
 
       it('should match relic variant (itemClass 10) for unique rewards', () => {
