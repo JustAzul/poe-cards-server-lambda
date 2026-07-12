@@ -11,6 +11,10 @@ const MAX_ATTEMPTS = 2; // one retry after the initial attempt
 export class FanOutService {
   private warnedMissingConfig = false;
 
+  private warnedMissingRevalidateUrl = false;
+
+  private warnedMissingBroadcastUrl = false;
+
   constructor(private readonly logger: Logger) {}
 
   async notifyLeagueUpdated(leagueName: string): Promise<void> {
@@ -22,16 +26,24 @@ export class FanOutService {
       return;
     }
 
-    const revalidated = revalidateUrl
-      ? await this.postWithRetry(
+    let revalidated = true;
+    if (revalidateUrl) {
+      revalidated = await this.postWithRetry(
         revalidateUrl,
         { leagueName },
         process.env.REVALIDATE_SECRET,
         `revalidate for ${leagueName}`,
-      )
-      : true;
+      );
+    } else {
+      this.warnMissingRevalidateUrlOnce();
+    }
 
-    if (!revalidated || !broadcastUrl) return;
+    if (!revalidated) return;
+
+    if (!broadcastUrl) {
+      this.warnMissingBroadcastUrlOnce();
+      return;
+    }
 
     await this.postWithRetry(
       `${broadcastUrl}/${encodeURIComponent(leagueName)}`,
@@ -68,6 +80,20 @@ export class FanOutService {
 
     this.logger.warn('FanOutService: REVALIDATE_URL/BROADCAST_URL not set — skipping fan-out notifications');
     this.warnedMissingConfig = true;
+  }
+
+  private warnMissingRevalidateUrlOnce(): void {
+    if (this.warnedMissingRevalidateUrl) return;
+
+    this.logger.warn('FanOutService: REVALIDATE_URL not set — skipping league revalidate notification');
+    this.warnedMissingRevalidateUrl = true;
+  }
+
+  private warnMissingBroadcastUrlOnce(): void {
+    if (this.warnedMissingBroadcastUrl) return;
+
+    this.logger.warn('FanOutService: BROADCAST_URL not set — skipping broadcast notification');
+    this.warnedMissingBroadcastUrl = true;
   }
 
   private async postWithRetry(

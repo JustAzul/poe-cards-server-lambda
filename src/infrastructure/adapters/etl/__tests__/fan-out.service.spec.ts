@@ -115,36 +115,46 @@ describe('FanOutService.notifyLeagueUpdated', () => {
     );
   });
 
-  it('still broadcasts when only BROADCAST_URL is set (REVALIDATE_URL unset)', async () => {
+  it('still broadcasts when only BROADCAST_URL is set, and warns once about the missing '
+    + 'REVALIDATE_URL', async () => {
     delete process.env.REVALIDATE_URL;
     process.env.BROADCAST_URL = 'https://example.com/api/broadcast';
     mockedAxiosPost.mockResolvedValue({});
+    const logger = makeLogger();
 
-    const fanOut = new FanOutService(makeLogger());
+    const fanOut = new FanOutService(logger);
+    await fanOut.notifyLeagueUpdated('Standard');
     await fanOut.notifyLeagueUpdated('Standard');
 
-    expect(mockedAxiosPost).toHaveBeenCalledTimes(1);
+    expect(mockedAxiosPost).toHaveBeenCalledTimes(2);
     expect(mockedAxiosPost).toHaveBeenCalledWith(
       'https://example.com/api/broadcast/Standard',
       { leagueName: 'Standard' },
       { headers: undefined },
     );
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('REVALIDATE_URL not set'));
   });
 
-  it('still revalidates when only REVALIDATE_URL is set (BROADCAST_URL unset)', async () => {
+  it('still revalidates when only REVALIDATE_URL is set, and warns once about the missing '
+    + 'BROADCAST_URL', async () => {
     process.env.REVALIDATE_URL = 'https://example.com/api/revalidate';
     delete process.env.BROADCAST_URL;
     mockedAxiosPost.mockResolvedValue({});
+    const logger = makeLogger();
 
-    const fanOut = new FanOutService(makeLogger());
+    const fanOut = new FanOutService(logger);
+    await fanOut.notifyLeagueUpdated('Standard');
     await fanOut.notifyLeagueUpdated('Standard');
 
-    expect(mockedAxiosPost).toHaveBeenCalledTimes(1);
+    expect(mockedAxiosPost).toHaveBeenCalledTimes(2);
     expect(mockedAxiosPost).toHaveBeenCalledWith(
       'https://example.com/api/revalidate',
       { leagueName: 'Standard' },
       { headers: undefined },
     );
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('BROADCAST_URL not set'));
   });
 
   it('warns once and skips both requests when neither URL is set', async () => {
