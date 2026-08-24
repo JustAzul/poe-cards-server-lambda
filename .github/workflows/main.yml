@@ -108,7 +108,7 @@ jobs:
           RULE_ARN="arn:aws:events:${AWS_REGION_NAME}:${ACCOUNT_ID}:rule/${RULE_NAME}"
           FUNCTION_ARN="arn:aws:lambda:${AWS_REGION_NAME}:${ACCOUNT_ID}:function:${FUNCTION_NAME}"
 
-          aws events put-rule --name "$RULE_NAME" --schedule-expression "rate(5 minutes)" --state ENABLED
+          aws events put-rule --name "$RULE_NAME" --schedule-expression "rate(15 minutes)" --state ENABLED
           aws lambda add-permission \
             --function-name "$FUNCTION_NAME" \
             --statement-id "${FUNCTION_NAME}-eventbridge" \

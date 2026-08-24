@@ -11,9 +11,9 @@ const LEAGUES_PREFIX = 'leagues';
 const INDEX_KEY = 'index.json';
 const JSON_CONTENT_TYPE = 'application/json';
 
-// EventBridge invokes the ETL Lambda every 5 minutes; an index entry survives up to
+// EventBridge invokes the ETL Lambda every 15 minutes; an index entry survives up to
 // MAX_MISSED_RUNS consecutive misses before it's dropped as stale.
-const CADENCE_MS = 5 * 60 * 1000;
+const CADENCE_MS = 15 * 60 * 1000;
 const MAX_MISSED_RUNS = 12;
 export const INDEX_ENTRY_TTL_MS = CADENCE_MS * MAX_MISSED_RUNS;
 

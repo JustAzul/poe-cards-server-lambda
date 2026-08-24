@@ -10,7 +10,7 @@ const INDEX_KEY = 'index.json';
 
 // Single fixed "now" the whole file's fixtures are expressed relative to — every
 // `updatedAt` fixture below is `agoIso(minutes)` against this instant, so the
-// index-entry TTL (1 hour) behaves identically in 2026 as it will in any later year.
+// index-entry TTL behaves identically in 2026 as it will in any later year.
 const FIXED_NOW_ISO = '2026-07-11T20:00:00.000Z';
 const FIXED_NOW_MS = Date.parse(FIXED_NOW_ISO);
 
@@ -19,6 +19,7 @@ function agoIso(minutes: number): string {
 }
 
 const TTL_MINUTES = INDEX_ENTRY_TTL_MS / 60_000;
+const PAST_TTL_MINUTES = TTL_MINUTES + 30;
 
 function buildLeague(overrides: Partial<ConstructorParameters<typeof League>[0]> = {}): League {
   return new League({
@@ -327,9 +328,9 @@ describe('R2LoadAdapter', () => {
     ]);
   });
 
-  it('drops an index entry whose updatedAt is more than 1 hour old', async () => {
+  it('drops an index entry whose updatedAt is past the TTL', async () => {
     const existingIndexEntries = [
-      { name: 'StaleLeague', ladder: 'StaleLeague', updatedAt: agoIso(90) },
+      { name: 'StaleLeague', ladder: 'StaleLeague', updatedAt: agoIso(PAST_TTL_MINUTES) },
       { name: 'FreshLeague', ladder: 'FreshLeague', updatedAt: agoIso(10) },
     ];
     const s3Client = makeS3Client(existingIndexEntries);
@@ -416,7 +417,7 @@ describe('R2LoadAdapter', () => {
 
   it('refuses to overwrite a non-empty index when the TTL filter would empty it (zero-entry floor)', async () => {
     const existingIndexEntries = [
-      { name: 'OnlyLeague', ladder: 'OnlyLeague', updatedAt: agoIso(90) },
+      { name: 'OnlyLeague', ladder: 'OnlyLeague', updatedAt: agoIso(PAST_TTL_MINUTES) },
     ];
     const s3Client = makeS3Client(existingIndexEntries);
     const logger = makeLogger();
@@ -432,7 +433,7 @@ describe('R2LoadAdapter', () => {
 
   it('does not trigger the zero-entry floor when only some (not all) entries age out', async () => {
     const existingIndexEntries = [
-      { name: 'StaleLeague', ladder: 'StaleLeague', updatedAt: agoIso(90) },
+      { name: 'StaleLeague', ladder: 'StaleLeague', updatedAt: agoIso(PAST_TTL_MINUTES) },
       { name: 'FreshLeague', ladder: 'FreshLeague', updatedAt: agoIso(10) },
     ];
     const s3Client = makeS3Client(existingIndexEntries);
