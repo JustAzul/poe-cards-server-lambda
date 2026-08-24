@@ -94,10 +94,9 @@ jobs:
           --function-name poe-cards \
           --reserved-concurrent-executions 1
       - name: Reconcile EventBridge schedule
-        # Best-effort: the deploy IAM user currently has AWSLambda_FullAccess only, no
-        # events:* grants, so this fails with AccessDeniedException until that's widened.
-        # continue-on-error keeps that a visible warning instead of a red Lambda deploy;
-        # the rule is already ENABLED in prod today independent of this step succeeding.
+        # Best-effort: keeps a transient AWS API failure here from turning an otherwise
+        # successful Lambda deploy red, since the function code/config steps above are
+        # what actually matter for this job.
         continue-on-error: true
         env:
           RULE_NAME: poe.cards
